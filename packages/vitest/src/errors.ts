@@ -1,4 +1,17 @@
-import { ShokiError } from '@shoki/sdk';
+/**
+ * Browser-safe base class — does NOT import from @shoki/sdk because the browser
+ * entry (`@shoki/vitest/browser`) must not pull in Node-only modules.
+ * Structurally compatible with @shoki/sdk's `ShokiError` (Error + `.code`).
+ */
+export class ShokiError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+  ) {
+    super(message);
+    this.name = 'ShokiError';
+  }
+}
 
 export class ShokiConcurrentTestError extends ShokiError {
   constructor() {
