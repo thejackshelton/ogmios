@@ -1,0 +1,32 @@
+# Node
+node_modules/
+*.log
+.DS_Store
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Zig
+zig-out/
+zig-cache/
+.zig-cache/
+
+# Native addons (built locally, not committed)
+packages/binding-darwin-arm64/*.node
+packages/binding-darwin-x64/*.node
+packages/binding-*/shoki.node
+
+# Env / secrets
+.env
+.env.local
+
+# Editor
+.vscode/
+.idea/
+
+# macOS helper app build artifacts
+helper/build/
+helper/.build/
+helper/*.xcodeproj/xcuserdata/
+helper/DerivedData/
