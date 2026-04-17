@@ -68,7 +68,16 @@ Plans:
   3. A test that emits 10,000+ announcements observes `droppedCount > 0` from the ring buffer rather than silent loss or OOM, and `voiceOver.lastPhrase()`, `voiceOver.phraseLog()`, `voiceOver.clear()`, `voiceOver.reset()`, and `voiceOver.awaitStableLog({ quietMs })` all behave per their documented contracts
   4. The Zig↔TS binary wire format is documented (versioned, length-prefixed, source-tagged) and frozen with a regression test that fails if any field width or ordering changes
   5. The VO keyboard command catalog (226 VO gestures + 129 Commander commands) is exported as TS constants that users can dispatch via their own framework's keyboard driver
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — VoiceOver plist snapshot/configure/restore (9 keys, Sonoma vs Sequoia+ path-branched) (CAP-02)
+- [ ] 03-02-PLAN.md — AppleScript long-lived osascript shell + 50ms PollLoop + stall detection (CAP-04)
+- [ ] 03-03-PLAN.md — VO lifecycle: boot/verify/stop/force-kill + refcount + native exit hooks (CAP-01, CAP-03, CAP-14)
+- [ ] 03-04-PLAN.md — AX-notifications capture via ShokiRunner helper XPC + Zig XPC client (CAP-05, CAP-06)
+- [ ] 03-05-PLAN.md — VoiceOverDriver vtable + registry entry + TS factory flip to 'voiceover' (CAP-01, CAP-07, CAP-15)
+- [ ] 03-06-PLAN.md — TS SDK full surface: listen/phraseLog/lastPhrase/clear/reset/awaitStableLog + keyboard command catalog (CAP-08..13, CAP-16)
+- [ ] 03-07-PLAN.md — Integration + stress + crash-recovery + wire-regression tests (CAP-15, ROADMAP SC-1..5)
 
 ### Phase 4: Vitest Browser-Mode Integration
 **Goal**: The PROJECT.md canonical v1 success target — a Vitest browser-mode test calls `voiceOver.listen()`, drives a real web app via Playwright, and asserts on a structured VO event log with semantic matchers
