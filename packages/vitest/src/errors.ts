@@ -1,0 +1,45 @@
+import { ShokiError } from '@shoki/sdk';
+
+export class ShokiConcurrentTestError extends ShokiError {
+  constructor() {
+    super(
+      'VoiceOver is a system singleton; test.concurrent is not supported. ' +
+        'Use test() or it() (serial) inside a VO-scoped test file.',
+      'ERR_SHOKI_CONCURRENT_TEST',
+    );
+    this.name = 'ShokiConcurrentTestError';
+  }
+}
+
+export class ShokiPlatformUnsupportedError extends ShokiError {
+  constructor(public readonly platform: string) {
+    super(
+      `Shoki Vitest integration requires macOS; this host is ${platform}. ` +
+        'Run `npx shoki doctor` or set up a macOS runner — see https://github.com/shoki/shoki.',
+      'ERR_SHOKI_PLATFORM_UNSUPPORTED',
+    );
+    this.name = 'ShokiPlatformUnsupportedError';
+  }
+}
+
+export class ShokiSessionNotFoundError extends ShokiError {
+  constructor(public readonly sessionId: string) {
+    super(
+      `Shoki session "${sessionId}" is not active. Call voiceOver.start() first, or the session was already stopped.`,
+      'ERR_SHOKI_SESSION_NOT_FOUND',
+    );
+    this.name = 'ShokiSessionNotFoundError';
+  }
+}
+
+export class ShokiBindingNotAvailableError extends ShokiError {
+  constructor(cause?: string) {
+    super(
+      'The @shoki/sdk native binding is not available in this process. ' +
+        (cause ? `Underlying error: ${cause}. ` : '') +
+        'Run `npx shoki doctor` or check that the platform-specific binding is installed.',
+      'ERR_SHOKI_BINDING_NOT_AVAILABLE',
+    );
+    this.name = 'ShokiBindingNotAvailableError';
+  }
+}
