@@ -1,0 +1,30 @@
+{
+  "name": "@shoki/binding-darwin-arm64",
+  "version": "0.0.0",
+  "description": "Shoki native addon — darwin arm64 (Apple Silicon)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shoki/shoki.git",
+    "directory": "packages/binding-darwin-arm64"
+  },
+  "main": "shoki.node",
+  "files": [
+    "shoki.node",
+    "README.md",
+    "LICENSE"
+  ],
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

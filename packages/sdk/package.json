@@ -1,0 +1,53 @@
+{
+  "name": "@shoki/sdk",
+  "version": "0.0.0",
+  "description": "Screen-reader test automation SDK — TypeScript surface for Shoki's Zig native core",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shoki/shoki.git",
+    "directory": "packages/sdk"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "README.md",
+    "LICENSE"
+  ],
+  "optionalDependencies": {
+    "@shoki/binding-darwin-arm64": "workspace:*",
+    "@shoki/binding-darwin-x64": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "echo \"Tests added in plan 03\" && exit 0"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "keywords": [
+    "screen-reader",
+    "voiceover",
+    "accessibility",
+    "testing",
+    "vitest"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
