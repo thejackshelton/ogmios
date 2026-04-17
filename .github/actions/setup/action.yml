@@ -1,0 +1,159 @@
+name: shoki/setup-action
+description: >-
+  Prepare a macOS runner for shoki tests. Handles 4 topologies:
+  self-hosted tart, Cirrus Runners, GetMac, and stock GitHub-hosted.
+  Runs `shoki doctor` as the final gate.
+
+inputs:
+  topology:
+    description: >-
+      One of: tart | cirrus | getmac | github-hosted | auto.
+      `auto` (default) detects from env vars: CIRRUS_CI -> cirrus,
+      GETMAC -> getmac, SHOKI_TART -> tart, otherwise github-hosted.
+    required: false
+    default: "auto"
+  macos-version:
+    description: "sonoma | sequoia | tahoe. Used for tart image tag selection."
+    required: false
+    default: "sonoma"
+  helper-path:
+    description: >-
+      Path to a pre-built signed ShokiRunner.app bundle. If empty,
+      the setup action expects a downstream step to build the helper;
+      the TCC grants in the pre-baked image key off bundle ID, not
+      binary identity, so the build-and-install-locally path works.
+    required: false
+    default: ""
+  skip-doctor:
+    description: >-
+      If 'true', skip the final `shoki doctor` health gate. Useful
+      when the shoki binary isn't installed yet (e.g. first-run
+      bootstrap workflows). Default is 'false'.
+    required: false
+    default: "false"
+
+outputs:
+  detected-topology:
+    description: "The topology that was actually used (after auto-detection)."
+    value: ${{ steps.detect.outputs.topology }}
+
+runs:
+  using: composite
+  steps:
+    - name: Detect topology
+      id: detect
+      shell: bash
+      run: |
+        set -euo pipefail
+        REQUESTED="${{ inputs.topology }}"
+        if [[ "$REQUESTED" != "auto" ]]; then
+          echo "topology=$REQUESTED" >> "$GITHUB_OUTPUT"
+          echo "shoki-setup: using explicit topology=$REQUESTED"
+          exit 0
+        fi
+
+        # auto-detect
+        if [[ -n "${CIRRUS_CI:-}" ]]; then
+          echo "topology=cirrus" >> "$GITHUB_OUTPUT"
+        elif [[ -n "${GETMAC:-}" ]]; then
+          echo "topology=getmac" >> "$GITHUB_OUTPUT"
+        elif [[ -n "${SHOKI_TART:-}" ]]; then
+          echo "topology=tart" >> "$GITHUB_OUTPUT"
+        elif [[ -f "/etc/shoki-image" ]]; then
+          # We're already running inside a pre-baked tart VM.
+          echo "topology=tart" >> "$GITHUB_OUTPUT"
+        else
+          echo "topology=github-hosted" >> "$GITHUB_OUTPUT"
+        fi
+        echo "shoki-setup: auto-detected topology=$(cat $GITHUB_OUTPUT | grep topology | cut -d= -f2)"
+
+    - name: Kill background apps (pre-test)
+      shell: bash
+      run: ${{ github.action_path }}/kill-background-apps.sh
+
+    # ---- topology: tart ----
+    # Self-hosted Mac mini / Mac Studio with tart installed. The job runs
+    # inside a pre-baked shoki image, so most provisioning is a no-op —
+    # we just verify the image marker exists and the expected toolchain
+    # is on PATH.
+    - name: Tart — verify pre-baked shoki image
+      if: steps.detect.outputs.topology == 'tart'
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [[ ! -f "/etc/shoki-image" ]]; then
+          echo "::warning::running on topology=tart but /etc/shoki-image is missing; image may not be pre-baked" 1>&2
+        else
+          echo "=== /etc/shoki-image ==="
+          cat /etc/shoki-image
+        fi
+        # Version checks — fail loud if the image isn't what we expect.
+        node --version
+        pnpm --version
+
+    # ---- topology: cirrus ----
+    # Cirrus Runners are tart-powered on their side. They don't use our
+    # pre-baked image by default, but VO AppleScript enablement is the
+    # main knob; everything else is either already set up by their image
+    # or added at runtime.
+    - name: Cirrus — enable VO AppleScript
+      if: steps.detect.outputs.topology == 'cirrus'
+      shell: bash
+      run: |
+        set -euo pipefail
+        sudo defaults write com.apple.VoiceOver4/default SCREnableAppleScript -bool YES || \
+          defaults write com.apple.VoiceOver4/default SCREnableAppleScript -bool YES
+        echo "VO AppleScript enabled on cirrus runner"
+
+    # ---- topology: getmac ----
+    # GetMac's managed runners. No VM layer — we're on bare metal (ish).
+    # No TCC grants to apply at runtime (the runner image has them baked
+    # at the provider level if GetMac partners with us; otherwise see
+    # docs for the one-time setup).
+    - name: GetMac — enable VO AppleScript + prep
+      if: steps.detect.outputs.topology == 'getmac'
+      shell: bash
+      run: |
+        set -euo pipefail
+        sudo defaults write com.apple.VoiceOver4/default SCREnableAppleScript -bool YES
+        echo "GetMac runner prep complete. TCC grants must be preconfigured by the runner image; see docs."
+
+    # ---- topology: github-hosted ----
+    # Stock macos-latest / macos-14. This is the expensive path. We CAN'T
+    # insert TCC grants at runtime (SIP is on), so shoki tests run in a
+    # degraded mode where only VO-AppleScript-enabled is set. This
+    # suffices for the vitest-browser-react example, which doesn't need
+    # the helper-app trust-anchor path (web content only).
+    - name: GitHub-hosted — enable VO AppleScript
+      if: steps.detect.outputs.topology == 'github-hosted'
+      shell: bash
+      run: |
+        set -euo pipefail
+        sudo defaults write com.apple.VoiceOver4/default SCREnableAppleScript -bool YES
+        echo "::notice::Running on GitHub-hosted macos-latest. TCC grants cannot be applied at runtime (SIP is on). Consider upgrading to a pre-baked tart runner for the full shoki capability."
+
+    # ---- install helper app (all topologies) ----
+    - name: Install ShokiRunner.app (if provided)
+      if: inputs.helper-path != ''
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [[ ! -d "${{ inputs.helper-path }}" ]]; then
+          echo "::error::helper-path=${{ inputs.helper-path }} does not exist or is not a directory"
+          exit 1
+        fi
+        sudo rm -rf /Applications/ShokiRunner.app
+        sudo cp -R "${{ inputs.helper-path }}" /Applications/ShokiRunner.app
+        codesign -dvvv /Applications/ShokiRunner.app || echo "::warning::helper is not signed"
+
+    # ---- final health gate ----
+    - name: shoki doctor (final health gate)
+      if: inputs.skip-doctor != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        if ! command -v shoki >/dev/null 2>&1; then
+          echo "::warning::`shoki` CLI not on PATH; skipping doctor. Install @shoki/cli before this step to gate on health."
+          exit 0
+        fi
+        shoki doctor --json --quiet
