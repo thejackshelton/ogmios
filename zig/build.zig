@@ -31,6 +31,7 @@ pub fn build(b: *std.Build) void {
         "test/noop_driver_test.zig",
         "test/voiceover_defaults_test.zig",
         "test/voiceover_applescript_test.zig",
+        "test/voiceover_ax_notifications_test.zig",
     }) |test_path| {
         const t = b.addTest(.{
             .root_source_file = b.path(test_path),
