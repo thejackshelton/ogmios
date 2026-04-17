@@ -1,0 +1,34 @@
+export {
+  type CreateDriverHandleOptions,
+  createDriverHandle,
+} from './driver-handle.js';
+export {
+  BindingNotInstalledError,
+  DriverNotFoundError,
+  ShokiError,
+  UnsupportedPlatformError,
+} from './errors.js';
+export type {
+  ScreenReaderHandle,
+  ShokiEvent,
+  ShokiEventSource,
+} from './screen-reader.js';
+export { type VoiceOverOptions, voiceOver } from './voice-over.js';
+export { decodeEvents, EXPECTED_WIRE_VERSION } from './wire.js';
+
+import { loadBinding } from './binding-loader.js';
+
+/** binding.ping() round-trip — confirms the native addon is loaded. */
+export function ping(): string {
+  return loadBinding().ping();
+}
+
+/** Binding package version. */
+export function version(): string {
+  return loadBinding().version();
+}
+
+/** Current wire-format version (matches zig/src/core/wire.zig WIRE_VERSION). */
+export function wireVersion(): number {
+  return loadBinding().wireVersion();
+}
