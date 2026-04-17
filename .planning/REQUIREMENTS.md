@@ -123,13 +123,60 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| *(populated by roadmapper)* | | |
+| FOUND-01 | Phase 1: Foundations | Pending |
+| FOUND-02 | Phase 1: Foundations | Pending |
+| FOUND-03 | Phase 1: Foundations | Pending |
+| FOUND-04 | Phase 1: Foundations | Pending |
+| FOUND-05 | Phase 1: Foundations | Pending |
+| EXT-01   | Phase 1: Foundations | Pending |
+| PERM-01  | Phase 2: Permission Setup & Doctor CLI | Pending |
+| PERM-02  | Phase 2: Permission Setup & Doctor CLI | Pending |
+| PERM-03  | Phase 2: Permission Setup & Doctor CLI | Pending |
+| PERM-04  | Phase 2: Permission Setup & Doctor CLI | Pending |
+| PERM-05  | Phase 2: Permission Setup & Doctor CLI | Pending |
+| PERM-06  | Phase 2: Permission Setup & Doctor CLI | Pending |
+| CAP-01   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-02   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-03   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-04   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-05   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-06   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-07   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-08   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-09   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-10   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-11   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-12   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-13   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-14   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-15   | Phase 3: VoiceOver Capture Core | Pending |
+| CAP-16   | Phase 3: VoiceOver Capture Core | Pending |
+| VITEST-01 | Phase 4: Vitest Browser-Mode Integration | Pending |
+| VITEST-02 | Phase 4: Vitest Browser-Mode Integration | Pending |
+| VITEST-03 | Phase 4: Vitest Browser-Mode Integration | Pending |
+| VITEST-04 | Phase 4: Vitest Browser-Mode Integration | Pending |
+| VITEST-05 | Phase 4: Vitest Browser-Mode Integration | Pending |
+| VITEST-06 | Phase 4: Vitest Browser-Mode Integration | Pending |
+| VITEST-07 | Phase 4: Vitest Browser-Mode Integration | Pending |
+| VITEST-08 | Phase 4: Vitest Browser-Mode Integration | Pending |
+| CI-01    | Phase 5: CI Story | Pending |
+| CI-02    | Phase 5: CI Story | Pending |
+| CI-03    | Phase 5: CI Story | Pending |
+| CI-04    | Phase 5: CI Story | Pending |
+| CI-05    | Phase 5: CI Story | Pending |
+| CI-06    | Phase 5: CI Story | Pending |
+| DOCS-01  | Phase 6: Docs & v1 Release Polish | Pending |
+| DOCS-02  | Phase 6: Docs & v1 Release Polish | Pending |
+| DOCS-03  | Phase 6: Docs & v1 Release Polish | Pending |
+| DOCS-04  | Phase 6: Docs & v1 Release Polish | Pending |
 
 **Coverage:**
-- v1 requirements: 42 total
-- Mapped to phases: (populated by roadmapper)
-- Unmapped: (populated by roadmapper)
+- v1 requirements: **46 total** (corrected from initial header miscount of 42 — 5 FOUND + 6 PERM + 16 CAP + 8 VITEST + 6 CI + 4 DOCS + 1 EXT = 46)
+- Mapped to phases: **46 / 46** (100% coverage)
+- Unmapped: **0**
+- Orphans: **none**
+- Duplicates: **none** (every REQ-ID assigned to exactly one phase)
 
 ---
 *Requirements defined: 2026-04-17*
-*Last updated: 2026-04-17 after initial definition*
+*Last updated: 2026-04-17 — traceability populated by roadmapper, v1 count corrected (42 → 46)*
