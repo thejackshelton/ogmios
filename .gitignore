@@ -31,3 +31,26 @@ helper/build/
 helper/.build/
 helper/*.xcodeproj/xcuserdata/
 helper/DerivedData/
+
+# ── GSD baseline (auto-generated) ──
+.gsd
+.gsd-id
+.bg-shell/
+Thumbs.db
+*.swp
+*.swo
+*~
+*.code-workspace
+.env.*
+!.env.example
+.next/
+build/
+__pycache__/
+*.pyc
+.venv/
+venv/
+target/
+vendor/
+coverage/
+.cache/
+tmp/
