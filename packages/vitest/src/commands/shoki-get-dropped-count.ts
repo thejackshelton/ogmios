@@ -2,13 +2,17 @@ import type {
   ShokiGetDroppedCountArgs,
   ShokiGetDroppedCountResult,
 } from '../command-types.js';
+import type { SessionStore } from '../session-store.js';
 
-export function createShokiGetDroppedCountHandler() {
+export interface ShokiGetDroppedCountDeps {
+  sessionStore: SessionStore;
+}
+
+export function createShokiGetDroppedCountHandler(deps: ShokiGetDroppedCountDeps) {
   return async (
     _ctx: unknown,
     args: ShokiGetDroppedCountArgs,
   ): Promise<ShokiGetDroppedCountResult> => {
-    void args;
-    return { droppedCount: 0 };
+    return deps.sessionStore.getDroppedCount(args.sessionId);
   };
 }

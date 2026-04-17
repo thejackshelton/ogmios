@@ -1,8 +1,12 @@
 import type { ShokiPhraseLogArgs, ShokiPhraseLogResult } from '../command-types.js';
+import type { SessionStore } from '../session-store.js';
 
-export function createShokiPhraseLogHandler() {
+export interface ShokiPhraseLogDeps {
+  sessionStore: SessionStore;
+}
+
+export function createShokiPhraseLogHandler(deps: ShokiPhraseLogDeps) {
   return async (_ctx: unknown, args: ShokiPhraseLogArgs): Promise<ShokiPhraseLogResult> => {
-    void args;
-    return [];
+    return deps.sessionStore.phraseLog(args.sessionId);
   };
 }

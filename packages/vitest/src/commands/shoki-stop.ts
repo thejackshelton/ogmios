@@ -1,8 +1,12 @@
 import type { ShokiStopArgs, ShokiStopResult } from '../command-types.js';
+import type { SessionStore } from '../session-store.js';
 
-export function createShokiStopHandler() {
+export interface ShokiStopDeps {
+  sessionStore: SessionStore;
+}
+
+export function createShokiStopHandler(deps: ShokiStopDeps) {
   return async (_ctx: unknown, args: ShokiStopArgs): Promise<ShokiStopResult> => {
-    void args;
-    return { stopped: true, remainingRefs: 0 };
+    return deps.sessionStore.stop(args.sessionId);
   };
 }

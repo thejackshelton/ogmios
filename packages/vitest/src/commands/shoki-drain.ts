@@ -1,8 +1,12 @@
 import type { ShokiDrainArgs, ShokiDrainResult } from '../command-types.js';
+import type { SessionStore } from '../session-store.js';
 
-export function createShokiDrainHandler() {
+export interface ShokiDrainDeps {
+  sessionStore: SessionStore;
+}
+
+export function createShokiDrainHandler(deps: ShokiDrainDeps) {
   return async (_ctx: unknown, args: ShokiDrainArgs): Promise<ShokiDrainResult> => {
-    void args;
-    return [];
+    return deps.sessionStore.drain(args.sessionId);
   };
 }

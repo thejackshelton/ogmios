@@ -1,8 +1,12 @@
 import type { ShokiListenArgs, ShokiListenResult } from '../command-types.js';
+import type { SessionStore } from '../session-store.js';
 
-export function createShokiListenHandler() {
+export interface ShokiListenDeps {
+  sessionStore: SessionStore;
+}
+
+export function createShokiListenHandler(deps: ShokiListenDeps) {
   return async (_ctx: unknown, args: ShokiListenArgs): Promise<ShokiListenResult> => {
-    void args;
-    return [];
+    return deps.sessionStore.listen(args.sessionId, args.sinceMs);
   };
 }

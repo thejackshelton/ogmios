@@ -2,6 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import type { Plugin } from 'vitest/config';
 import { createCommands } from './commands/index.js';
+import { SessionStore } from './session-store.js';
 
 export interface ShokiVitestPluginOptions {
   /** Auto-set poolOptions.threads.singleThread=true when VO imports are detected. Default true. */
@@ -61,10 +62,12 @@ export function shokiVitest(opts: ShokiVitestPluginOptions = {}): Plugin {
     detectVoiceOverImports: opts.detectVoiceOverImports ?? true,
   };
 
+  const sessionStore = new SessionStore();
+
   return {
     name: '@shoki/vitest',
     config: async (cfg) => {
-      const commands = createCommands();
+      const commands = createCommands({ sessionStore });
 
       // Ensure nested shape exists.
       // biome-ignore lint/suspicious/noExplicitAny: Vitest config shape is internally mutable

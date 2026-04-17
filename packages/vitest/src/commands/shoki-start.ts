@@ -1,18 +1,14 @@
 import type { ShokiStartArgs, ShokiStartResult } from '../command-types.js';
+import type { SessionStore, ShokiSdkDriver } from '../session-store.js';
 
 export interface ShokiStartDeps {
-  registerStubSession?: (id: string) => void;
+  sessionStore: SessionStore;
+  driver: ShokiSdkDriver;
 }
 
-// Module-local counter — replaced by SessionStore in Plan 04-03.
-let counter = 0;
-
-export function createShokiStartHandler(deps: ShokiStartDeps = {}) {
+export function createShokiStartHandler(deps: ShokiStartDeps) {
   return async (_ctx: unknown, args: ShokiStartArgs = {}): Promise<ShokiStartResult> => {
-    counter += 1;
-    const sessionId = `shoki-${counter}`;
-    deps.registerStubSession?.(sessionId);
-    void args;
+    const sessionId = await deps.sessionStore.start(deps.driver, args);
     return { sessionId };
   };
 }

@@ -1,5 +1,6 @@
 export { shokiVitest, detectVoiceOverImports, type ShokiVitestPluginOptions } from './plugin.js';
-export { createCommands, type ShokiCommands } from './commands/index.js';
+export { createCommands, type ShokiCommands, SessionStore } from './commands/index.js';
+export { realShokiSdkDriver, type ShokiSdkDriver, toWireEvent } from './session-store.js';
 export {
   ShokiBindingNotAvailableError,
   ShokiConcurrentTestError,

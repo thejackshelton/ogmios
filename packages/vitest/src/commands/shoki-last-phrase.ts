@@ -1,8 +1,12 @@
 import type { ShokiLastPhraseArgs, ShokiLastPhraseResult } from '../command-types.js';
+import type { SessionStore } from '../session-store.js';
 
-export function createShokiLastPhraseHandler() {
+export interface ShokiLastPhraseDeps {
+  sessionStore: SessionStore;
+}
+
+export function createShokiLastPhraseHandler(deps: ShokiLastPhraseDeps) {
   return async (_ctx: unknown, args: ShokiLastPhraseArgs): Promise<ShokiLastPhraseResult> => {
-    void args;
-    return null;
+    return deps.sessionStore.lastPhrase(args.sessionId);
   };
 }
