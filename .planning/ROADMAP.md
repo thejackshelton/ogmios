@@ -142,6 +142,16 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 5. CI Story | 4/4 | ✅ Complete | 2026-04-17 |
 | 6. Docs & v1 Release Polish | 4/4 | ✅ Complete | 2026-04-17 |
 
+### Phase 7: v1 integration verification and QA — real VoiceOver announcements in Vitest browser mode
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 6
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 7 to break down)
+
 ---
 *Roadmap created: 2026-04-17*
 *Granularity: standard (target 5-8 phases) — 6 phases derived from natural delivery boundaries; Phase 3 is requirement-dense (16 reqs) but cohesive and will be split into 3-4 plans during /gsd-plan-phase.*
