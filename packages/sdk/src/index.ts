@@ -24,7 +24,11 @@ export type {
   ShokiEvent,
   ShokiEventSource,
 } from './screen-reader.js';
-export { type VoiceOverOptions, voiceOver } from './voice-over.js';
+export {
+  type VoiceOverOptions,
+  VoiceOverUnsupportedPlatformError,
+  voiceOver,
+} from './voice-over.js';
 export { decodeEvents, EXPECTED_WIRE_VERSION } from './wire.js';
 
 import { loadBinding } from './binding-loader.js';

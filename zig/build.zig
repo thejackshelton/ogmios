@@ -20,6 +20,18 @@ pub fn build(b: *std.Build) void {
     });
     lib.root_module.addImport("napi_zig", napi_zig);
     lib.linker_allow_shlib_undefined = true; // N-API symbols resolved at load time by Node
+
+    // Link against libShokiXPCClient.dylib (built by `swift build -c release`
+    // in helper/). Plan 04 produces the dylib; Plan 05 adds the link step.
+    // On non-darwin targets this whole step is skipped — the voiceover driver
+    // is gated on `.darwin` in the registry.
+    if (target.result.os.tag == .macos) {
+        const helper_build_dir = b.path("../helper/.build/release");
+        lib.addLibraryPath(helper_build_dir);
+        lib.linkSystemLibrary("ShokiXPCClient");
+        lib.addRPath(helper_build_dir);
+    }
+
     b.installArtifact(lib);
 
     // Unit tests
@@ -33,6 +45,7 @@ pub fn build(b: *std.Build) void {
         "test/voiceover_applescript_test.zig",
         "test/voiceover_ax_notifications_test.zig",
         "test/voiceover_lifecycle_test.zig",
+        "test/voiceover_driver_test.zig",
     }) |test_path| {
         const t = b.addTest(.{
             .root_source_file = b.path(test_path),
