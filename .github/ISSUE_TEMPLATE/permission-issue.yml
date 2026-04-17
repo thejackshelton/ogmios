@@ -1,0 +1,83 @@
+name: Permission issue
+description: "shoki doctor flagged something that shouldn't be flagged, or fix instructions didn't work"
+title: "[perm] "
+labels: ["permission", "doctor", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Permission issues are the #1 source of pain with shoki. This template
+        exists so we can diagnose quickly.
+
+        **Run these first and paste outputs below:**
+
+        ```
+        npx shoki doctor --json
+        npx shoki info --json
+        ```
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What's going wrong?
+      placeholder: "shoki doctor reports TCC_MISSING_AUTOMATION but I granted it in System Settings"
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: "Output of `shoki doctor --json`"
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: info
+    attributes:
+      label: "Output of `shoki info --json`"
+      render: json
+    validations:
+      required: true
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "14.6.1 (Sonoma)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: sip
+    attributes:
+      label: SIP status
+      description: Output of `csrutil status`.
+      options:
+        - "enabled (default)"
+        - "disabled"
+        - "I don't know"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: runner
+    attributes:
+      label: Where?
+      options:
+        - Local Mac
+        - Self-hosted tart
+        - Cirrus Runners
+        - GetMac
+        - GitHub-hosted macos-latest
+
+  - type: textarea
+    id: steps-tried
+    attributes:
+      label: What fixes did you try?
+      description: "List the steps you took — `tccutil reset`, toggling grants in System Settings, reinstalling, etc."
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes

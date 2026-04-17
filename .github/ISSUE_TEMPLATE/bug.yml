@@ -1,0 +1,94 @@
+name: Bug report
+description: Report a reproducible bug or unexpected behavior
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug! Please run `npx shoki info` and paste the output
+        in the "Diagnostic context" section below — it captures most of what we
+        need to reproduce.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One-sentence description of the issue.
+      placeholder: "toHaveAnnounced fails even though VO speaks the phrase"
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimum steps to trigger the bug. Include code if possible.
+      placeholder: |
+        1. Clone https://github.com/...
+        2. Run `pnpm install`
+        3. Run `SHOKI_INTEGRATION=1 pnpm test`
+        4. Observe the failure in `tests/foo.test.tsx`
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: "Test passes with the captured log containing { role: 'button', name: 'Submit' }"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Paste the full error message and stack trace if applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: info
+    attributes:
+      label: Diagnostic context
+      description: "Output of `npx shoki info` and `npx shoki doctor --json` (redact anything sensitive)."
+      render: json
+    validations:
+      required: true
+
+  - type: input
+    id: shoki-version
+    attributes:
+      label: "@shoki/sdk version"
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "14.6.1 (Sonoma)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: runner
+    attributes:
+      label: Where are you running this?
+      options:
+        - Local Mac
+        - Self-hosted tart
+        - Cirrus Runners
+        - GetMac
+        - GitHub-hosted macos-latest
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: Anything else that might help — screenshots, related issues, workarounds you've tried.

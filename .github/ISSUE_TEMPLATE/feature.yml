@@ -1,0 +1,57 @@
+name: Feature request
+description: Propose new functionality or an enhancement
+title: "[feat] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a feature! Before filing, please check:
+
+        - [Roadmap](https://github.com/shoki/shoki/blob/main/.planning/ROADMAP.md)
+        - [Existing issues](https://github.com/shoki/shoki/issues)
+        - [Out-of-scope list in REQUIREMENTS.md](https://github.com/shoki/shoki/blob/main/.planning/REQUIREMENTS.md#out-of-scope)
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the use case, not the solution. "I want to X but shoki currently does Y."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should shoki do to solve it? Sketch an API if relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds you've tried or alternative designs you considered.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: What part of shoki is this?
+      options:
+        - "@shoki/sdk (core API)"
+        - "@shoki/matchers"
+        - "@shoki/vitest"
+        - "@shoki/doctor (CLI)"
+        - "Docs site"
+        - "CI / workflows"
+        - "New screen reader driver"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links, prior art, related issues.

@@ -1,5 +1,10 @@
 # Shoki
 
+[![CI](https://img.shields.io/github/actions/workflow/status/shoki/shoki/ci.yml?branch=main&label=CI)](https://github.com/shoki/shoki/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@shoki/sdk?color=CB3837&logo=npm)](https://www.npmjs.com/package/@shoki/sdk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-macOS%2014%20%7C%2015%20%7C%2026-lightgrey?logo=apple)](docs/background/platform-risk.md)
+
 > Run real screen readers — VoiceOver, NVDA, and more — in any test framework and any CI environment.
 
 **Status:** 🚧 Early development. v1 targets macOS + VoiceOver + Vitest browser mode. Not ready for production use.
@@ -51,7 +56,7 @@ Shoki solves those piece by piece.
 └──────────────────────┘
 ```
 
-See [`docs/architecture.md`](docs/architecture.md) for the full story (signed-wrapper-app rationale, wire format spec, driver extensibility).
+See [`docs/background/architecture.md`](docs/background/architecture.md) for the full story (signed-wrapper-app rationale, wire format spec, driver extensibility).
 
 ## Not yet
 
@@ -84,14 +89,24 @@ All four use the reusable [`shoki/setup-action`](.github/actions/setup/action.ym
 action which auto-detects the topology and applies the right setup. The pre-baked tart image
 pipeline lives in [`infra/tart/`](infra/tart/).
 
-See `docs/release-setup.md` § 6 for publishing the pre-baked tart images, and
+See [`docs/background/release-setup.md`](docs/background/release-setup.md) § 6 for publishing the pre-baked tart images, and
 [`infra/tart/README.md`](infra/tart/README.md) for building them locally.
 
 ## Getting involved
 
-Shoki is MIT-licensed and we welcome contributors. If you want to help add a new screen reader driver, see [`docs/adding-a-driver.md`](docs/adding-a-driver.md).
+Shoki is MIT-licensed and we welcome contributors. If you want to help add a new screen reader driver, see [`docs/background/adding-a-driver.md`](docs/background/adding-a-driver.md).
 
-For questions and design discussions, open an issue.
+For questions and design discussions, open an issue. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for dev setup and [`.github/CODE_OF_CONDUCT.md`](.github/CODE_OF_CONDUCT.md) for community standards.
+
+## Documentation
+
+Full docs live at the [Shoki docs site](https://shoki.github.io/shoki/) (built from [`docs/`](docs/) via VitePress). Key pages:
+
+- [Getting Started → Install](https://shoki.github.io/shoki/getting-started/install)
+- [Getting Started → Vitest quickstart](https://shoki.github.io/shoki/getting-started/vitest-quickstart)
+- [Guides → Matchers](https://shoki.github.io/shoki/guides/matchers)
+- [Guides → Migration from Guidepup](https://shoki.github.io/shoki/guides/migration-from-guidepup)
+- [Background → Platform risk](https://shoki.github.io/shoki/background/platform-risk)
 
 ## License
 
