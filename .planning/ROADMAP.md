@@ -90,7 +90,13 @@ Plans:
   4. Every Vitest `BrowserCommand` return payload (`shokiListen`, `shokiDrain`, `shokiStop`, `shokiClear`, `shokiReset`) is structured-clone-safe — plain objects, numeric timestamps, no Dates or Functions — and passes through tinyRPC without serialization errors
   5. A canonical example repo (`examples/vitest-browser-react`) lives in the shoki monorepo, runs green on `npm test` against a real React component, and ships as the documented quickstart
 **UI hint**: yes
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — @shoki/matchers package: 4 Vitest expect matchers (toHaveAnnounced, toHaveAnnouncedText, toHaveNoAnnouncement, toHaveStableLog) (VITEST-08)
+- [ ] 04-02-PLAN.md — @shoki/vitest plugin: 10 BrowserCommands + browser-side voiceOver session proxy + singleton detection + structured-clone safety (VITEST-01, VITEST-02, VITEST-03, VITEST-04, VITEST-06)
+- [ ] 04-03-PLAN.md — Refcounted SessionStore bridging BrowserCommands to @shoki/sdk; per-test reset (VITEST-05)
+- [ ] 04-04-PLAN.md — examples/vitest-browser-react canonical repo with React 19 + Vite 6 + Vitest 3 browser-mode + Playwright; SHOKI_INTEGRATION=1 gates the real-VO path (VITEST-07)
 
 ### Phase 5: CI Story
 **Goal**: A user copies one of four reference workflows, points it at their own repo, and shoki tests run identically green across self-hosted tart, Cirrus Runners, GetMac, and stock GH-hosted `macos-latest` — without per-provider hand-tweaking
