@@ -46,6 +46,8 @@ pub fn build(b: *std.Build) void {
         "test/voiceover_ax_notifications_test.zig",
         "test/voiceover_lifecycle_test.zig",
         "test/voiceover_driver_test.zig",
+        "test/wire_regression_test.zig",
+        "test/voiceover_integration_test.zig",
     }) |test_path| {
         const t = b.addTest(.{
             .root_source_file = b.path(test_path),
