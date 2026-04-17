@@ -135,12 +135,12 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundations | 0/TBD | Not started | - |
-| 2. Permission Setup & Doctor CLI | 0/TBD | Not started | - |
-| 3. VoiceOver Capture Core | 0/TBD | Not started | - |
-| 4. Vitest Browser-Mode Integration | 0/TBD | Not started | - |
-| 5. CI Story | 0/TBD | Not started | - |
-| 6. Docs & v1 Release Polish | 0/TBD | Not started | - |
+| 1. Foundations | 6/6 | ✅ Complete | 2026-04-17 |
+| 2. Permission Setup & Doctor CLI | 4/4 | ✅ Complete | 2026-04-17 |
+| 3. VoiceOver Capture Core | 7/7 | ✅ Complete | 2026-04-17 |
+| 4. Vitest Browser-Mode Integration | 4/4 | ✅ Complete | 2026-04-17 |
+| 5. CI Story | 4/4 | ✅ Complete | 2026-04-17 |
+| 6. Docs & v1 Release Polish | 4/4 | ✅ Complete | 2026-04-17 |
 
 ---
 *Roadmap created: 2026-04-17*
