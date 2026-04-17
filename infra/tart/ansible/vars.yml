@@ -1,0 +1,45 @@
+---
+# Shared vars for the shoki VO-ready image playbook.
+# Referenced from playbook.yml via `vars_files:`.
+
+# The helper app bundle that Shoki signs as the stable TCC trust anchor.
+# See Phase 1 Plan 04: ShokiRunner.app is the process holding Accessibility +
+# Automation grants, regardless of what Node/terminal/shell spawns it.
+shoki_bundle_id: "org.shoki.runner"
+
+# The path the helper is expected to be installed at INSIDE the VM.
+# Consumer workflows drop the signed helper here via the setup action before
+# tests run; the bundle ID matching is what TCC keys off of.
+shoki_helper_install_path: "/Applications/ShokiRunner.app"
+
+# Toolchain versions — frozen at image bake time, consumers can override
+# per-job via actions/setup-node if they need a newer one.
+node_version: "24"
+pnpm_version: "10"
+playwright_install: true
+
+# Background apps we want to preemptively nerf at image-bake time.
+# These all emit announcements that leak into VO captures. Runtime `kill-background-apps.sh`
+# is the defensive pass; this image-bake pass is the belt.
+background_apps_to_disable:
+  - "Slack"
+  - "Discord"
+  - "Teams"
+  - "Microsoft Teams"
+  - "Mail"
+  - "Calendar"
+  - "Reminders"
+  - "Notes"
+  - "Messages"
+  - "Spotify"
+  - "Music"
+
+# Services to disable for CI-flake reduction. These are not security-sensitive
+# inside an ephemeral VM.
+services_to_disable:
+  - "com.apple.metadata.mds"                  # Spotlight
+  - "com.apple.metadata.mds.index"
+  - "com.apple.backupd"                       # Time Machine
+  - "com.apple.softwareupdated"               # macOS updates
+  - "com.apple.suggestd"                      # Siri suggestions
+  - "com.apple.telemetry.coreanalytics"       # telemetry

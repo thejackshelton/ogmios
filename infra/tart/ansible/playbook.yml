@@ -1,0 +1,191 @@
+---
+# Shoki VO-ready macOS image — Ansible provisioning.
+#
+# Runs inside a fresh tart VM from a cirruslabs/macos-*-xcode base. Produces
+# an image where:
+#   - VoiceOver AppleScript is enabled
+#   - Accessibility + Automation TCC grants are pre-applied to org.shoki.runner
+#   - Node 24 + pnpm 10 are installed globally
+#   - Playwright browsers are pre-fetched
+#   - Spotlight / Time Machine / software updates are disabled
+#   - Background announcement-emitters are quit
+#
+# IMPORTANT: SIP is disabled ONLY inside this VM at image-bake time. The
+# published image is the artifact; the bake-time SIP toggle does not propagate
+# to consumer host Macs. Consumers running on host machines (getmac, github-hosted,
+# etc.) never have SIP disabled. This is the whole point of the VM approach.
+#
+# Assumes the VM is `admin`-password provisioned by Packer.
+
+- name: Shoki VO-ready image provisioning
+  hosts: all
+  become: true
+  gather_facts: true
+  vars_files:
+    - vars.yml
+
+  pre_tasks:
+    - name: Print macOS version
+      ansible.builtin.command: sw_vers
+      register: sw_vers_out
+      changed_when: false
+
+    - name: Log macOS version
+      ansible.builtin.debug:
+        var: sw_vers_out.stdout_lines
+
+  tasks:
+
+    # ------------------------------------------------------------------
+    # 1. VoiceOver — enable AppleScript control
+    # ------------------------------------------------------------------
+    # SCREnableAppleScript is THE knob. Without it, `tell application
+    # "VoiceOver"` fails silently. CVE-2025-43530 tightened the surface
+    # but this key is the supported path still on 14/15/26.
+    - name: VoiceOver — enable AppleScript control
+      ansible.builtin.command:
+        cmd: >-
+          defaults write com.apple.VoiceOver4/default
+          SCREnableAppleScript -bool YES
+      changed_when: true
+
+    - name: VoiceOver — verify SCREnableAppleScript is set
+      ansible.builtin.command:
+        cmd: defaults read com.apple.VoiceOver4/default SCREnableAppleScript
+      register: vo_applescript_check
+      changed_when: false
+      failed_when: vo_applescript_check.stdout.strip() != "1"
+
+    # ------------------------------------------------------------------
+    # 2. TCC grants — Accessibility + Automation for org.shoki.runner
+    # ------------------------------------------------------------------
+    # The tccutil-based approach (jacobsalmela/tccutil): insert rows
+    # directly into TCC.db while SIP is off. This is not supported outside
+    # of image-bake VMs. We accept no runtime verification of the grant
+    # here — the grant is validated later at image-bake time by a
+    # final-stage `shoki doctor` probe.
+    - name: TCC — copy the grant script into the VM
+      ansible.builtin.copy:
+        src: "../scripts/tcc-grant.sh"
+        dest: "/usr/local/bin/shoki-tcc-grant.sh"
+        mode: "0755"
+        owner: root
+        group: wheel
+
+    - name: TCC — pre-grant Accessibility + Automation for {{ shoki_bundle_id }}
+      ansible.builtin.command:
+        cmd: "/usr/local/bin/shoki-tcc-grant.sh {{ shoki_bundle_id }}"
+      register: tcc_grant_out
+      changed_when: "'inserted' in tcc_grant_out.stdout or 'updated' in tcc_grant_out.stdout"
+
+    # ------------------------------------------------------------------
+    # 3. Quit + permanently disable background app auto-launch
+    # ------------------------------------------------------------------
+    # Belt (image-bake). The companion suspenders is kill-background-apps.sh
+    # that runs pre/post-job via the setup action.
+    - name: Quit background announcement emitters
+      ansible.builtin.shell: |
+        set +e
+        osascript -e 'tell application "{{ item }}" to quit' 2>/dev/null || true
+        pkill -f "{{ item }}" 2>/dev/null || true
+        exit 0
+      loop: "{{ background_apps_to_disable }}"
+      changed_when: false
+
+    - name: Remove login-item entries for announcement emitters
+      ansible.builtin.shell: |
+        set +e
+        osascript -e 'tell application "System Events" to delete login item "{{ item }}"' 2>/dev/null || true
+        exit 0
+      loop: "{{ background_apps_to_disable }}"
+      changed_when: false
+
+    - name: Disable Notification Center UI
+      ansible.builtin.command:
+        cmd: launchctl unload -w /System/Library/LaunchAgents/com.apple.notificationcenterui.plist
+      failed_when: false
+      changed_when: true
+
+    # ------------------------------------------------------------------
+    # 4. Disable flake-causing background services
+    # ------------------------------------------------------------------
+    - name: Disable Spotlight / Time Machine / software updates
+      ansible.builtin.shell: |
+        set +e
+        launchctl unload -w /System/Library/LaunchDaemons/{{ item }}.plist 2>/dev/null
+        launchctl unload -w /System/Library/LaunchAgents/{{ item }}.plist 2>/dev/null
+        exit 0
+      loop: "{{ services_to_disable }}"
+      changed_when: false
+
+    - name: Spotlight — turn off indexing explicitly
+      ansible.builtin.command:
+        cmd: mdutil -a -i off
+      failed_when: false
+      changed_when: true
+
+    # ------------------------------------------------------------------
+    # 5. Toolchain — Node + pnpm + Playwright
+    # ------------------------------------------------------------------
+    - name: Homebrew — ensure present (base image has it, sanity check)
+      ansible.builtin.command:
+        cmd: brew --version
+      register: brew_check
+      changed_when: false
+      failed_when: brew_check.rc != 0
+
+    - name: Install Node {{ node_version }}
+      community.general.homebrew:
+        name: "node@{{ node_version }}"
+        state: present
+      become: true
+      become_user: admin
+
+    - name: Link Node {{ node_version }}
+      ansible.builtin.shell: |
+        brew link --overwrite --force node@{{ node_version }}
+      become: true
+      become_user: admin
+      changed_when: true
+
+    - name: Install pnpm {{ pnpm_version }}
+      ansible.builtin.command:
+        cmd: npm install -g pnpm@{{ pnpm_version }}
+      become: true
+      become_user: admin
+      changed_when: true
+
+    - name: Install Playwright browsers
+      when: playwright_install
+      ansible.builtin.shell: |
+        npx --yes playwright@latest install --with-deps chromium
+      become: true
+      become_user: admin
+      changed_when: true
+
+    # ------------------------------------------------------------------
+    # 6. Prep a marker file so shoki doctor / setup-action can detect
+    #    "this is the baked shoki image"
+    # ------------------------------------------------------------------
+    - name: Write image marker
+      ansible.builtin.copy:
+        dest: "/etc/shoki-image"
+        mode: "0644"
+        owner: root
+        group: wheel
+        content: |
+          macos_version={{ macos_version | default('sonoma') }}
+          bundle_id={{ shoki_bundle_id }}
+          node_version={{ node_version }}
+          pnpm_version={{ pnpm_version }}
+          built_at={{ ansible_date_time.iso8601 }}
+          full_image={{ full_image | default(false) }}
+
+  post_tasks:
+    - name: Summary
+      ansible.builtin.debug:
+        msg: |
+          Image provisioning complete.
+          macOS:      {{ sw_vers_out.stdout_lines | join(' | ') }}
+          bundle_id:  {{ shoki_bundle_id }}
+          full_image: {{ full_image | default(false) }}
