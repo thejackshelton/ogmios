@@ -1,0 +1,46 @@
+name: Build helper app
+description: >-
+  Builds ShokiRunner.app via helper/scripts/build-app-bundle.sh and optionally
+  signs + notarizes it when Apple secrets are present. Drops the built .app
+  into the matching binding package's helper/ directory.
+
+inputs:
+  binding-package-dir:
+    description: "Path to the @shoki/binding-<os>-<arch> package directory"
+    required: true
+  sign:
+    description: "Sign + notarize the built .app (requires APPLE_* env)"
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Build app bundle
+      shell: bash
+      working-directory: helper
+      run: |
+        set -euo pipefail
+        ./scripts/build-app-bundle.sh
+        ls -la .build/ShokiRunner.app
+
+    - name: Sign + notarize
+      if: inputs.sign == 'true'
+      shell: bash
+      working-directory: helper
+      run: |
+        set -euo pipefail
+        if [[ -z "${DEVELOPER_ID_IDENTITY:-}" ]]; then
+            echo "warn: DEVELOPER_ID_IDENTITY not set — skipping sign+notarize"
+            exit 0
+        fi
+        ./scripts/sign-and-notarize.sh
+
+    - name: Copy signed bundle into binding package
+      shell: bash
+      run: |
+        set -euo pipefail
+        TARGET_DIR="$GITHUB_WORKSPACE/${{ inputs.binding-package-dir }}/helper"
+        mkdir -p "$TARGET_DIR"
+        cp -R helper/.build/ShokiRunner.app "$TARGET_DIR/"
+        ls -la "$TARGET_DIR/ShokiRunner.app"

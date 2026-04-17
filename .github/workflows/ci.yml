@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-typecheck:
+    name: Lint + typecheck (TS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r typecheck
+      - run: pnpm lint
+
+  zig-test:
+    name: Zig unit tests
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/build-zig-binding
+        with:
+          target: aarch64-macos
+          binding-package-dir: packages/binding-darwin-arm64
+          run-tests: "true"
+
+  sdk-test-native:
+    name: SDK tests with native binding (darwin-arm64)
+    runs-on: macos-14
+    needs: [zig-test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/build-zig-binding
+        with:
+          target: aarch64-macos
+          binding-package-dir: packages/binding-darwin-arm64
+      - uses: ./.github/actions/build-helper-app
+        with:
+          binding-package-dir: packages/binding-darwin-arm64
+          sign: "false"
+      - name: Run SDK tests with native binding
+        env:
+          SHOKI_NATIVE_BUILT: "1"
+        run: pnpm --filter @shoki/sdk test
+
+  helper-test:
+    name: Helper Swift tests
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: swift test
+        working-directory: helper
+        run: swift test

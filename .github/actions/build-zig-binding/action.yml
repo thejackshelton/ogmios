@@ -1,0 +1,92 @@
+name: Build Zig binding
+description: >-
+  Installs Zig 0.16.0 via mlugg/setup-zig, fetches napi-zig, builds shoki.node
+  for the requested target triple, and places it into the matching platform
+  binding package directory.
+
+inputs:
+  target:
+    description: "Zig target triple: aarch64-macos or x86_64-macos"
+    required: true
+  binding-package-dir:
+    description: "Path to the @shoki/binding-<os>-<arch> package directory"
+    required: true
+  run-tests:
+    description: "Run zig build test after the build"
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Zig 0.16.0
+      uses: mlugg/setup-zig@v2
+      with:
+        version: 0.16.0
+
+    - name: Print Zig version
+      shell: bash
+      run: zig version
+
+    - name: Fetch napi-zig dependency
+      shell: bash
+      working-directory: zig
+      run: |
+        set -euo pipefail
+        # Extract the pinned napi-zig SHA URL from build.zig.zon and run `zig fetch --save`
+        # to populate the .hash field reproducibly. If the zon already has a concrete hash,
+        # this is a no-op from a correctness standpoint (zig fetch will simply re-verify).
+        NAPI_URL=$(grep -oE 'git\+https://github.com/yuku-toolchain/napi-zig\.git#[0-9a-f]+' build.zig.zon || true)
+        if [[ -z "$NAPI_URL" ]]; then
+            echo "error: could not find napi-zig dependency URL in build.zig.zon" >&2
+            exit 1
+        fi
+        zig fetch --save=napi_zig "$NAPI_URL"
+
+    - name: Zig unit tests
+      if: inputs.run-tests == 'true'
+      shell: bash
+      working-directory: zig
+      run: zig build test -Dtarget=${{ inputs.target }}
+
+    - name: Build shared library
+      shell: bash
+      working-directory: zig
+      run: zig build -Doptimize=ReleaseSafe -Dtarget=${{ inputs.target }}
+
+    - name: Locate and rename output
+      shell: bash
+      working-directory: zig
+      run: |
+        set -euo pipefail
+        # The produced shared library name depends on Zig's default (libshoki.dylib on macOS).
+        # Rename to shoki.node for the N-API loader.
+        OUT=$(find zig-out/lib -name "libshoki.dylib" -o -name "shoki.dylib" | head -n1)
+        if [[ -z "$OUT" ]]; then
+            echo "error: built shared library not found under zig-out/lib" >&2
+            ls -la zig-out/lib || true
+            exit 1
+        fi
+        TARGET_DIR="$GITHUB_WORKSPACE/${{ inputs.binding-package-dir }}"
+        mkdir -p "$TARGET_DIR"
+        cp "$OUT" "$TARGET_DIR/shoki.node"
+        ls -la "$TARGET_DIR/shoki.node"
+
+    - name: Verify .node loads
+      shell: bash
+      working-directory: ${{ inputs.binding-package-dir }}
+      run: |
+        # Only attempts a dlopen test when host arch matches the target — an arm64 runner
+        # cannot require() an x86_64 .node. Skip quietly when mismatched; the matching
+        # runner validates the other triple.
+        HOST_ARCH=$(uname -m)
+        case "${{ inputs.target }}" in
+            aarch64-*) WANT_ARCH=arm64 ;;
+            x86_64-*)  WANT_ARCH=x86_64 ;;
+            *)         WANT_ARCH=unknown ;;
+        esac
+        if [[ "$HOST_ARCH" != "$WANT_ARCH" ]]; then
+            echo "host=$HOST_ARCH target=${{ inputs.target }}; skipping dlopen smoke test"
+            exit 0
+        fi
+        node -e "const b=require('./shoki.node'); if(b.ping()!=='pong'){process.exit(1)}; console.log('ping round-trip: ok')"
