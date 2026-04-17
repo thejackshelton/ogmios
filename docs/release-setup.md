@@ -103,3 +103,104 @@ npm unpublish @shoki/binding-darwin-arm64@<broken-version>
 npm unpublish @shoki/binding-darwin-x64@<broken-version>
 ```
 After 72 hours, unpublishing is restricted — instead publish a patched version and `npm deprecate` the broken one.
+
+---
+
+## 6. Tart image publish (Phase 5)
+
+The shoki VO-ready tart images (`ghcr.io/shoki/macos-vo-ready:<ver>`) are
+published from `.github/workflows/tart-publish.yml`. This is a separate
+pipeline from the npm release because:
+
+1. Tart images are large (5-15 GB slim, 30-50 GB `@full`) and don't fit
+   within the `macos-14` GH-hosted runner's disk budget.
+2. Tart requires nested virtualization via macOS Virtualization.framework,
+   which GH-hosted runners can't provide.
+
+So the publish pipeline runs on **self-hosted macOS-arm64 runners with
+tart + packer installed** (label set: `self-hosted, macOS, arm64, packer`).
+
+### What you need
+
+- **Self-hosted macOS-arm64 runner** — Apple Silicon Mac mini / Mac Studio
+  with 32 GB+ RAM and 500 GB+ free disk. One runner suffices (the matrix
+  jobs share it and serialize naturally via tart VM exclusive lock).
+- **tart installed** on the runner: `brew install cirruslabs/cli/tart`.
+- **packer installed** on the runner: `brew install packer`.
+- **ansible installed** on the runner: `brew install ansible`.
+- **GHCR push credentials** (below).
+
+### Secrets to add to GitHub
+
+| Secret          | Value                                                                                             |
+|-----------------|---------------------------------------------------------------------------------------------------|
+| `GHCR_USERNAME` | GitHub username or org with write access to `ghcr.io/shoki/*`                                     |
+| `GHCR_TOKEN`    | Classic PAT with `write:packages` scope, OR a fine-grained token with Packages: Read and write    |
+
+The Apple signing secrets (from § 1) are reused — the tart publish pipeline
+imports the Developer ID cert for any helper artifacts baked into `@full`
+images.
+
+### First-time bootstrap
+
+Before the first `tart-v*` tag:
+
+1. Install the GitHub self-hosted runner on your Mac per the GitHub docs.
+2. Label it with `self-hosted,macOS,arm64,packer`.
+3. Verify tooling from the runner user account:
+   ```bash
+   tart --version     # 2.x
+   packer --version   # 1.10+
+   ansible --version  # 2.15+
+   ```
+4. Log into GHCR manually once to prime the keychain:
+   ```bash
+   echo "$GHCR_TOKEN" | tart login ghcr.io --username "$GHCR_USERNAME" --password-stdin
+   ```
+5. Sanity-check the base images can be pulled:
+   ```bash
+   tart pull ghcr.io/cirruslabs/macos-sonoma-xcode:latest
+   ```
+6. Tag and push:
+   ```bash
+   git tag tart-v1.0.0
+   git push origin tart-v1.0.0
+   ```
+
+Watch `.github/workflows/tart-publish.yml`. One parallel job per macOS
+version. Each job takes ~45 minutes for the slim image, ~90 minutes for
+`@full`.
+
+### Manual publish (dispatch)
+
+For testing between tags, trigger the workflow manually via the Actions tab
+on GitHub. You can pick a single macOS version (`sonoma`/`sequoia`/`tahoe`)
+or `all`, and whether to also publish the `@full` variant.
+
+### Verifying a tart image publish
+
+After the workflow completes:
+
+```bash
+# On any Mac with tart installed:
+tart pull ghcr.io/shoki/macos-vo-ready:sonoma
+tart run shoki-vo-ready-sonoma --no-graphics &
+IP=$(tart ip shoki-vo-ready-sonoma)
+ssh -o StrictHostKeyChecking=no admin@$IP \
+    'cat /etc/shoki-image && shoki doctor --json --quiet'
+# expected: shoki doctor prints {"ok": true, ...} and exits 0
+```
+
+### If the publish fails
+
+- **`base image not found`** — cirruslabs hasn't published the macOS version
+  yet (most common on the `tahoe` row until macOS 26 GA). Drop that row
+  from the matrix and ship sonoma + sequoia only until the base catches up.
+- **`tart push: unauthorized`** — `GHCR_TOKEN` expired or was revoked.
+  Regenerate with `write:packages` scope.
+- **Image size over 15 GB** (slim) — the base image grew. Check the
+  post-Ansible strip provisioner in `sonoma.pkr.hcl` and add new caches /
+  toolchains to the rm -rf list.
+- **`tccutil` grant step failed inside Ansible** — TCC.db schema changed.
+  See `infra/tart/scripts/tcc-grant.sh` header notes and inspect
+  `sqlite3 TCC.db "PRAGMA table_info(access)"` on the failing image.
