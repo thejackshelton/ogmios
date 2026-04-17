@@ -37,7 +37,7 @@ Plans:
 - [x] 01-01-PLAN.md — Repo scaffolding + pnpm workspaces (FOUND-02)
 - [x] 01-02-PLAN.md — Zig core skeleton + napi-zig + ShokiDriver vtable + noop driver (FOUND-01, EXT-01)
 - [ ] 01-03-PLAN.md — TypeScript SDK + binding loader + voiceOver stub + wire decoder (FOUND-01, FOUND-02, EXT-01)
-- [ ] 01-04-PLAN.md — ShokiRunner.app Swift helper + XPC scaffold + sign/notarize scripts (FOUND-03, FOUND-04)
+- [x] 01-04-PLAN.md — ShokiRunner.app Swift helper + XPC scaffold + sign/notarize scripts (FOUND-03, FOUND-04)
 - [ ] 01-05-PLAN.md — CI release pipeline + OIDC trusted publishing (FOUND-01, FOUND-03, FOUND-05)
 - [ ] 01-06-PLAN.md — README + CONTRIBUTING + architecture.md + PROJECT.md decision log (FOUND-04)
 

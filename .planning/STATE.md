@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-02-PLAN.md — Zig core, noop driver, wire format, N-API surface all scaffolded; zig build test runtime verification deferred to CI (Zig not in dev PATH)
-last_updated: "2026-04-17T16:08:53.226Z"
+stopped_at: Completed 01-04-PLAN.md (ShokiRunner Swift helper + XPC ping); ready for Wave 3 (Plan 03 SDK surface)
+last_updated: "2026-04-17T16:09:58.692Z"
 last_activity: 2026-04-17
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 6
-  completed_plans: 2
-  percent: 33
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 1 of 6 (Foundations)
-Plan: 2 of 6 in current phase
+Plan: 3 of 6 in current phase
 Status: Ready to execute
 Last activity: 2026-04-17
 
@@ -54,6 +54,7 @@ Progress: [█░░░░░░░░░] 17%
 *Updated after each plan completion*
 | Phase 01 P01 | 6 minutes | 2 tasks | 19 files |
 | Phase 01-foundations P02 | 3.5 minutes | 3 tasks | 14 files |
+| Phase 01-foundations P04 | ~4 minutes | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 01-foundations]: napi-zig pinned to commit 4f05eea (main HEAD 2026-04-17); .hash placeholder in build.zig.zon resolved on first zig fetch
 - [Phase 01-foundations]: ShokiDriver vtable frozen (EXT-01): 8 fields in exact CONTEXT.md D-10 order; Phase 3 drivers add-only via comptime registry
 - [Phase 01-foundations]: WIRE_VERSION=1 frozen for Phase 1; regression test in wire_test.zig fails if field widths or ordering change
+- [Phase 01-foundations]: ShokiRunner Swift package scaffolded with 3-module split (Protocol/Service/Runner); hardened-runtime entitlements gate only apple-events; Phase 1 XPC surface frozen to ping()
+- [Phase 01-foundations]: Developer ID signing env-var contract established (APPLE_DEVELOPER_ID_APP/APPLE_ID/APPLE_TEAM_ID/APPLE_APP_SPECIFIC_PASSWORD); Plan 05 picks the keychain-import action
 
 ### Pending Todos
 
@@ -81,6 +84,7 @@ None yet.
 - Phase 3 has a research flag: AX-notification event coverage on macOS 14/15/26 + wire-format freeze. Resolve in `/gsd-plan-phase 3`.
 - Phase 5 has a research flag: per-provider tart YAML + slim-image target (<15 GB). Resolve in `/gsd-plan-phase 5`.
 - Coverage discrepancy: REQUIREMENTS.md header says "42 total v1 requirements" but the actual count is 46 (5 FOUND + 6 PERM + 16 CAP + 8 VITEST + 6 CI + 4 DOCS + 1 EXT). Header should be corrected on next REQUIREMENTS.md edit.
+- Wave 2 parallel-agent git contamination: Plan 02's agent used git add -A and swept Plan 04's Task 2 files into commit 40c4463. Net content correct, attribution wrong. Suggest enforcing no-git-add-A rule or using worktrees in future parallel waves.
 
 ## Deferred Items
 
@@ -92,6 +96,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-04-17T16:08:53.224Z
-Stopped at: Completed 01-02-PLAN.md — Zig core, noop driver, wire format, N-API surface all scaffolded; zig build test runtime verification deferred to CI (Zig not in dev PATH)
+Last session: 2026-04-17T16:09:58.690Z
+Stopped at: Completed 01-04-PLAN.md (ShokiRunner Swift helper + XPC ping); ready for Wave 3 (Plan 03 SDK surface)
 Resume file: None
