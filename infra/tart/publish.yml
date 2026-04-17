@@ -1,0 +1,29 @@
+# Tart image publish — GitHub Actions workflow.
+#
+# GitHub only discovers workflows under `.github/workflows/`, so the canonical
+# file lives at `.github/workflows/tart-publish.yml`. This file is kept as a
+# colocated pointer so anyone browsing `infra/tart/` finds it.
+#
+# To edit the publish pipeline, edit:
+#   .github/workflows/tart-publish.yml
+#
+# The two files are kept in sync by CI (see `infra/tart/README.md` § Publishing).
+
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+# Canonical: ../../.github/workflows/tart-publish.yml
+
+name: Publish tart images (pointer)
+
+# This is a documentation-only YAML; GitHub does not execute it.
+# The real workflow has the same triggers and lives under .github/workflows/.
+on:
+  workflow_dispatch:
+
+jobs:
+  see-canonical:
+    name: See .github/workflows/tart-publish.yml
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "This is a pointer file. The real workflow lives at:"
+          echo "  .github/workflows/tart-publish.yml"

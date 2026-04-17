@@ -23,6 +23,13 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
+      # Phase 5 setup-action: no-op on GH-hosted in degraded mode, but it
+      # quiesces background apps (reducing notarization-step interrupt risk)
+      # and sets VO AppleScript for any signing-step smoke tests.
+      - uses: ./.github/actions/setup
+        with:
+          topology: github-hosted
+          skip-doctor: "true"
       - name: Import Developer ID cert
         uses: apple-actions/import-codesign-certs@v3
         with:
@@ -58,6 +65,10 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+        with:
+          topology: github-hosted
+          skip-doctor: "true"
       - name: Import Developer ID cert
         uses: apple-actions/import-codesign-certs@v3
         with:

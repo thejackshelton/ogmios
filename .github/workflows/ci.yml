@@ -50,6 +50,13 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+      # Phase 5: setup-action quiesces background apps before the SDK tests
+      # so VoiceOver-dispatched announcements aren't polluted by Slack etc.
+      # skip-doctor because shoki CLI isn't built yet in this flow.
+      - uses: ./.github/actions/setup
+        with:
+          topology: github-hosted
+          skip-doctor: "true"
       - run: pnpm install --frozen-lockfile
       - uses: ./.github/actions/build-zig-binding
         with:
@@ -63,6 +70,9 @@ jobs:
         env:
           SHOKI_NATIVE_BUILT: "1"
         run: pnpm --filter @shoki/sdk test
+      - name: Post-job background-app quiesce
+        if: always()
+        run: .github/actions/setup/kill-background-apps.sh
 
   helper-test:
     name: Helper Swift tests

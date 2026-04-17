@@ -1,0 +1,160 @@
+# Tart image publish pipeline.
+#
+# Tag-triggered. One parallel job per macOS version. Each job runs on a
+# self-hosted macOS-arm64 runner with tart + packer installed, builds the
+# corresponding image, and pushes to ghcr.io/shoki/macos-vo-ready:<ver>.
+#
+# REQUIRED SECRETS (see docs/release-setup.md § 6):
+#   GHCR_USERNAME, GHCR_TOKEN — for ghcr.io push
+#   APPLE_DEVELOPER_ID_APPLICATION_CERT_B64 + _PASSWORD — reused from Phase 1
+#   DEVELOPER_ID_IDENTITY, APPLE_TEAM_ID — signing identity
+#
+# Triggered by: `tart-v*` tags. Example:
+#   git tag tart-v1.0.0
+#   git push origin tart-v1.0.0
+#
+# NOTE: the publish runners must be self-hosted. GH-hosted macos-latest
+# cannot nest tart VMs (no Virtualization.framework inside their VMs).
+
+name: Publish tart images
+
+on:
+  push:
+    tags:
+      - "tart-v*"
+  workflow_dispatch:
+    inputs:
+      macos_version:
+        description: "Which macOS version to publish (sonoma/sequoia/tahoe/all)"
+        required: true
+        default: "all"
+      full_image:
+        description: "Build and publish @full variant too (takes ~2x longer)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+concurrency:
+  group: tart-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish macos-vo-ready:${{ matrix.macos }}
+    runs-on: [self-hosted, macOS, arm64, packer]
+    strategy:
+      fail-fast: false
+      matrix:
+        macos: [sonoma, sequoia, tahoe]
+        include:
+          - macos: sonoma
+            base_image: ghcr.io/cirruslabs/macos-sonoma-xcode:latest
+          - macos: sequoia
+            base_image: ghcr.io/cirruslabs/macos-sequoia-xcode:latest
+          - macos: tahoe
+            base_image: ghcr.io/cirruslabs/macos-tahoe-xcode:latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Import Developer ID cert (for signing any helper artifacts)
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_B64 }}
+          p12-password: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASSWORD }}
+
+      - name: Verify tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          tart --version
+          packer --version
+          ansible --version
+
+      - name: Login to ghcr.io
+        shell: bash
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "$GHCR_TOKEN" | tart login ghcr.io --username "$GHCR_USERNAME" --password-stdin
+
+      - name: Pull base image
+        shell: bash
+        run: tart pull "${{ matrix.base_image }}"
+
+      - name: Packer init
+        working-directory: infra/tart
+        shell: bash
+        run: packer init "packer/${{ matrix.macos }}.pkr.hcl"
+
+      # ---- Slim build ----
+      - name: Packer build (slim)
+        working-directory: infra/tart
+        shell: bash
+        run: |
+          set -euo pipefail
+          packer build \
+            -var "full_image=false" \
+            -var "output_name=shoki-vo-ready-${{ matrix.macos }}" \
+            "packer/${{ matrix.macos }}.pkr.hcl"
+
+      - name: Smoke test (slim)
+        shell: bash
+        run: |
+          set -euo pipefail
+          tart run shoki-vo-ready-${{ matrix.macos }} --no-graphics &
+          TART_PID=$!
+          # Wait up to 120s for SSH.
+          for i in $(seq 1 60); do
+            IP=$(tart ip shoki-vo-ready-${{ matrix.macos }} 2>/dev/null || true)
+            if [[ -n "$IP" ]] && nc -z "$IP" 22 2>/dev/null; then break; fi
+            sleep 2
+          done
+          [[ -n "$IP" ]] || { echo "failed to get VM IP"; exit 1; }
+          # Basic health: can we ssh and read the marker?
+          sshpass -p admin ssh -o StrictHostKeyChecking=no admin@"$IP" \
+            'cat /etc/shoki-image && node --version && pnpm --version'
+          # Shut down cleanly.
+          tart stop shoki-vo-ready-${{ matrix.macos }} || kill $TART_PID || true
+          wait $TART_PID 2>/dev/null || true
+
+      - name: Push (slim)
+        shell: bash
+        run: |
+          set -euo pipefail
+          tart push "shoki-vo-ready-${{ matrix.macos }}" \
+            "ghcr.io/shoki/macos-vo-ready:${{ matrix.macos }}"
+
+      # ---- @full build (opt-in) ----
+      - name: Packer build (@full)
+        if: inputs.full_image == 'true'
+        working-directory: infra/tart
+        shell: bash
+        run: |
+          set -euo pipefail
+          packer build \
+            -var "full_image=true" \
+            -var "output_name=shoki-vo-ready-${{ matrix.macos }}-full" \
+            "packer/${{ matrix.macos }}.pkr.hcl"
+
+      - name: Push (@full)
+        if: inputs.full_image == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tart push "shoki-vo-ready-${{ matrix.macos }}-full" \
+            "ghcr.io/shoki/macos-vo-ready:${{ matrix.macos }}@full"
+
+      # ---- cleanup ----
+      - name: Clean up VMs
+        if: always()
+        shell: bash
+        run: |
+          tart delete "shoki-vo-ready-${{ matrix.macos }}" 2>/dev/null || true
+          tart delete "shoki-vo-ready-${{ matrix.macos }}-full" 2>/dev/null || true
