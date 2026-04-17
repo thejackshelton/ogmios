@@ -50,7 +50,13 @@ Plans:
   2. `shoki doctor` enumerates current Accessibility + Automation TCC grants for the shoki trust anchor and flags stale/orphaned entries from prior signatures or renamed binaries
   3. `shoki doctor --fix` writes the VO AppleScript-enabled plist when SIP permits, and when SIP blocks the write, prints exact instructions plus a deep link to the correct System Settings pane
   4. `shoki doctor` exits with a documented non-zero exit code per failure class (missing-grant, signature-mismatch, OS-unsupported, SIP-required) so CI scripts can branch on the cause
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — @shoki/doctor package scaffolding + frozen DoctorReport/ExitCode contract + commander CLI wiring (no PERM reqs — scaffolding)
+- [ ] 02-02-PLAN.md — macOS version + VO plist (14/15/26 version-branched) + helper discovery/signature + SIP status checks (PERM-01)
+- [ ] 02-03-PLAN.md — TCC.db enumeration (user+system, read-only) + csreq compare + Accessibility/Automation/stale-entries checks (PERM-02, PERM-03)
+- [ ] 02-04-PLAN.md — runDoctor orchestrator + fix-executor (plist write only, never TCC.db) + human/json/quiet reporters + info subcommand + integration test (PERM-04, PERM-05, PERM-06)
 
 ### Phase 3: VoiceOver Capture Core
 **Goal**: A standalone Node script can boot VoiceOver, capture every announcement as a structured event via two independent paths, and stop cleanly without ever leaving the developer's Mac in a broken state
