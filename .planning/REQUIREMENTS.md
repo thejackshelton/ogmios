@@ -45,14 +45,14 @@ Requirements for the initial macOS + VoiceOver release. Each maps to a roadmap p
 
 ### Vitest Browser-Mode Integration
 
-- [ ] **VITEST-01**: `@shoki/vitest` plugin registers `shokiListen`, `shokiDrain`, `shokiStop`, `shokiClear`, `shokiReset` as Vitest `BrowserCommand`s
-- [ ] **VITEST-02**: Browser-side helpers (`@shoki/vitest/browser`) wrap the `BrowserCommand`s in a typed API so tests never import Node-only modules
-- [ ] **VITEST-03**: Plugin auto-configures `poolOptions.threads.singleThread = true` when VoiceOver is in scope
-- [ ] **VITEST-04**: Runtime error is raised with an actionable message when `test.concurrent` is used in a VO-scoped test
-- [ ] **VITEST-05**: Concurrent `voiceOver.start()` calls across test files refcount; first boots, last kills; per-test `reset()` is used between tests
-- [ ] **VITEST-06**: Return payloads from Vitest `BrowserCommand`s are structured-clone-safe (plain objects, numeric timestamps)
-- [ ] **VITEST-07**: A canonical example repo (Vitest browser mode + real web app) runs green locally and produces a structured VO event log assertable with a semantic matcher
-- [ ] **VITEST-08**: `@shoki/matchers` package provides `toHaveAnnounced({ role, name })` and `toHaveAnnouncedText(pattern)` matchers on top of the event stream
+- [x] **VITEST-01**: `@shoki/vitest` plugin registers `shokiListen`, `shokiDrain`, `shokiStop`, `shokiClear`, `shokiReset` as Vitest `BrowserCommand`s
+- [x] **VITEST-02**: Browser-side helpers (`@shoki/vitest/browser`) wrap the `BrowserCommand`s in a typed API so tests never import Node-only modules
+- [x] **VITEST-03**: Plugin auto-configures `poolOptions.threads.singleThread = true` when VoiceOver is in scope
+- [x] **VITEST-04**: Runtime error is raised with an actionable message when `test.concurrent` is used in a VO-scoped test
+- [x] **VITEST-05**: Concurrent `voiceOver.start()` calls across test files refcount; first boots, last kills; per-test `reset()` is used between tests
+- [x] **VITEST-06**: Return payloads from Vitest `BrowserCommand`s are structured-clone-safe (plain objects, numeric timestamps)
+- [x] **VITEST-07**: A canonical example repo (Vitest browser mode + real web app) runs green locally and produces a structured VO event log assertable with a semantic matcher
+- [x] **VITEST-08**: `@shoki/matchers` package provides `toHaveAnnounced({ role, name })` and `toHaveAnnouncedText(pattern)` matchers on top of the event stream
 
 ### CI Story
 
@@ -151,14 +151,14 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CAP-14   | Phase 3: VoiceOver Capture Core | Pending |
 | CAP-15   | Phase 3: VoiceOver Capture Core | Pending |
 | CAP-16   | Phase 3: VoiceOver Capture Core | Pending |
-| VITEST-01 | Phase 4: Vitest Browser-Mode Integration | Pending |
-| VITEST-02 | Phase 4: Vitest Browser-Mode Integration | Pending |
-| VITEST-03 | Phase 4: Vitest Browser-Mode Integration | Pending |
-| VITEST-04 | Phase 4: Vitest Browser-Mode Integration | Pending |
-| VITEST-05 | Phase 4: Vitest Browser-Mode Integration | Pending |
-| VITEST-06 | Phase 4: Vitest Browser-Mode Integration | Pending |
-| VITEST-07 | Phase 4: Vitest Browser-Mode Integration | Pending |
-| VITEST-08 | Phase 4: Vitest Browser-Mode Integration | Pending |
+| VITEST-01 | Phase 4: Vitest Browser-Mode Integration | Complete |
+| VITEST-02 | Phase 4: Vitest Browser-Mode Integration | Complete |
+| VITEST-03 | Phase 4: Vitest Browser-Mode Integration | Complete |
+| VITEST-04 | Phase 4: Vitest Browser-Mode Integration | Complete |
+| VITEST-05 | Phase 4: Vitest Browser-Mode Integration | Complete |
+| VITEST-06 | Phase 4: Vitest Browser-Mode Integration | Complete |
+| VITEST-07 | Phase 4: Vitest Browser-Mode Integration | Complete |
+| VITEST-08 | Phase 4: Vitest Browser-Mode Integration | Complete |
 | CI-01    | Phase 5: CI Story | Pending |
 | CI-02    | Phase 5: CI Story | Pending |
 | CI-03    | Phase 5: CI Story | Pending |
