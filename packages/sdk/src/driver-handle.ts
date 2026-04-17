@@ -1,6 +1,12 @@
 import { loadBinding } from './binding-loader.js';
 import { DriverNotFoundError, ShokiError } from './errors.js';
-import type { ScreenReaderHandle, ShokiEvent } from './screen-reader.js';
+import { LogStore } from './handle-internals.js';
+import { listenImpl } from './listen.js';
+import type {
+  AwaitStableLogOptions,
+  ScreenReaderHandle,
+  ShokiEvent,
+} from './screen-reader.js';
 import { decodeEvents } from './wire.js';
 
 export interface CreateDriverHandleOptions {
@@ -16,6 +22,15 @@ const DEFAULT_POLL_MS = 50;
 /**
  * Generic factory that wraps a Zig driver id in a ScreenReaderHandle.
  * Used by voiceOver (this plan), and by future drivers (nvda, orca).
+ *
+ * Behavior notes:
+ * - On `start()` we begin a background drain interval at `pollMs` cadence (50ms
+ *   default — matches the Zig PollLoop cadence). Each tick calls the native
+ *   `driverDrain` once and funnels decoded events into an internal LogStore.
+ * - `listen()` returns an async iterable backed by that LogStore, broadcast to
+ *   any number of concurrent iterators.
+ * - `clear()` empties the TS-side log ONLY; the ring buffer is untouched.
+ * - `reset()` calls the native reset AND clears the TS log (matches CAP-12).
  */
 export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReaderHandle {
   const binding = loadBinding();
@@ -35,8 +50,9 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
     );
   }
 
-  const phraseLog: string[] = [];
+  const store = new LogStore();
   let deinited = false;
+  let drainInterval: ReturnType<typeof setInterval> | null = null;
 
   function assertAlive(): bigint {
     if (deinited || id === null) {
@@ -48,12 +64,33 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
     return id;
   }
 
-  async function drainOnce(): Promise<ShokiEvent[]> {
+  function drainOnceSync(): ShokiEvent[] {
     const currentId = assertAlive();
     const buf = binding.driverDrain(currentId);
     const events = decodeEvents(buf);
-    for (const e of events) phraseLog.push(e.phrase);
+    store.pushMany(events);
     return events;
+  }
+
+  function startDrainInterval() {
+    if (drainInterval !== null) return;
+    drainInterval = setInterval(() => {
+      try {
+        drainOnceSync();
+      } catch {
+        // Swallow here; callers will see the error on their next explicit
+        // drain/phraseLog/etc. invocation.
+      }
+    }, pollMs);
+    // Don't keep the process alive just because the interval is running.
+    drainInterval.unref?.();
+  }
+
+  function stopDrainInterval() {
+    if (drainInterval !== null) {
+      clearInterval(drainInterval);
+      drainInterval = null;
+    }
   }
 
   return {
@@ -61,50 +98,55 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
 
     async start() {
       binding.driverStart(assertAlive());
+      startDrainInterval();
     },
 
     async stop() {
+      stopDrainInterval();
       binding.driverStop(assertAlive());
     },
 
     async drain() {
-      return drainOnce();
+      return drainOnceSync();
     },
 
     async reset() {
       binding.driverReset(assertAlive());
-      phraseLog.length = 0;
+      store.clear();
     },
 
-    async *listen(): AsyncGenerator<ShokiEvent> {
-      while (!deinited) {
-        const events = await drainOnce();
-        for (const e of events) yield e;
-        await new Promise((r) => setTimeout(r, pollMs));
-      }
+    listen(): AsyncIterable<ShokiEvent> {
+      return listenImpl(store);
     },
 
     async phraseLog() {
-      await drainOnce();
-      return [...phraseLog];
+      drainOnceSync();
+      return store.getAll().map((e) => e.phrase);
     },
 
     async lastPhrase() {
-      await drainOnce();
-      return phraseLog[phraseLog.length - 1];
+      drainOnceSync();
+      return store.lastPhrase();
     },
 
     async clear() {
-      binding.driverReset(assertAlive());
-      phraseLog.length = 0;
+      // TS log only — preserve native ring buffer per CAP-11.
+      store.clear();
     },
 
     async droppedCount() {
-      return binding.droppedCount(assertAlive());
+      const n = binding.droppedCount(assertAlive());
+      store.setDroppedCount(n);
+      return n;
+    },
+
+    async awaitStableLog(options: AwaitStableLogOptions): Promise<ShokiEvent[]> {
+      return store.awaitStable(options);
     },
 
     async deinit() {
       if (deinited) return;
+      stopDrainInterval();
       const currentId = assertAlive();
       binding.driverDeinit(currentId);
       deinited = true;

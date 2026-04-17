@@ -12,15 +12,14 @@ export interface VoiceOverOptions {
 /**
  * Construct a VoiceOver ScreenReaderHandle.
  *
- * PHASE 1 STATUS: this factory wires to the "noop" driver as a placeholder.
- * The real "voiceover" driver lands in Phase 3 — when it does, the ONLY
- * change here is the driverName string. The ScreenReaderHandle surface
- * stays identical (EXT-01).
+ * Phase 3 flips the target driver from "noop" to "voiceover". The registry in
+ * `zig/src/core/registry.zig` gets its voiceover entry wired up by Plan 05;
+ * until then this factory will error at start with DriverNotFoundError, which
+ * is the intended behavior (SDK surface is stable; native driver is pending).
  */
 export function voiceOver(opts: VoiceOverOptions = {}): ScreenReaderHandle {
   return createDriverHandle({
-    // TODO(phase-3): change to 'voiceover' once the Zig driver lands.
-    driverName: 'noop',
+    driverName: 'voiceover',
     logBufferSize: opts.logBufferSize,
   });
 }

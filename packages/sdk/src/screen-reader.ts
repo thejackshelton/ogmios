@@ -17,6 +17,14 @@ export interface ShokiEvent {
   name?: string;
 }
 
+/** Options for {@link ScreenReaderHandle.awaitStableLog}. */
+export interface AwaitStableLogOptions {
+  /** Milliseconds of silence (no new events) before the promise resolves. */
+  quietMs: number;
+  /** Optional AbortSignal to reject the promise early with AbortError. */
+  signal?: AbortSignal;
+}
+
 export interface ScreenReaderHandle {
   readonly name: string;
   start(): Promise<void>;
@@ -31,6 +39,12 @@ export interface ScreenReaderHandle {
   /** Clear the internal event buffer without stopping the driver. */
   clear(): Promise<void>;
   droppedCount(): Promise<bigint>;
+  /**
+   * Resolve when `quietMs` milliseconds have elapsed without any new event
+   * arriving in the log; resolves with a snapshot of the log at that moment.
+   * Used between test steps to wait for VoiceOver to finish announcing.
+   */
+  awaitStableLog(opts: AwaitStableLogOptions): Promise<ShokiEvent[]>;
   /** Release all driver resources. After this call, the handle is unusable. */
   deinit(): Promise<void>;
 }

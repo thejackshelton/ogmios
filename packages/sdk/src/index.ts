@@ -1,4 +1,9 @@
 export {
+  type CommanderCommand,
+  type CommanderCommandName,
+  commanderCommands,
+} from './commander-commands.js';
+export {
   type CreateDriverHandleOptions,
   createDriverHandle,
 } from './driver-handle.js';
@@ -8,7 +13,13 @@ export {
   ShokiError,
   UnsupportedPlatformError,
 } from './errors.js';
+export {
+  type KeyboardCommand,
+  type KeyboardCommandName,
+  keyboardCommands,
+} from './keyboard-commands.js';
 export type {
+  AwaitStableLogOptions,
   ScreenReaderHandle,
   ShokiEvent,
   ShokiEventSource,
