@@ -10,7 +10,7 @@ Requirements for the initial macOS + VoiceOver release. Each maps to a roadmap p
 ### Foundation
 
 - [ ] **FOUND-01**: Zig 0.16.0+ core compiles to a platform-specific N-API `.node` addon via napi-zig
-- [ ] **FOUND-02**: `@shoki/sdk` npm package loads the native addon via `optionalDependencies` platform packages (`@shoki/binding-darwin-arm64`, `@shoki/binding-darwin-x64`)
+- [x] **FOUND-02**: `@shoki/sdk` npm package loads the native addon via `optionalDependencies` platform packages (`@shoki/binding-darwin-arm64`, `@shoki/binding-darwin-x64`)
 - [ ] **FOUND-03**: Release binaries are Apple Developer ID-signed from the first publish — no unsigned binaries shipped
 - [ ] **FOUND-04**: Signed-wrapper-app architecture decided and documented (which process holds the stable TCC trust anchor)
 - [ ] **FOUND-05**: CI pipeline publishes a prebuilt binding for darwin-arm64 + darwin-x64 on every release via OIDC trusted publishing
@@ -124,7 +124,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FOUND-01 | Phase 1: Foundations | Pending |
-| FOUND-02 | Phase 1: Foundations | Pending |
+| FOUND-02 | Phase 1: Foundations | Complete |
 | FOUND-03 | Phase 1: Foundations | Pending |
 | FOUND-04 | Phase 1: Foundations | Pending |
 | FOUND-05 | Phase 1: Foundations | Pending |
