@@ -1,0 +1,28 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`printJsonReport > matches the snapshot (locks the schema) 1`] = `
+"{
+  "ok": false,
+  "exitCode": 4,
+  "macOSVersion": "15.2",
+  "helperPath": "/path/to/helper",
+  "helperSignature": "Developer ID Application: X (YYY)",
+  "checks": [
+    {
+      "id": "tcc-accessibility",
+      "status": "fail",
+      "summary": "No grant",
+      "exitCode": 4,
+      "fixActions": [
+        {
+          "kind": "open-system-settings",
+          "url": "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+          "pane": "accessibility"
+        }
+      ]
+    }
+  ],
+  "ranAt": "2026-04-17T17:00:00.000Z",
+  "mode": "report"
+}"
+`;

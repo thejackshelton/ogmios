@@ -5,13 +5,22 @@ export type {
   DoctorReport,
   FixAction,
 } from './report-types.js';
-export { ExitCode, resolveExitCode, EXIT_CODE_PRIORITY } from './report-types.js';
+export { EXIT_CODE_PRIORITY, ExitCode, resolveExitCode } from './report-types.js';
 
-export { runDoctor, type RunDoctorOptions } from './run-doctor.js';
+export { type RunDoctorOptions, runDoctor } from './run-doctor.js';
+export {
+  applyFixActions,
+  type ApplyFixActionsOptions,
+  type FixExecutionResult,
+} from './fix-executor.js';
+
+export { printHumanReport } from './reporters/human.js';
+export { printJsonReport } from './reporters/json.js';
+export { printQuietReport } from './reporters/quiet.js';
 
 export {
   DoctorError,
-  UnsupportedMacOSError,
   HelperNotFoundError,
   NonDarwinHostError,
+  UnsupportedMacOSError,
 } from './errors.js';
