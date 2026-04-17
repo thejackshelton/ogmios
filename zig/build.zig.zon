@@ -1,0 +1,17 @@
+.{
+    .name = .shoki_core,
+    .version = "0.0.0",
+    .fingerprint = 0x5305c51ed7a9bc01,
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{
+        .napi_zig = .{
+            .url = "git+https://github.com/yuku-toolchain/napi-zig.git#4f05eeaeee539b4800b9cdbc1485270c476b7ff8",
+            .hash = "UPDATE_VIA_ZIG_FETCH",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
