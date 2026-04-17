@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" aria-label="Shoki">
+  <rect width="128" height="128" rx="24" fill="#0b0d10"/>
+  <circle cx="64" cy="64" r="36" fill="none" stroke="#646cff" stroke-width="6"/>
+  <path d="M48 64 q16 -28 32 0" fill="none" stroke="#ffda4e" stroke-width="6" stroke-linecap="round"/>
+  <path d="M48 64 q16 28 32 0" fill="none" stroke="#ff5c7a" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="64" cy="64" r="6" fill="#ffffff"/>
+</svg>

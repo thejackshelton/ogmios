@@ -116,7 +116,7 @@ Tests inherit the existing harness; no framework changes required.
 
 ## 6. Docs
 
-Update `README.md`'s supported-screen-readers list and add a `docs/drivers/my-driver.md` page covering:
+Update the repo `README.md`'s supported-screen-readers list and add a `docs/background/drivers/my-driver.md` page covering:
 - What OS versions are supported
 - Permission requirements (if any)
 - Platform-specific quirks and workarounds

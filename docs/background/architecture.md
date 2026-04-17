@@ -45,7 +45,7 @@ macOS's TCC (Transparency, Consent, Control) framework gates Accessibility and A
 
 Consequences:
 
-- Every release requires Apple Developer ID signing + notarization of the helper. Documented in `docs/release-setup.md`.
+- Every release requires Apple Developer ID signing + notarization of the helper. Documented in [Release setup](./release-setup.md).
 - The helper is **tiny** — one Swift target, one XPC protocol, one service implementation.
 - The `.node` addon itself is NOT independently signed; it inherits trust from Node.
 - Local dev without Dev ID works — the helper script noops signing when `DEVELOPER_ID_IDENTITY` is unset. You'll just re-prompt for permissions more often.
@@ -89,7 +89,7 @@ Adding a new screen reader is three files + one registry entry:
 
 Nothing in `packages/sdk/src/binding-loader.ts`, `packages/sdk/src/screen-reader.ts`, `packages/sdk/src/wire.ts`, or `zig/src/core/` needs to change. This is verified in Phase 6 by adding a second driver.
 
-See `docs/adding-a-driver.md` for a walkthrough.
+See [Adding a screen-reader driver](./adding-a-driver.md) for a walkthrough.
 
 ## Platform risk
 
@@ -99,7 +99,7 @@ Shoki depends on VoiceOver's AppleScript surface. Apple has been tightening this
 
 To hedge, Phase 3 implements a **parallel capture path** using `AXObserverAddNotification` + `kAXAnnouncementRequestedNotification`. Both paths run; results are merged into a single event stream with a `source_tag`. If the AppleScript path breaks in a future macOS, the AX path keeps working.
 
-Users will see this disclosure on the docs site (Phase 6).
+Users see this disclosure on the [Platform risk](./platform-risk.md) page.
 
 ## Things that are NOT in this architecture
 
