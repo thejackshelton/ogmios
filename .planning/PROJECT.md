@@ -85,6 +85,7 @@ If everything else fails, this must work: `voiceOver.listen()` in a Vitest brows
 | macOS + VoiceOver first | Hardest permission/VM problem — de-risk it before Linux/NVDA | — Pending |
 | Observe-only v1 (no app driving) | User's existing framework drives the app; shoki composes instead of competing | — Pending |
 | Vitest browser mode as the v1 success target | Concrete, measurable, covers the primary (web) audience | — Pending |
+| Signed-wrapper-app (`ShokiRunner.app`) holds the TCC trust anchor | Granting TCC to Node breaks on every upgrade; a signed helper gives stable identity across Node versions and dev rebuilds | ✓ Good — implemented in Phase 1 |
 | Extensible architecture for more screen readers | Future-proofs beyond VO/NVDA without refactor | — Pending |
 
 ## Evolution
