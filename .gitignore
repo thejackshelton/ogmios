@@ -24,6 +24,7 @@ packages/binding-*/shoki.node
 # Editor
 .vscode/
 .idea/
+.claude/
 
 # macOS helper app build artifacts
 helper/build/
