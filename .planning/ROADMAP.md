@@ -31,7 +31,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Pushing a tag to the shoki repo triggers a GitHub Actions workflow that cross-compiles Zig 0.16+ for darwin-arm64 + darwin-x64 and publishes platform packages via OIDC trusted publishing (no `NPM_TOKEN` secret)
   4. The signed-wrapper-app architecture (which process holds the stable TCC trust anchor — Node vs `shoki-runner.app` vs the user's terminal) is decided, documented in PROJECT.md Key Decisions, and reflected in the binary layout
   5. The `ShokiDriver` Zig vtable + `ScreenReaderHandle` TS interface are factored such that a future `src/drivers/<name>/driver.zig` + one registry entry + one new platform binding package is the entire surface for adding a screen reader (no core/SDK/wire-format edits required)
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Repo scaffolding + pnpm workspaces (FOUND-02)
+- [ ] 01-02-PLAN.md — Zig core skeleton + napi-zig + ShokiDriver vtable + noop driver (FOUND-01, EXT-01)
+- [ ] 01-03-PLAN.md — TypeScript SDK + binding loader + voiceOver stub + wire decoder (FOUND-01, FOUND-02, EXT-01)
+- [ ] 01-04-PLAN.md — ShokiRunner.app Swift helper + XPC scaffold + sign/notarize scripts (FOUND-03, FOUND-04)
+- [ ] 01-05-PLAN.md — CI release pipeline + OIDC trusted publishing (FOUND-01, FOUND-03, FOUND-05)
+- [ ] 01-06-PLAN.md — README + CONTRIBUTING + architecture.md + PROJECT.md decision log (FOUND-04)
 
 ### Phase 2: Permission Setup & Doctor CLI
 **Goal**: A developer on any supported macOS can run `npx shoki doctor` and either pass cleanly or get a precise, actionable list of what's missing — without becoming a sysadmin
