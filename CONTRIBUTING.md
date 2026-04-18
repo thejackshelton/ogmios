@@ -32,8 +32,8 @@ pnpm -r test
 # Zig core
 cd zig && zig build test
 
-# Swift helper
-cd helper && swift test
+# Zig helper (XPC + AX observer + setup GUI — all Zig since Phase 8)
+cd helper && zig build test
 ```
 
 End-to-end tests (`noop-roundtrip.test.ts`, `ping.test.ts` in `shoki`) require the native binding to be built and `SHOKI_NATIVE_BUILT=1` in the env. CI does this automatically; locally:
@@ -63,7 +63,7 @@ shoki/
 │   ├── build.zig, build.zig.zon
 │   ├── src/core/                   driver vtable, ring buffer, wire format, N-API surface
 │   └── src/drivers/noop/           placeholder driver (Phase 3 adds voiceover)
-├── helper/                         ShokiRunner.app — Swift XPC helper (TCC trust anchor)
+├── helper/                         Zig helper: ShokiRunner.app + ShokiSetup.app (TCC trust anchor + GUI onboarding, all Zig since Phase 8)
 ├── .github/                        CI + release workflows
 ├── docs/                           user-facing docs
 ├── .planning/                      GSD planning artifacts (phase plans, roadmap, research)
@@ -75,7 +75,7 @@ shoki/
 1. Pick an open issue or phase task from `.planning/ROADMAP.md`.
 2. Branch from `main`: `git checkout -b feat/<short-name>`.
 3. Make changes; keep commits small and descriptive.
-4. Run tests: `pnpm -r test` + `cd zig && zig build test` + `cd helper && swift test`.
+4. Run tests: `pnpm -r test` + `cd zig && zig build test` + `cd helper && zig build test`.
 5. Open a PR. CI will run the full matrix.
 
 ## Adding a screen reader driver
