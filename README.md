@@ -1,7 +1,7 @@
 # Shoki
 
 [![CI](https://img.shields.io/github/actions/workflow/status/shoki/shoki/ci.yml?branch=main&label=CI)](https://github.com/shoki/shoki/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@shoki/sdk?color=CB3837&logo=npm)](https://www.npmjs.com/package/@shoki/sdk)
+[![npm](https://img.shields.io/npm/v/shoki?color=CB3837&logo=npm)](https://www.npmjs.com/package/shoki)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%2014%20%7C%2015%20%7C%2026-lightgrey?logo=apple)](docs/background/platform-risk.md)
 
@@ -14,6 +14,30 @@
 Shoki lets you start a **real** screen reader from your existing test framework, capture everything it would have announced, and assert on that log. No simulators, no static checkers — the actual VoiceOver (and later NVDA, Orca) speaking through a test.
 
 Think of it as a more ambitious [Guidepup](https://github.com/guidepup/guidepup) with first-class CI support and dramatically better DX.
+
+## Install
+
+```bash
+# Install (one command, one package)
+npm install shoki
+
+# First-run setup: downloads Shoki.app from GitHub Releases, installs to
+# ~/Applications/, strips quarantine, opens the macOS TCC permission flow.
+npx shoki setup
+
+# Verify everything is wired
+npx shoki doctor
+```
+
+One command gets you `shoki` on PATH via `npx`; `shoki setup` does the first-run download + permission dance once per machine.
+
+For Vitest users:
+
+```bash
+npm install -D shoki vitest @vitest/browser playwright
+```
+
+See [`docs/getting-started/install.md`](docs/getting-started/install.md) for details.
 
 ### Why?
 
@@ -39,7 +63,7 @@ Shoki solves those piece by piece.
 └──────────┬───────────┘
            │
 ┌──────────▼───────────┐
-│   @shoki/sdk (TS)    │   Public API + `shoki` CLI + matcher fns
+│   shoki (TS)        │   Public API + `shoki` CLI + matcher fns + vitest plugin
 └──────────┬───────────┘
            │ N-API
 ┌──────────▼───────────┐
@@ -56,14 +80,13 @@ Shoki solves those piece by piece.
 └──────────────────────┘
 ```
 
-Shoki ships **4 npm packages**:
+Shoki ships **3 npm packages**:
 
-- `@shoki/sdk` — TypeScript API, `shoki` CLI (`bin`), and matcher functions at `@shoki/sdk/matchers`.
-- `@shoki/vitest` — Vitest browser-mode plugin + `@shoki/vitest/setup` for `expect.extend`.
-- `@shoki/binding-darwin-arm64` — platform binary (Zig `.node` + signed `ShokiRunner.app` + `ShokiSetup.app`).
-- `@shoki/binding-darwin-x64` — same for Intel Macs.
+- `shoki` — TypeScript API, `shoki` CLI (`bin`), matcher functions at `shoki/matchers`, and Vitest plugin at `shoki/vitest`, `shoki/vitest/setup`, `shoki/vitest/browser`.
+- `@shoki/binding-darwin-arm64` — platform binary (Zig `.node`), auto-installed via `optionalDependencies`. Never installed by hand.
+- `@shoki/binding-darwin-x64` — same, for Intel Macs. Auto-installed via `optionalDependencies`. Never installed by hand.
 
-The helper apps are **single-language Zig** — no Swift, no Objective-C sources. See [`docs/background/architecture.md`](docs/background/architecture.md) for the full story (signed-wrapper-app rationale, wire format spec, driver extensibility).
+The helper apps (`Shoki.app` + `Shoki Setup.app`) are **not** in the npm tarballs. `npx shoki setup` downloads them from GitHub Releases on first run (~10MB), verifies SHA256, installs them into `~/Applications/`, and triggers the macOS TCC permission flow. The helper bundles are **single-language Zig** — no Swift, no Objective-C sources. See [`docs/background/architecture.md`](docs/background/architecture.md) for the full story (signed-wrapper-app rationale, wire format spec, driver extensibility).
 
 ## Not yet
 

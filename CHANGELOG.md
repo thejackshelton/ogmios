@@ -5,6 +5,78 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — Phase 10 (v1.1 prep, continued)
+
+### Changed
+
+- **BREAKING — package rename:** `@shoki/sdk` is now published as the unscoped
+  package `shoki`. Update imports: `import { voiceOver } from 'shoki'`. The
+  scoped name is gone — the npm registry slot for `shoki` was confirmed
+  available and claimed in this release. (Phase 10 Plan 01)
+- **BREAKING — `@shoki/vitest` collapsed into `shoki`:** the Vitest plugin
+  now lives at the subpaths `shoki/vitest`, `shoki/vitest/setup`, and
+  `shoki/vitest/browser`. Update consumers:
+  - `import { shokiVitest } from '@shoki/vitest'` → `from 'shoki/vitest'`
+  - `import '@shoki/vitest/setup'` → `import 'shoki/vitest/setup'`
+  - `import { voiceOver } from '@shoki/vitest/browser'` → `from 'shoki/vitest/browser'`
+  - Drop `@shoki/vitest` from `devDependencies` — it's now a subpath of `shoki`.
+  `vitest` and `@vitest/browser` are now OPTIONAL peer deps of `shoki`. (Phase 10 Plan 01)
+- **3 packages total** (down from 4): `shoki` + `@shoki/binding-darwin-arm64`
+  + `@shoki/binding-darwin-x64`. The platform bindings stay scoped — the
+  napi platform-package pattern requires it. (Phase 10 Plan 01)
+- **`shoki setup` now downloads `Shoki.app` from GitHub Releases on first run**
+  (previously a path resolver inside npm tarballs). Installs to
+  `~/Applications/`, strips `com.apple.quarantine`, and walks you through the
+  Accessibility + Automation TCC prompts. One command per machine, ever.
+  (Phase 10 Plan 02)
+- **`.app` bundles removed from `@shoki/binding-darwin-*` npm tarballs**
+  (now shipped via `app-v*`-tagged GitHub Releases). Binding tarballs drop
+  from ~10MB to ~2MB. npm channel is `shoki.node` only. (Phase 10 Plan 04)
+
+### Added
+
+- **`shoki setup` is now a real download flow.** Previously a path resolver,
+  it now: (1) detects `Shoki.app` + `Shoki Setup.app` in `~/Applications/`,
+  (2) downloads `shoki-darwin-<arch>.zip` from GitHub Releases when missing
+  or out-of-date, (3) verifies SHA256 against the published `.sha256`
+  sidecar, (4) unzips into `~/Applications/` via `ditto`, (5) strips
+  `com.apple.quarantine` via `xattr`, (6) launches `Shoki Setup.app` for the
+  one-time TCC dialog. New flags: `--force`, `--no-download`,
+  `--install-dir <path>`, `--skip-launch`, `--json`, `--version <ver>`,
+  `--dry-run`. No new runtime dependencies — uses Node 24 native `fetch` +
+  `crypto.createHash('sha256')`. (Phase 10 Plan 02)
+- **`compatibleAppVersion` field in `shoki/package.json`** — couples the SDK
+  release cadence to the helper-app release cadence. The CLI uses it as the
+  default `--version` for `shoki setup`. (Phase 10 Plan 02)
+- **GitHub Releases workflow for helper bundles** (`.github/workflows/app-release.yml`)
+  triggered by `app-v*` tags. Publishes `shoki-darwin-arm64.zip`,
+  `shoki-darwin-x64.zip`, and matching `.sha256` files. SDK release cadence
+  (`v*` tags) and helper release cadence (`app-v*` tags) are now independent.
+  (Phase 10 Plan 03)
+- **`helper/scripts/package-app-zip.sh`** — packages `Shoki.app` +
+  `Shoki Setup.app` into a platform zip with a matching `.sha256` sidecar.
+  Stage-and-archive approach (`ditto -c -k <stage>`) instead of
+  `--keepParent` (which can't accept multiple sources). (Phase 10 Plan 03)
+
+### Migration
+
+```bash
+# Old (Phase 8/9):
+npm uninstall @shoki/sdk @shoki/vitest
+# New (Phase 10):
+npm install shoki
+```
+
+Update imports:
+
+- `from '@shoki/sdk'` → `from 'shoki'`
+- `from '@shoki/vitest'` → `from 'shoki/vitest'`
+- `from '@shoki/vitest/setup'` → `from 'shoki/vitest/setup'`
+- `from '@shoki/vitest/browser'` → `from 'shoki/vitest/browser'`
+- `from '@shoki/sdk/matchers'` → `from 'shoki/matchers'`
+
+Then run `npx shoki setup --force` to grab the latest `Shoki.app` + `Shoki Setup.app` from GitHub Releases.
+
 ## [Unreleased] — Phase 8 (v1.1 prep) + Phase 9
 
 ### Changed
