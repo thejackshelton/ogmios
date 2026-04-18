@@ -18,7 +18,7 @@ describe('parseCodesignOutput', () => {
     );
     expect(p.adhoc).toBe(false);
     expect(p.unsigned).toBe(false);
-    expect(p.identifier).toBe('org.munadi.runner');
+    expect(p.identifier).toBe('org.ogmios.runner');
     expect(p.teamIdentifier).toBe('TEAMIDXYZ');
   });
 
@@ -39,7 +39,7 @@ describe('parseCodesignOutput', () => {
 describe('checkHelperSignature', () => {
   it('passes for a Developer ID signed helper', async () => {
     const r = await checkHelperSignature(
-      '/tmp/MunadiRunner.app',
+      '/tmp/OgmiosRunner.app',
       async () => CODESIGN_DEVELOPER_ID,
     );
     expect(r.status).toBe('pass');
@@ -48,7 +48,7 @@ describe('checkHelperSignature', () => {
 
   it('warns on ad-hoc signatures', async () => {
     const r = await checkHelperSignature(
-      '/tmp/MunadiRunner.app',
+      '/tmp/OgmiosRunner.app',
       async () => CODESIGN_ADHOC,
     );
     expect(r.status).toBe('warn');
@@ -56,7 +56,7 @@ describe('checkHelperSignature', () => {
 
   it('fails with HELPER_UNSIGNED on unsigned binaries', async () => {
     const r = await checkHelperSignature(
-      '/tmp/MunadiRunner.app',
+      '/tmp/OgmiosRunner.app',
       async () => CODESIGN_UNSIGNED_ERROR,
     );
     expect(r.status).toBe('fail');
@@ -65,8 +65,8 @@ describe('checkHelperSignature', () => {
 
   it('fails when codesign stderr has no Authority= line and no unsigned marker', async () => {
     const r = await checkHelperSignature(
-      '/tmp/MunadiRunner.app',
-      async () => 'Executable=/tmp/MunadiRunner.app\nIdentifier=org.munadi.runner\n',
+      '/tmp/OgmiosRunner.app',
+      async () => 'Executable=/tmp/OgmiosRunner.app\nIdentifier=org.ogmios.runner\n',
     );
     expect(r.status).toBe('fail');
     expect(r.exitCode).toBe(ExitCode.HELPER_UNSIGNED);

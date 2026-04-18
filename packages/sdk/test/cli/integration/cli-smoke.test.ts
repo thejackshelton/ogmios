@@ -44,13 +44,13 @@ describe.skipIf(!isDarwin)('CLI integration (darwin, built dist)', () => {
     });
     expect([0, 2, 3, 4, 5, 6, 7, 8, 9]).toContain(result.exitCode);
     expect(result.stdout.split('\n').filter(Boolean)).toHaveLength(1);
-    expect(result.stdout).toMatch(/^munadi-doctor/);
+    expect(result.stdout).toMatch(/^ogmios-doctor/);
   });
 
   it('info prints context and exits 0', async () => {
     const { stdout, exitCode } = await execa('node', [CLI, 'info']);
     expect(exitCode).toBe(0);
-    expect(stdout).toMatch(/munadi v/);
+    expect(stdout).toMatch(/ogmios v/);
     expect(stdout).toMatch(/node /);
     expect(stdout).toMatch(/platform darwin/);
   });

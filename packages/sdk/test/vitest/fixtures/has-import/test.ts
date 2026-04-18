@@ -1,4 +1,4 @@
-import { voiceOver } from 'munadi/vitest/browser';
+import { voiceOver } from 'ogmios/vitest/browser';
 import { test } from 'vitest';
 
 test('x', async () => {

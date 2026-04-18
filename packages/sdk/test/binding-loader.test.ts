@@ -4,11 +4,11 @@ import { UnsupportedPlatformError } from '../src/errors.js';
 
 describe('resolveBindingPackage', () => {
   it('returns the darwin-arm64 package on darwin-arm64', () => {
-    expect(resolveBindingPackage('darwin', 'arm64')).toBe('@munadi/binding-darwin-arm64');
+    expect(resolveBindingPackage('darwin', 'arm64')).toBe('@ogmios/binding-darwin-arm64');
   });
 
   it('returns the darwin-x64 package on darwin-x64', () => {
-    expect(resolveBindingPackage('darwin', 'x64')).toBe('@munadi/binding-darwin-x64');
+    expect(resolveBindingPackage('darwin', 'x64')).toBe('@ogmios/binding-darwin-x64');
   });
 
   it('throws UnsupportedPlatformError on unsupported combos', () => {
@@ -24,7 +24,7 @@ describe('loadBinding', () => {
     // Also skip if the native binding hasn't been built yet (e.g., developer
     // checked out before running `zig build`). Document via env var so CI is
     // explicit about when the native surface should be present.
-    if (!process.env.MUNADI_NATIVE_BUILT) return;
+    if (!process.env.OGMIOS_NATIVE_BUILT) return;
     const binding = loadBinding();
     expect(typeof binding.ping).toBe('function');
     expect(typeof binding.createDriver).toBe('function');

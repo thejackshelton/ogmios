@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LogStore } from '../src/handle-internals.js';
-import type { MunadiEvent } from '../src/screen-reader.js';
+import type { OgmiosEvent } from '../src/screen-reader.js';
 
-function makeEvent(phrase: string): MunadiEvent {
+function makeEvent(phrase: string): OgmiosEvent {
   return { tsNanos: 0n, source: 'applescript', flags: 0, phrase };
 }
 

@@ -25,10 +25,10 @@ describe('enumerateTCCGrants (with injected rows)', () => {
         user: [ROW_ACCESSIBILITY_GRANTED, ROW_UNRELATED_TERMINAL],
         system: [],
       },
-      clientMatches: ['org.munadi.runner'], // Terminal NOT allowlisted
+      clientMatches: ['org.ogmios.runner'], // Terminal NOT allowlisted
     });
     expect(e.rows).toHaveLength(1);
-    expect(e.rows[0]!.client).toBe('org.munadi.runner');
+    expect(e.rows[0]!.client).toBe('org.ogmios.runner');
   });
 
   it('annotates every row with csreqMatch', () => {
