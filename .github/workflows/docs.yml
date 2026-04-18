@@ -29,10 +29,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      # docs/ is NOT a pnpm workspace member (Plan 08-06). Install standalone.
+      # `--ignore-workspace` prevents pnpm from walking up to the repo root
+      # pnpm-workspace.yaml (which lists packages/* + examples/* and would
+      # skip docs/ entirely, leaving devDependencies uninstalled).
+      # `--frozen-lockfile=false` lets CI bootstrap the docs-local lockfile on
+      # first deploy without failing on a missing committed lockfile.
+      - name: Install docs dependencies
+        working-directory: docs
+        run: pnpm install --ignore-workspace --frozen-lockfile=false
       - name: Build docs
-        run: pnpm --filter docs build
+        working-directory: docs
+        run: pnpm build
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

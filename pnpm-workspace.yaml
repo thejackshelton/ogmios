@@ -1,4 +1,6 @@
 packages:
   - "packages/*"
   - "examples/*"
-  - "docs"
+# docs/ is intentionally NOT a workspace member — it has its own pnpm install
+# and runs standalone in .github/workflows/docs.yml (Plan 08-06). Keeps
+# `pnpm -r {typecheck,test,build}` from root scoped to the 4-package world.
