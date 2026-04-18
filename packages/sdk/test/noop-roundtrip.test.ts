@@ -3,8 +3,8 @@ import { createDriverHandle } from '../src/index.js';
 
 const isMac = process.platform === 'darwin';
 // End-to-end roundtrip requires the compiled Zig .node — skipped until
-// `zig build` has produced it and MUNADI_NATIVE_BUILT=1 is set.
-const nativeReady = isMac && !!process.env.MUNADI_NATIVE_BUILT;
+// `zig build` has produced it and OGMIOS_NATIVE_BUILT=1 is set.
+const nativeReady = isMac && !!process.env.OGMIOS_NATIVE_BUILT;
 
 // Plan 07-02: previously this test called `voiceOver()` back when it resolved
 // to a noop stub. Now that voiceOver() is wired to the real VO driver, we

@@ -13,9 +13,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const FIXTURE_DIR = join(__dirname, '..', 'fixtures', 'setup');
-const GOOD_ZIP = join(FIXTURE_DIR, 'munadi-darwin-arm64.zip');
-const TAMPERED_ZIP = join(FIXTURE_DIR, 'munadi-darwin-arm64.tampered.zip');
-const SHA_FILE = join(FIXTURE_DIR, 'munadi-darwin-arm64.zip.sha256');
+const GOOD_ZIP = join(FIXTURE_DIR, 'ogmios-darwin-arm64.zip');
+const TAMPERED_ZIP = join(FIXTURE_DIR, 'ogmios-darwin-arm64.tampered.zip');
+const SHA_FILE = join(FIXTURE_DIR, 'ogmios-darwin-arm64.zip.sha256');
 
 /**
  * Mint a tiny fake `fetch` that serves whichever (url -> bytes) pairs we give it.
@@ -40,7 +40,7 @@ describe('downloadAndVerifyZip', () => {
   let workDir: string;
 
   beforeEach(async () => {
-    workDir = await mkdtemp(join(tmpdir(), 'munadi-setup-download-test-'));
+    workDir = await mkdtemp(join(tmpdir(), 'ogmios-setup-download-test-'));
   });
 
   afterEach(async () => {
@@ -53,7 +53,7 @@ describe('downloadAndVerifyZip', () => {
     const expectedHex = createHash('sha256').update(zipBytes).digest('hex');
 
     const zipUrl =
-      'https://github.com/thejackshelton/munadi/releases/download/app-v0.1.0/munadi-darwin-arm64.zip';
+      'https://github.com/thejackshelton/ogmios/releases/download/app-v0.1.0/ogmios-darwin-arm64.zip';
     const shaUrl = `${zipUrl}.sha256`;
 
     const opts: DownloadOptions = {
@@ -80,7 +80,7 @@ describe('downloadAndVerifyZip', () => {
     const tamperedBytes = await readFile(TAMPERED_ZIP); // but the zip is tampered
 
     const zipUrl =
-      'https://github.com/thejackshelton/munadi/releases/download/app-v0.1.0/munadi-darwin-arm64.zip';
+      'https://github.com/thejackshelton/ogmios/releases/download/app-v0.1.0/ogmios-darwin-arm64.zip';
     const shaUrl = `${zipUrl}.sha256`;
 
     const opts: DownloadOptions = {
@@ -106,7 +106,7 @@ describe('downloadAndVerifyZip', () => {
       .slice(0, 12);
 
     const zipUrl =
-      'https://github.com/thejackshelton/munadi/releases/download/app-v0.1.0/munadi-darwin-arm64.zip';
+      'https://github.com/thejackshelton/ogmios/releases/download/app-v0.1.0/ogmios-darwin-arm64.zip';
     const shaUrl = `${zipUrl}.sha256`;
 
     const err = await downloadAndVerifyZip({
@@ -126,7 +126,7 @@ describe('downloadAndVerifyZip', () => {
 
   it('rejects with URL + 404 context when the zip fetch returns 404', async () => {
     const zipUrl =
-      'https://github.com/thejackshelton/munadi/releases/download/app-v0.1.0/munadi-darwin-arm64.zip';
+      'https://github.com/thejackshelton/ogmios/releases/download/app-v0.1.0/ogmios-darwin-arm64.zip';
 
     await expect(
       downloadAndVerifyZip({
@@ -137,7 +137,7 @@ describe('downloadAndVerifyZip', () => {
           // Intentionally no route — all URLs → 404
         }),
       }),
-    ).rejects.toThrowError(/(404|not found).*munadi-darwin-arm64\.zip/is);
+    ).rejects.toThrowError(/(404|not found).*ogmios-darwin-arm64\.zip/is);
 
     // Verify the error mentions the exact URL we tried to fetch.
     const err = await downloadAndVerifyZip({
@@ -154,7 +154,7 @@ describe('downloadAndVerifyZip', () => {
     const expectedHex = createHash('sha256').update(zipBytes).digest('hex');
 
     const zipUrl =
-      'https://github.com/thejackshelton/munadi/releases/download/app-v0.1.0/munadi-darwin-arm64.zip';
+      'https://github.com/thejackshelton/ogmios/releases/download/app-v0.1.0/ogmios-darwin-arm64.zip';
     const shaUrl = `${zipUrl}.sha256`;
 
     // Bare-hex form (no filename, no trailing newline).
@@ -175,7 +175,7 @@ describe('downloadAndVerifyZip', () => {
     const shaText = await readFile(SHA_FILE, 'utf8');
 
     const baseUrl = 'https://example.test/mock-releases';
-    const zipUrl = `${baseUrl}/app-v0.1.0/munadi-darwin-arm64.zip`;
+    const zipUrl = `${baseUrl}/app-v0.1.0/ogmios-darwin-arm64.zip`;
     const shaUrl = `${zipUrl}.sha256`;
 
     const result = await downloadAndVerifyZip({

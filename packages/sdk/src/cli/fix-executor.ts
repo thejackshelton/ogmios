@@ -16,9 +16,9 @@ export interface ApplyFixActionsOptions {
     key: string,
     value: boolean,
   ) => Promise<void>;
-  /** Test seam: replace the `open MunadiSetup.app` invocation. */
+  /** Test seam: replace the `open OgmiosSetup.app` invocation. */
   setupAppLauncher?: (appPath: string) => Promise<void>;
-  /** Test seam: replace the MunadiSetup.app path resolver. */
+  /** Test seam: replace the OgmiosSetup.app path resolver. */
   setupAppResolver?: () => Promise<string | null>;
 }
 
@@ -35,8 +35,8 @@ const defaultDefaultsWriter = async (
 };
 
 /**
- * Default launcher — `open <MunadiSetup.app>`. Fire-and-forget (the user drives
- * the GUI from here; the doctor re-check happens on the next `munadi doctor`
+ * Default launcher — `open <OgmiosSetup.app>`. Fire-and-forget (the user drives
+ * the GUI from here; the doctor re-check happens on the next `ogmios doctor`
  * invocation after TCC grants land).
  */
 const defaultSetupAppLauncher = async (appPath: string): Promise<void> => {
@@ -78,7 +78,7 @@ export async function applyFixActions(
         errors.push({
           action,
           error:
-            'MunadiSetup.app not found — install @munadi/binding-darwin-arm64 or @munadi/binding-darwin-x64, or set $MUNADI_SETUP_APP_PATH.',
+            'OgmiosSetup.app not found — install @ogmios/binding-darwin-arm64 or @ogmios/binding-darwin-x64, or set $OGMIOS_SETUP_APP_PATH.',
         });
         continue;
       }

@@ -5,7 +5,7 @@
 // VO Commander commands are dispatched by VoiceOver's own Commander UI; each
 // entry's string value is the exact VO command name. Users who want to
 // programmatically drive them can use VO Commander shortcuts via system
-// keystrokes — Munadi itself is observe-only. The empty `keys` array is
+// keystrokes — Ogmios itself is observe-only. The empty `keys` array is
 // intentional: the binding (mouse gesture, trackpad gesture, or a user-
 // assigned keystroke) is user-configurable and not fixed by Apple.
 

@@ -42,7 +42,7 @@ describe('toHaveAnnounced', () => {
   it('guards non-array input', () => {
     const r = toHaveAnnounced(undefined, { role: 'button' });
     expect(r.pass).toBe(false);
-    expect(r.message()).toMatch(/MunadiEvent\[\] array/);
+    expect(r.message()).toMatch(/OgmiosEvent\[\] array/);
   });
 
   it('message on pass supports .not negation use', () => {

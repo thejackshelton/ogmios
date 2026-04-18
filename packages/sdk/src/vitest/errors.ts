@@ -1,58 +1,58 @@
 /**
- * Browser-safe base class — does NOT import from the munadi Node entry because
- * the browser entry (`munadi/vitest/browser`) must not pull in Node-only modules.
- * Structurally compatible with the munadi `MunadiError` (Error + `.code`).
+ * Browser-safe base class — does NOT import from the ogmios Node entry because
+ * the browser entry (`ogmios/vitest/browser`) must not pull in Node-only modules.
+ * Structurally compatible with the ogmios `OgmiosError` (Error + `.code`).
  */
-export class MunadiError extends Error {
+export class OgmiosError extends Error {
   constructor(
     message: string,
     public readonly code: string,
   ) {
     super(message);
-    this.name = 'MunadiError';
+    this.name = 'OgmiosError';
   }
 }
 
-export class MunadiConcurrentTestError extends MunadiError {
+export class OgmiosConcurrentTestError extends OgmiosError {
   constructor() {
     super(
       'VoiceOver is a system singleton; test.concurrent is not supported. ' +
         'Use test() or it() (serial) inside a VO-scoped test file.',
-      'ERR_MUNADI_CONCURRENT_TEST',
+      'ERR_OGMIOS_CONCURRENT_TEST',
     );
-    this.name = 'MunadiConcurrentTestError';
+    this.name = 'OgmiosConcurrentTestError';
   }
 }
 
-export class MunadiPlatformUnsupportedError extends MunadiError {
+export class OgmiosPlatformUnsupportedError extends OgmiosError {
   constructor(public readonly platform: string) {
     super(
-      `Munadi Vitest integration requires macOS; this host is ${platform}. ` +
-        'Run `npx munadi doctor` or set up a macOS runner — see https://github.com/thejackshelton/munadi.',
-      'ERR_MUNADI_PLATFORM_UNSUPPORTED',
+      `Ogmios Vitest integration requires macOS; this host is ${platform}. ` +
+        'Run `npx ogmios doctor` or set up a macOS runner — see https://github.com/thejackshelton/ogmios.',
+      'ERR_OGMIOS_PLATFORM_UNSUPPORTED',
     );
-    this.name = 'MunadiPlatformUnsupportedError';
+    this.name = 'OgmiosPlatformUnsupportedError';
   }
 }
 
-export class MunadiSessionNotFoundError extends MunadiError {
+export class OgmiosSessionNotFoundError extends OgmiosError {
   constructor(public readonly sessionId: string) {
     super(
-      `Munadi session "${sessionId}" is not active. Call voiceOver.start() first, or the session was already stopped.`,
-      'ERR_MUNADI_SESSION_NOT_FOUND',
+      `Ogmios session "${sessionId}" is not active. Call voiceOver.start() first, or the session was already stopped.`,
+      'ERR_OGMIOS_SESSION_NOT_FOUND',
     );
-    this.name = 'MunadiSessionNotFoundError';
+    this.name = 'OgmiosSessionNotFoundError';
   }
 }
 
-export class MunadiBindingNotAvailableError extends MunadiError {
+export class OgmiosBindingNotAvailableError extends OgmiosError {
   constructor(cause?: string) {
     super(
-      'The munadi native binding is not available in this process. ' +
+      'The ogmios native binding is not available in this process. ' +
         (cause ? `Underlying error: ${cause}. ` : '') +
-        'Run `npx munadi doctor` or check that the platform-specific binding is installed.',
-      'ERR_MUNADI_BINDING_NOT_AVAILABLE',
+        'Run `npx ogmios doctor` or check that the platform-specific binding is installed.',
+      'ERR_OGMIOS_BINDING_NOT_AVAILABLE',
     );
-    this.name = 'MunadiBindingNotAvailableError';
+    this.name = 'OgmiosBindingNotAvailableError';
   }
 }

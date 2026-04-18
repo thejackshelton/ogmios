@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module';
-import { BindingNotInstalledError, MunadiError, UnsupportedPlatformError } from './errors.js';
+import { BindingNotInstalledError, OgmiosError, UnsupportedPlatformError } from './errors.js';
 import { type NativeBinding, SUPPORTED_PLATFORMS } from './native-types.js';
 
 const require = createRequire(import.meta.url);
@@ -41,7 +41,7 @@ export function loadBinding(): NativeBinding {
     ) {
       throw new BindingNotInstalledError(pkg);
     }
-    throw new MunadiError(
+    throw new OgmiosError(
       `Failed to load native binding "${pkg}": ${(err as Error).message}`,
       'ERR_BINDING_LOAD_FAILED',
     );
@@ -68,9 +68,9 @@ function assertIsNativeBinding(mod: unknown, pkg: string): asserts mod is Native
   ];
   for (const fn of required) {
     if (typeof (mod as Record<string, unknown>)[fn] !== 'function') {
-      throw new MunadiError(
+      throw new OgmiosError(
         `Native binding "${pkg}" is missing required export "${fn}" ` +
-          `— likely an ABI drift between munadi and ${pkg}.`,
+          `— likely an ABI drift between ogmios and ${pkg}.`,
         'ERR_BINDING_ABI_MISMATCH',
       );
     }

@@ -3,8 +3,8 @@
  * These fixtures mirror the exact format — spacing and ordering matter.
  */
 
-export const CODESIGN_DEVELOPER_ID = `Executable=/path/to/MunadiRunner.app/Contents/MacOS/MunadiRunner
-Identifier=org.munadi.runner
+export const CODESIGN_DEVELOPER_ID = `Executable=/path/to/OgmiosRunner.app/Contents/MacOS/OgmiosRunner
+Identifier=org.ogmios.runner
 Format=app bundle with Mach-O thin (arm64)
 CodeDirectory v=20400 size=1024 flags=0x10000(runtime) hashes=28+7 location=embedded
 Hash type=sha256 size=32
@@ -26,8 +26,8 @@ Sealed Resources version=2 rules=13 files=5
 Internal requirements count=1 size=196
 `;
 
-export const CODESIGN_ADHOC = `Executable=/path/to/MunadiRunner.app/Contents/MacOS/MunadiRunner
-Identifier=org.munadi.runner
+export const CODESIGN_ADHOC = `Executable=/path/to/OgmiosRunner.app/Contents/MacOS/OgmiosRunner
+Identifier=org.ogmios.runner
 Format=app bundle with Mach-O thin (arm64)
 CodeDirectory v=20400 size=512 flags=0x2(adhoc) hashes=16+7 location=embedded
 Hash type=sha256 size=32
@@ -39,6 +39,6 @@ Sealed Resources version=2 rules=13 files=5
 Internal requirements count=0 size=12
 `;
 
-export const CODESIGN_UNSIGNED_ERROR = `Executable=/path/to/MunadiRunner.app/Contents/MacOS/MunadiRunner
-/path/to/MunadiRunner.app/Contents/MacOS/MunadiRunner: code object is not signed at all
+export const CODESIGN_UNSIGNED_ERROR = `Executable=/path/to/OgmiosRunner.app/Contents/MacOS/OgmiosRunner
+/path/to/OgmiosRunner.app/Contents/MacOS/OgmiosRunner: code object is not signed at all
 `;

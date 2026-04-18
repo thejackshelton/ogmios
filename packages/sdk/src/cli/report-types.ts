@@ -36,7 +36,7 @@ export type FixAction =
     }
   | {
       /**
-       * Plan 08-04 — launch the bundled MunadiSetup.app GUI.
+       * Plan 08-04 — launch the bundled OgmiosSetup.app GUI.
        * The GUI cleanly triggers macOS Accessibility + Automation TCC prompts
        * via a real `.app`-bundle trust anchor (Phase 7 proved CLI-parent
        * prompts don't fire). --fix executes this action automatically.
@@ -74,7 +74,7 @@ export interface DoctorReport {
   checks: DoctorCheckResult[];
   /** ISO-8601 timestamp of the run. */
   ranAt: string;
-  /** `report` = `munadi doctor`, `fix` = `munadi doctor --fix`. */
+  /** `report` = `ogmios doctor`, `fix` = `ogmios doctor --fix`. */
   mode: 'report' | 'fix';
 }
 

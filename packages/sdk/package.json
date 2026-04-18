@@ -1,19 +1,19 @@
 {
-  "name": "munadi",
+  "name": "ogmios",
   "version": "0.1.0",
   "compatibleAppVersion": "0.1.0",
-  "description": "Screen-reader test automation SDK — TypeScript surface + CLI + matchers + Vitest plugin for Munadi's Zig native core",
+  "description": "Screen-reader test automation SDK — TypeScript surface + CLI + matchers + Vitest plugin for Ogmios's Zig native core",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thejackshelton/munadi.git",
+    "url": "git+https://github.com/thejackshelton/ogmios.git",
     "directory": "packages/sdk"
   },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "munadi": "dist/cli/main.js"
+    "ogmios": "dist/cli/main.js"
   },
   "exports": {
     ".": {
@@ -55,7 +55,7 @@
     "picocolors": "^1.0.0"
   },
   "optionalDependencies": {
-    "@munadi/binding-darwin-arm64": "workspace:*"
+    "@ogmios/binding-darwin-arm64": "workspace:*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

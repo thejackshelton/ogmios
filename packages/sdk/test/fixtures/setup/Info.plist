@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleIdentifier</key>
-  <string>org.munadi.fixture</string>
+  <string>org.ogmios.fixture</string>
   <key>CFBundleName</key>
-  <string>Munadi Fixture</string>
+  <string>Ogmios Fixture</string>
   <key>CFBundleShortVersionString</key>
   <string>0.1.0</string>
   <key>CFBundleVersion</key>

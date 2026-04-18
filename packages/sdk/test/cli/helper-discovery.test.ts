@@ -9,7 +9,7 @@ function mkExists(knownPaths: string[]) {
 
 describe('discoverHelper', () => {
   it('returns env/flag override when the override path exists', async () => {
-    const override = '/tmp/custom/MunadiRunner.app';
+    const override = '/tmp/custom/OgmiosRunner.app';
     const { location, result } = await discoverHelper({
       overridePath: override,
       exists: mkExists([override]),
@@ -22,7 +22,7 @@ describe('discoverHelper', () => {
   });
 
   it('falls through to npm path when override does not exist', async () => {
-    const npmPath = '/repo/node_modules/@munadi/binding-darwin-arm64/helper/MunadiRunner.app';
+    const npmPath = '/repo/node_modules/@ogmios/binding-darwin-arm64/helper/OgmiosRunner.app';
     const { location, result } = await discoverHelper({
       overridePath: '/nope',
       exists: mkExists([npmPath]),
@@ -35,7 +35,7 @@ describe('discoverHelper', () => {
   });
 
   it('falls through to dev path only when Package.swift sibling is present', async () => {
-    const devPath = '/repo/helper/.build/MunadiRunner.app';
+    const devPath = '/repo/helper/.build/OgmiosRunner.app';
     const manifest = '/repo/helper/Package.swift';
     const { location } = await discoverHelper({
       exists: mkExists([devPath, manifest]),
@@ -47,7 +47,7 @@ describe('discoverHelper', () => {
   });
 
   it('does NOT match dev path when Package.swift is missing (avoids false positive on a stale build dir)', async () => {
-    const devPath = '/repo/helper/.build/MunadiRunner.app';
+    const devPath = '/repo/helper/.build/OgmiosRunner.app';
     const { location, result } = await discoverHelper({
       exists: mkExists([devPath]), // no Package.swift
       cwd: '/repo',
@@ -68,11 +68,11 @@ describe('discoverHelper', () => {
     expect(location).toBeNull();
     expect(result.status).toBe('fail');
     expect(result.exitCode).toBe(ExitCode.HELPER_MISSING);
-    expect(result.detail).toMatch(/node_modules\/@munadi\/binding-darwin-arm64/);
+    expect(result.detail).toMatch(/node_modules\/@ogmios\/binding-darwin-arm64/);
   });
 
   it('uses the right binding package name for darwin-x64', async () => {
-    const npmPath = '/repo/node_modules/@munadi/binding-darwin-x64/helper/MunadiRunner.app';
+    const npmPath = '/repo/node_modules/@ogmios/binding-darwin-x64/helper/OgmiosRunner.app';
     const { location } = await discoverHelper({
       exists: mkExists([npmPath]),
       cwd: '/repo',

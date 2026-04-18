@@ -11,13 +11,13 @@ const execFileP = promisify(execFile);
  * and asserts events from BOTH the applescript and ax capture paths arrive
  * in the listen() stream.
  *
- * Gate: darwin + MUNADI_INTEGRATION=1 + MUNADI_NATIVE_BUILT=1.
+ * Gate: darwin + OGMIOS_INTEGRATION=1 + OGMIOS_NATIVE_BUILT=1.
  * TCC accessibility permission for Terminal/IDE required on first run.
  */
 const skipReason = (() => {
   if (process.platform !== 'darwin') return `platform=${process.platform}, need darwin`;
-  if (process.env.MUNADI_INTEGRATION !== '1') return 'MUNADI_INTEGRATION != 1';
-  if (process.env.MUNADI_NATIVE_BUILT !== '1') return 'MUNADI_NATIVE_BUILT != 1';
+  if (process.env.OGMIOS_INTEGRATION !== '1') return 'OGMIOS_INTEGRATION != 1';
+  if (process.env.OGMIOS_NATIVE_BUILT !== '1') return 'OGMIOS_NATIVE_BUILT != 1';
   return null;
 })();
 
@@ -42,7 +42,7 @@ maybeDescribe('VoiceOver integration — dual capture (ROADMAP SC-1)', () => {
       await handle.start();
 
       try {
-        const announcement = `munadi integration ${Date.now()}`;
+        const announcement = `ogmios integration ${Date.now()}`;
         // Kick off `say` — not awaited; we want to listen concurrently.
         void execFileP('/usr/bin/say', ['-v', 'Alex', announcement]).catch(() => undefined);
 
@@ -75,7 +75,7 @@ maybeDescribe('VoiceOver integration — dual capture (ROADMAP SC-1)', () => {
       await handle.start();
 
       try {
-        void execFileP('/usr/bin/say', ['-v', 'Alex', 'hello munadi shape check']).catch(
+        void execFileP('/usr/bin/say', ['-v', 'Alex', 'hello ogmios shape check']).catch(
           () => undefined,
         );
         const stable = await handle.awaitStableLog({ quietMs: 500 });

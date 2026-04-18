@@ -1,17 +1,17 @@
 /**
- * `munadi setup` / `LAUNCH_SETUP_APP` fix-action path resolution.
+ * `ogmios setup` / `LAUNCH_SETUP_APP` fix-action path resolution.
  *
- * Plan 08-03 introduced MunadiSetup.app — a tiny Zig-compiled GUI whose sole
+ * Plan 08-03 introduced OgmiosSetup.app — a tiny Zig-compiled GUI whose sole
  * purpose is to trigger macOS Accessibility + Automation TCC prompts cleanly.
- * Plan 08-04 wires the CLI `munadi setup` subcommand + the `launch-setup-app`
+ * Plan 08-04 wires the CLI `ogmios setup` subcommand + the `launch-setup-app`
  * fix-action to find and open the bundle from npm-installed binding packages
  * (primary) or the monorepo dev build (fallback).
  *
  * Resolution order (first match wins):
- *   1. `$MUNADI_SETUP_APP_PATH` env override — escape hatch for QA / custom layouts
- *   2. node_modules/@munadi/binding-darwin-arm64/helper/MunadiSetup.app
- *   3. node_modules/@munadi/binding-darwin-x64/helper/MunadiSetup.app
- *   4. helper/.build/MunadiSetup.app (local monorepo dev)
+ *   1. `$OGMIOS_SETUP_APP_PATH` env override — escape hatch for QA / custom layouts
+ *   2. node_modules/@ogmios/binding-darwin-arm64/helper/OgmiosSetup.app
+ *   3. node_modules/@ogmios/binding-darwin-x64/helper/OgmiosSetup.app
+ *   4. helper/.build/OgmiosSetup.app (local monorepo dev)
  *
  * Returns `null` when nothing is found — callers emit a user-facing "not
  * installed" error with the search paths enumerated.
@@ -23,7 +23,7 @@ import { join } from 'node:path';
 export interface ResolveSetupAppOptions {
   /** Root to search for node_modules/ + helper/ — defaults to process.cwd(). */
   cwd?: string;
-  /** Env override (MUNADI_SETUP_APP_PATH). */
+  /** Env override (OGMIOS_SETUP_APP_PATH). */
   envPath?: string;
   /** Injected existence check for unit tests. */
   exists?: (path: string) => Promise<boolean>;
@@ -52,7 +52,7 @@ export async function resolveSetupAppPath(
   const searched: string[] = [];
 
   // 1. Env override — highest priority so QA can point at a staging bundle.
-  const env = options.envPath ?? process.env.MUNADI_SETUP_APP_PATH;
+  const env = options.envPath ?? process.env.OGMIOS_SETUP_APP_PATH;
   if (env && env.length > 0) {
     searched.push(env);
     if (await exists(env)) {
@@ -64,10 +64,10 @@ export async function resolveSetupAppPath(
   const arm64Path = join(
     cwd,
     'node_modules',
-    '@munadi',
+    '@ogmios',
     'binding-darwin-arm64',
     'helper',
-    'MunadiSetup.app',
+    'OgmiosSetup.app',
   );
   searched.push(arm64Path);
   if (await exists(arm64Path)) {
@@ -78,10 +78,10 @@ export async function resolveSetupAppPath(
   const x64Path = join(
     cwd,
     'node_modules',
-    '@munadi',
+    '@ogmios',
     'binding-darwin-x64',
     'helper',
-    'MunadiSetup.app',
+    'OgmiosSetup.app',
   );
   searched.push(x64Path);
   if (await exists(x64Path)) {
@@ -89,7 +89,7 @@ export async function resolveSetupAppPath(
   }
 
   // 4. Monorepo dev build — the path `zig build` stages to.
-  const devPath = join(cwd, 'helper', '.build', 'MunadiSetup.app');
+  const devPath = join(cwd, 'helper', '.build', 'OgmiosSetup.app');
   searched.push(devPath);
   if (await exists(devPath)) {
     return { path: devPath, source: 'dev', searched };

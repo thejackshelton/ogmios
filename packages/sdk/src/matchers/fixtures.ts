@@ -1,4 +1,4 @@
-import type { MunadiEvent } from '../index.js';
+import type { OgmiosEvent } from '../index.js';
 
 let clock = 0n;
 
@@ -11,7 +11,7 @@ export function nextTs(): bigint {
   return clock;
 }
 
-export function makeEvent(partial: Partial<MunadiEvent>): MunadiEvent {
+export function makeEvent(partial: Partial<OgmiosEvent>): OgmiosEvent {
   return {
     tsNanos: partial.tsNanos ?? nextTs(),
     source: partial.source ?? 'applescript',

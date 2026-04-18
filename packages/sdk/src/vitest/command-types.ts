@@ -1,5 +1,5 @@
 /**
- * Frozen command contracts for munadi/vitest BrowserCommands.
+ * Frozen command contracts for ogmios/vitest BrowserCommands.
  *
  * Every return payload must be structured-clone-safe (VITEST-06):
  * - no bigint
@@ -8,7 +8,7 @@
  * - undefined fields are serialized via structuredClone but we prefer `null`
  *   when a missing value crosses the wire (lastPhrase is the prime example).
  */
-export interface MunadiStartArgs {
+export interface OgmiosStartArgs {
   speechRate?: number;
   mute?: boolean;
   takeOverExisting?: boolean;
@@ -16,19 +16,19 @@ export interface MunadiStartArgs {
   logBufferSize?: number;
 }
 
-export interface MunadiStartResult {
+export interface OgmiosStartResult {
   sessionId: string;
 }
 
-export interface MunadiSessionRef {
+export interface OgmiosSessionRef {
   sessionId: string;
 }
 
 /**
- * Wire form of a MunadiEvent. `tsMs` is the floor-to-ms integer of the
+ * Wire form of a OgmiosEvent. `tsMs` is the floor-to-ms integer of the
  * original bigint `tsNanos` — see SessionStore.toWireEvent.
  */
-export interface WireMunadiEvent {
+export interface WireOgmiosEvent {
   tsMs: number;
   source: 'applescript' | 'ax' | 'caption' | 'commander' | 'noop';
   flags: number;
@@ -37,43 +37,43 @@ export interface WireMunadiEvent {
   name?: string;
 }
 
-export interface MunadiListenArgs extends MunadiSessionRef {
+export interface OgmiosListenArgs extends OgmiosSessionRef {
   sinceMs?: number;
 }
-export type MunadiListenResult = WireMunadiEvent[];
+export type OgmiosListenResult = WireOgmiosEvent[];
 
-export type MunadiDrainArgs = MunadiSessionRef;
-export type MunadiDrainResult = WireMunadiEvent[];
+export type OgmiosDrainArgs = OgmiosSessionRef;
+export type OgmiosDrainResult = WireOgmiosEvent[];
 
-export type MunadiPhraseLogArgs = MunadiSessionRef;
-export type MunadiPhraseLogResult = string[];
+export type OgmiosPhraseLogArgs = OgmiosSessionRef;
+export type OgmiosPhraseLogResult = string[];
 
-export type MunadiLastPhraseArgs = MunadiSessionRef;
-export type MunadiLastPhraseResult = string | null;
+export type OgmiosLastPhraseArgs = OgmiosSessionRef;
+export type OgmiosLastPhraseResult = string | null;
 
-export type MunadiClearArgs = MunadiSessionRef;
-export interface MunadiClearResult {
+export type OgmiosClearArgs = OgmiosSessionRef;
+export interface OgmiosClearResult {
   ok: true;
 }
 
-export type MunadiResetArgs = MunadiSessionRef;
-export interface MunadiResetResult {
+export type OgmiosResetArgs = OgmiosSessionRef;
+export interface OgmiosResetResult {
   ok: true;
 }
 
-export type MunadiStopArgs = MunadiSessionRef;
-export interface MunadiStopResult {
+export type OgmiosStopArgs = OgmiosSessionRef;
+export interface OgmiosStopResult {
   stopped: boolean;
   remainingRefs: number;
 }
 
-export interface MunadiAwaitStableArgs extends MunadiSessionRef {
+export interface OgmiosAwaitStableArgs extends OgmiosSessionRef {
   quietMs: number;
   timeoutMs?: number;
 }
-export type MunadiAwaitStableResult = WireMunadiEvent[];
+export type OgmiosAwaitStableResult = WireOgmiosEvent[];
 
-export type MunadiGetDroppedCountArgs = MunadiSessionRef;
-export interface MunadiGetDroppedCountResult {
+export type OgmiosGetDroppedCountArgs = OgmiosSessionRef;
+export interface OgmiosGetDroppedCountResult {
   droppedCount: number;
 }

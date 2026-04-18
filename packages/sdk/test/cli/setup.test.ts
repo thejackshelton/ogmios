@@ -15,7 +15,7 @@ function mkExists(knownPaths: string[]) {
 
 describe('resolveSetupAppPath', () => {
   it('prefers the env override when the path exists', async () => {
-    const env = '/opt/MunadiSetup.app';
+    const env = '/opt/OgmiosSetup.app';
     const res = await resolveSetupAppPath({
       cwd: '/repo',
       envPath: env,
@@ -27,7 +27,7 @@ describe('resolveSetupAppPath', () => {
 
   it('falls through to arm64 node_modules path when env is absent', async () => {
     const arm64 =
-      '/repo/node_modules/@munadi/binding-darwin-arm64/helper/MunadiSetup.app';
+      '/repo/node_modules/@ogmios/binding-darwin-arm64/helper/OgmiosSetup.app';
     const res = await resolveSetupAppPath({
       cwd: '/repo',
       envPath: undefined,
@@ -39,7 +39,7 @@ describe('resolveSetupAppPath', () => {
 
   it('falls through to x64 node_modules path when arm64 absent', async () => {
     const x64 =
-      '/repo/node_modules/@munadi/binding-darwin-x64/helper/MunadiSetup.app';
+      '/repo/node_modules/@ogmios/binding-darwin-x64/helper/OgmiosSetup.app';
     const res = await resolveSetupAppPath({
       cwd: '/repo',
       exists: mkExists([x64]),
@@ -49,7 +49,7 @@ describe('resolveSetupAppPath', () => {
   });
 
   it('falls through to monorepo dev path as last resort', async () => {
-    const dev = '/repo/helper/.build/MunadiSetup.app';
+    const dev = '/repo/helper/.build/OgmiosSetup.app';
     const res = await resolveSetupAppPath({
       cwd: '/repo',
       exists: mkExists([dev]),
@@ -61,7 +61,7 @@ describe('resolveSetupAppPath', () => {
   it('returns path=null with all searched paths when nothing exists', async () => {
     const res = await resolveSetupAppPath({
       cwd: '/repo',
-      envPath: '/nope/MunadiSetup.app',
+      envPath: '/nope/OgmiosSetup.app',
       exists: mkExists([]),
     });
     expect(res.path).toBeNull();
@@ -72,10 +72,10 @@ describe('resolveSetupAppPath', () => {
 
   it('ignores env override when env path does not exist (still searches fallbacks)', async () => {
     const arm64 =
-      '/repo/node_modules/@munadi/binding-darwin-arm64/helper/MunadiSetup.app';
+      '/repo/node_modules/@ogmios/binding-darwin-arm64/helper/OgmiosSetup.app';
     const res = await resolveSetupAppPath({
       cwd: '/repo',
-      envPath: '/not/real/MunadiSetup.app',
+      envPath: '/not/real/OgmiosSetup.app',
       exists: mkExists([arm64]),
     });
     expect(res.path).toBe(arm64);
@@ -88,14 +88,14 @@ describe('launch-setup-app fix-action', () => {
     const launcher = vi.fn(async () => undefined);
     const resolver = vi.fn(async () => null);
     const actions: FixAction[] = [
-      { kind: 'launch-setup-app', appPath: '/opt/MunadiSetup.app' },
+      { kind: 'launch-setup-app', appPath: '/opt/OgmiosSetup.app' },
     ];
     const res = await applyFixActions(actions, {
       sipEnabled: true,
       setupAppLauncher: launcher,
       setupAppResolver: resolver,
     });
-    expect(launcher).toHaveBeenCalledWith('/opt/MunadiSetup.app');
+    expect(launcher).toHaveBeenCalledWith('/opt/OgmiosSetup.app');
     expect(resolver).not.toHaveBeenCalled();
     expect(res.appliedActions).toHaveLength(1);
     expect(res.errors).toHaveLength(0);
@@ -103,7 +103,7 @@ describe('launch-setup-app fix-action', () => {
 
   it('resolves path at fix time when the action has appPath=null', async () => {
     const launcher = vi.fn(async () => undefined);
-    const resolver = vi.fn(async () => '/resolved/MunadiSetup.app');
+    const resolver = vi.fn(async () => '/resolved/OgmiosSetup.app');
     const actions: FixAction[] = [{ kind: 'launch-setup-app', appPath: null }];
     const res = await applyFixActions(actions, {
       sipEnabled: true,
@@ -111,11 +111,11 @@ describe('launch-setup-app fix-action', () => {
       setupAppResolver: resolver,
     });
     expect(resolver).toHaveBeenCalledOnce();
-    expect(launcher).toHaveBeenCalledWith('/resolved/MunadiSetup.app');
+    expect(launcher).toHaveBeenCalledWith('/resolved/OgmiosSetup.app');
     expect(res.appliedActions).toHaveLength(1);
     expect(res.appliedActions[0]).toEqual({
       kind: 'launch-setup-app',
-      appPath: '/resolved/MunadiSetup.app',
+      appPath: '/resolved/OgmiosSetup.app',
     });
   });
 
@@ -131,7 +131,7 @@ describe('launch-setup-app fix-action', () => {
     expect(launcher).not.toHaveBeenCalled();
     expect(res.appliedActions).toHaveLength(0);
     expect(res.errors).toHaveLength(1);
-    expect(res.errors[0]?.error).toMatch(/MunadiSetup\.app not found/);
+    expect(res.errors[0]?.error).toMatch(/OgmiosSetup\.app not found/);
   });
 
   it('propagates launcher failures as errors (does not crash the batch)', async () => {
@@ -139,7 +139,7 @@ describe('launch-setup-app fix-action', () => {
       throw new Error('open: -10810');
     });
     const actions: FixAction[] = [
-      { kind: 'launch-setup-app', appPath: '/opt/MunadiSetup.app' },
+      { kind: 'launch-setup-app', appPath: '/opt/OgmiosSetup.app' },
     ];
     const res = await applyFixActions(actions, {
       sipEnabled: true,

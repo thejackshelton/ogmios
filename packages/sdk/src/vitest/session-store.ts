@@ -1,12 +1,12 @@
 import { execFileSync } from 'node:child_process';
 import {
   type ScreenReaderHandle,
-  type MunadiEvent,
+  type OgmiosEvent,
   voiceOver,
   type VoiceOverOptions,
 } from '../index.js';
-import type { WireMunadiEvent } from './command-types.js';
-import { MunadiSessionNotFoundError } from './errors.js';
+import type { WireOgmiosEvent } from './command-types.js';
+import { OgmiosSessionNotFoundError } from './errors.js';
 
 /**
  * Phase 7 Plan 04 — "DOM vs Chrome URL bar" filter support.
@@ -14,7 +14,7 @@ import { MunadiSessionNotFoundError } from './errors.js';
  * Resolve the youngest Chromium renderer-helper child pid via `pgrep -f`.
  * Under Vitest browser-mode with Playwright/Chromium, the parent Chromium
  * process owns the URL bar / tab title (chrome surface); each tab runs in
- * a renderer-helper child process. Scoping munadi's AX observer to that
+ * a renderer-helper child process. Scoping ogmios's AX observer to that
  * renderer pid keeps URL-bar announcements out of the capture log.
  *
  * Returns null on any error (wrong platform, no Chromium, pgrep missing) so
@@ -44,13 +44,13 @@ export function resolveChromeRendererPid(): number | null {
 }
 
 /**
- * Abstraction over the munadi factory so tests can inject a fake driver.
+ * Abstraction over the ogmios factory so tests can inject a fake driver.
  */
-export interface MunadiSdkDriver {
+export interface OgmiosSdkDriver {
   create(opts: VoiceOverOptions): ScreenReaderHandle;
 }
 
-export const realMunadiSdkDriver: MunadiSdkDriver = {
+export const realOgmiosSdkDriver: OgmiosSdkDriver = {
   create: (opts) => voiceOver(opts),
 };
 
@@ -62,7 +62,7 @@ interface SessionState {
 }
 
 /**
- * Refcounted, process-local Munadi session registry (VITEST-05).
+ * Refcounted, process-local Ogmios session registry (VITEST-05).
  *
  * Model:
  * - ONE underlying ScreenReaderHandle serves many sessionIds.
@@ -86,21 +86,21 @@ export class SessionStore {
    * can emit index-based deltas (the SDK's drain() empties its local list; if we
    * don't mirror, two sessions racing on drain() would see different subsets).
    */
-  private sharedEventLog: MunadiEvent[] = [];
+  private sharedEventLog: OgmiosEvent[] = [];
 
-  async start(driver: MunadiSdkDriver, opts: VoiceOverOptions): Promise<string> {
+  async start(driver: OgmiosSdkDriver, opts: VoiceOverOptions): Promise<string> {
     if (this.handle === null) {
       // Phase 7 Plan 04: resolve the Chromium renderer pid and expose it to
-      // the Zig driver via MUNADI_AX_TARGET_PID before the handle boots. The
+      // the Zig driver via OGMIOS_AX_TARGET_PID before the handle boots. The
       // Zig driver reads the env var inside startImpl to scope the AX
       // observer to the test-viewport renderer process (not the browser
       // chrome). If resolution fails we leave the env var alone — the driver
       // falls back to the Phase 3 VO-pid default and the per-test focus-body
       // pattern still provides defense-in-depth.
-      if (!process.env.MUNADI_AX_TARGET_PID) {
+      if (!process.env.OGMIOS_AX_TARGET_PID) {
         const rendererPid = resolveChromeRendererPid();
         if (rendererPid !== null) {
-          process.env.MUNADI_AX_TARGET_PID = String(rendererPid);
+          process.env.OGMIOS_AX_TARGET_PID = String(rendererPid);
         }
       }
 
@@ -111,7 +111,7 @@ export class SessionStore {
     }
     this.startRefs += 1;
     this.counter += 1;
-    const sessionId = `munadi-${this.counter}`;
+    const sessionId = `ogmios-${this.counter}`;
     this.sessions.set(sessionId, {
       sessionId,
       active: true,
@@ -159,7 +159,7 @@ export class SessionStore {
     }
   }
 
-  async drain(sessionId: string): Promise<WireMunadiEvent[]> {
+  async drain(sessionId: string): Promise<WireOgmiosEvent[]> {
     const s = this.getSession(sessionId);
     await this.pumpHandleIntoSharedLog();
     const slice = this.sharedEventLog.slice(s.cursor);
@@ -167,7 +167,7 @@ export class SessionStore {
     return slice.map(toWireEvent);
   }
 
-  async listen(sessionId: string, sinceMs?: number): Promise<WireMunadiEvent[]> {
+  async listen(sessionId: string, sinceMs?: number): Promise<WireOgmiosEvent[]> {
     if (sinceMs === undefined) return this.drain(sessionId);
     this.getSession(sessionId);
     await this.pumpHandleIntoSharedLog();
@@ -190,7 +190,7 @@ export class SessionStore {
   async awaitStable(
     sessionId: string,
     opts: { quietMs: number; timeoutMs?: number },
-  ): Promise<WireMunadiEvent[]> {
+  ): Promise<WireOgmiosEvent[]> {
     const s = this.getSession(sessionId);
     const h = this.requireHandle();
     const signal =
@@ -220,13 +220,13 @@ export class SessionStore {
 
   private getSession(sessionId: string): SessionState {
     const s = this.sessions.get(sessionId);
-    if (!s) throw new MunadiSessionNotFoundError(sessionId);
+    if (!s) throw new OgmiosSessionNotFoundError(sessionId);
     return s;
   }
 
   private requireHandle(): ScreenReaderHandle {
     if (this.handle === null) {
-      throw new MunadiSessionNotFoundError('<handle-already-torn-down>');
+      throw new OgmiosSessionNotFoundError('<handle-already-torn-down>');
     }
     return this.handle;
   }
@@ -241,11 +241,11 @@ export class SessionStore {
 }
 
 /**
- * Convert a MunadiEvent (with bigint tsNanos) into a structured-clone-safe
- * WireMunadiEvent. tsMs is an integer millisecond count (bigint-division,
+ * Convert a OgmiosEvent (with bigint tsNanos) into a structured-clone-safe
+ * WireOgmiosEvent. tsMs is an integer millisecond count (bigint-division,
  * floor toward zero).
  */
-export function toWireEvent(e: MunadiEvent): WireMunadiEvent {
+export function toWireEvent(e: OgmiosEvent): WireOgmiosEvent {
   const tsMs = Number(e.tsNanos / 1_000_000n);
   return {
     tsMs,

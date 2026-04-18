@@ -1,8 +1,8 @@
-import type { MunadiEvent } from './screen-reader.js';
+import type { OgmiosEvent } from './screen-reader.js';
 import type { LogStore } from './handle-internals.js';
 
 /**
- * Async generator yielding MunadiEvents as they arrive in a LogStore.
+ * Async generator yielding OgmiosEvents as they arrive in a LogStore.
  *
  * Semantics:
  * - First iteration yields the full existing log in order (from LogStore.getAll()).
@@ -17,9 +17,9 @@ import type { LogStore } from './handle-internals.js';
 export async function* listenImpl(
   store: LogStore,
   signal?: AbortSignal,
-): AsyncGenerator<MunadiEvent> {
-  const queue: MunadiEvent[] = store.getAll();
-  const waiters: Array<(e: MunadiEvent | null) => void> = [];
+): AsyncGenerator<OgmiosEvent> {
+  const queue: OgmiosEvent[] = store.getAll();
+  const waiters: Array<(e: OgmiosEvent | null) => void> = [];
   let closed = false;
 
   const unsubscribe = store.subscribe((ev) => {
@@ -56,7 +56,7 @@ export async function* listenImpl(
         if (ev) yield ev;
         continue;
       }
-      const next = await new Promise<MunadiEvent | null>((resolve) => {
+      const next = await new Promise<OgmiosEvent | null>((resolve) => {
         waiters.push(resolve);
       });
       if (next === null) break;

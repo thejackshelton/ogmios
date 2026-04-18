@@ -10,7 +10,7 @@ export {
 export {
   BindingNotInstalledError,
   DriverNotFoundError,
-  MunadiError,
+  OgmiosError,
   UnsupportedPlatformError,
 } from './errors.js';
 export {
@@ -21,8 +21,8 @@ export {
 export type {
   AwaitStableLogOptions,
   ScreenReaderHandle,
-  MunadiEvent,
-  MunadiEventSource,
+  OgmiosEvent,
+  OgmiosEventSource,
 } from './screen-reader.js';
 export {
   type VoiceOverOptions,

@@ -1,5 +1,5 @@
-import { MunadiError } from './errors.js';
-import type { MunadiEvent, MunadiEventSource } from './screen-reader.js';
+import { OgmiosError } from './errors.js';
+import type { OgmiosEvent, OgmiosEventSource } from './screen-reader.js';
 
 /**
  * Mirror of zig/src/core/wire.zig WIRE_VERSION.
@@ -7,7 +7,7 @@ import type { MunadiEvent, MunadiEventSource } from './screen-reader.js';
  */
 export const EXPECTED_WIRE_VERSION = 1;
 
-const SOURCE_TAGS: Record<number, MunadiEventSource> = {
+const SOURCE_TAGS: Record<number, OgmiosEventSource> = {
   0: 'applescript',
   1: 'ax',
   2: 'caption',
@@ -27,9 +27,9 @@ const SOURCE_TAGS: Record<number, MunadiEventSource> = {
  * Mirrors zig/src/core/wire.zig byte-for-byte. Zig is the source of truth;
  * any divergence here is a bug.
  */
-export function decodeEvents(buf: Buffer): MunadiEvent[] {
+export function decodeEvents(buf: Buffer): OgmiosEvent[] {
   if (buf.byteLength < 8) {
-    throw new MunadiError(
+    throw new OgmiosError(
       `Wire buffer too short: ${buf.byteLength} bytes (need at least 8 for header)`,
       'ERR_WIRE_SHORT',
     );
@@ -37,15 +37,15 @@ export function decodeEvents(buf: Buffer): MunadiEvent[] {
 
   const version = buf.readUInt32LE(0);
   if (version !== EXPECTED_WIRE_VERSION) {
-    throw new MunadiError(
+    throw new OgmiosError(
       `Wire format version mismatch: binding produced ${version}, SDK expects ${EXPECTED_WIRE_VERSION}. ` +
-        `Reinstall munadi and @munadi/binding-* so their versions match.`,
+        `Reinstall ogmios and @ogmios/binding-* so their versions match.`,
       'ERR_WIRE_VERSION_MISMATCH',
     );
   }
 
   const count = buf.readUInt32LE(4);
-  const events: MunadiEvent[] = [];
+  const events: OgmiosEvent[] = [];
   let offset = 8;
 
   for (let i = 0; i < count; i++) {
@@ -57,7 +57,7 @@ export function decodeEvents(buf: Buffer): MunadiEvent[] {
     offset += 1;
     const source = SOURCE_TAGS[sourceRaw];
     if (!source) {
-      throw new MunadiError(
+      throw new OgmiosError(
         `Unknown source tag ${sourceRaw} at entry ${i}; binding/SDK out of sync.`,
         'ERR_WIRE_UNKNOWN_SOURCE',
       );
@@ -82,7 +82,7 @@ export function decodeEvents(buf: Buffer): MunadiEvent[] {
   }
 
   if (offset !== buf.byteLength) {
-    throw new MunadiError(
+    throw new OgmiosError(
       `Wire buffer has ${buf.byteLength - offset} trailing bytes after ${count} entries — decoder/encoder disagree.`,
       'ERR_WIRE_TRAILING_BYTES',
     );

@@ -6,7 +6,7 @@ import {
 } from '../matchers/index.js';
 import { expect } from 'vitest';
 
-// Re-export the module augmentation so `import 'munadi/vitest/setup'` is
+// Re-export the module augmentation so `import 'ogmios/vitest/setup'` is
 // enough to both register the matchers AND type them on Vitest's `expect`.
 import '../matchers/index.js';
 
