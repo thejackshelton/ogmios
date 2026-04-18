@@ -182,6 +182,16 @@ Plans:
 Plans:
 - [ ] TBD (run /gsd-plan-phase 9 to break down)
 
+### Phase 10: CLI-driven Shoki.app distribution — shoki setup downloads from GitHub Releases, strips quarantine, installs to ~/Applications
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 9
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 10 to break down)
+
 ---
 *Roadmap created: 2026-04-17*
 *Granularity: standard (target 5-8 phases) — 6 phases derived from natural delivery boundaries; Phase 3 is requirement-dense (16 reqs) but cohesive and will be split into 3-4 plans during /gsd-plan-phase.*
