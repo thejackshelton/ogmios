@@ -7,6 +7,7 @@ import {
   SYSTEM_TCC_DB_PATH,
   USER_TCC_DB_PATH,
 } from './checks/index-tcc.js';
+import { warnOnLegacyStateDir } from './legacy-state.js';
 import { ExitCode } from './report-types.js';
 import { printHumanReport } from './reporters/human.js';
 import { printJsonReport } from './reporters/json.js';
@@ -52,6 +53,13 @@ program
       quiet?: boolean;
       helperPath?: string;
     }) => {
+      // CONTEXT.md D-05: announce surviving shoki/dicta/munadi state dirs on
+      // stderr before any structured output is produced (keeps --json/--quiet
+      // stdout contracts clean).
+      if (!opts.json) {
+        warnOnLegacyStateDir();
+      }
+
       const report = await runDoctor({
         fix: opts.fix,
         helperPath: opts.helperPath ?? process.env.OGMIOS_HELPER_PATH,
@@ -103,6 +111,12 @@ program
       version?: string;
       dryRun?: boolean;
     }) => {
+      // CONTEXT.md D-05: same legacy-state notice as `doctor`, suppressed
+      // under --json to preserve the machine-readable stdout contract.
+      if (!opts.json) {
+        warnOnLegacyStateDir();
+      }
+
       const releaseBaseUrl = (() => {
         try {
           return resolveReleaseBaseUrlFromPackageJson(pkg);
