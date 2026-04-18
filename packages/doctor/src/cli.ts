@@ -11,6 +11,10 @@ import { ExitCode } from './report-types.js';
 import { printHumanReport } from './reporters/human.js';
 import { printJsonReport } from './reporters/json.js';
 import { printQuietReport } from './reporters/quiet.js';
+import {
+  DEFAULT_SNAPSHOT_PATH,
+  restoreVoSettingsFromSnapshot,
+} from './restore-vo-settings.js';
 import { runDoctor } from './run-doctor.js';
 
 const require = createRequire(import.meta.url);
@@ -87,6 +91,100 @@ program
     );
     process.exit(ExitCode.OK);
   });
+
+program
+  .command('restore-vo-settings')
+  .description(
+    'Escape hatch: re-apply the VO plist snapshot written by shoki. Use this if a crash (SIGKILL, OOM, power loss) left your Mac with altered VoiceOver settings (Plan 07-05).',
+  )
+  .option('-p, --path <path>', 'Snapshot file path', DEFAULT_SNAPSHOT_PATH)
+  .option('-f, --force', 'Apply even if the snapshot is >7 days old')
+  .option('--dry-run', 'Print what would be restored without applying')
+  .action(
+    async (opts: {
+      path: string;
+      force?: boolean;
+      dryRun?: boolean;
+    }) => {
+      if (opts.dryRun) {
+        // Dry-run still reads + validates the snapshot but never calls
+        // `defaults write`. We implement this by reporting what the happy
+        // path would do without invoking execa — easiest way is to read the
+        // file, perform the validation gates, and print the keys.
+        const { readFile } = await import('node:fs/promises');
+        let xml: string;
+        try {
+          xml = await readFile(opts.path, 'utf8');
+        } catch {
+          console.error(`No snapshot at ${opts.path} — nothing to restore.`);
+          process.exit(1);
+        }
+        const hasVersion =
+          /<key>_shoki_snapshot_version<\/key>\s*<integer>\d+<\/integer>/.test(
+            xml,
+          );
+        if (!hasVersion) {
+          console.error(
+            `File at ${opts.path} is not a recognized shoki snapshot (missing _shoki_snapshot_version).`,
+          );
+          process.exit(2);
+        }
+        console.log(`[dry-run] Would restore VO settings from ${opts.path}`);
+        const keyMatches = xml.match(/<key>([^_][^<]+)<\/key>/g) ?? [];
+        for (const k of keyMatches) {
+          console.log(`  - ${k.replace(/<\/?key>/g, '')}`);
+        }
+        process.exit(0);
+      }
+
+      const result = await restoreVoSettingsFromSnapshot({
+        snapshotPath: opts.path,
+        force: opts.force,
+      });
+      if (result.ok) {
+        console.log(
+          `Restored ${result.restoredKeys?.length ?? 0} keys from ${opts.path}`,
+        );
+        process.exit(0);
+      }
+
+      switch (result.code) {
+        case 'SNAPSHOT_MISSING':
+          console.error(
+            `No snapshot at ${opts.path} — nothing to restore.\n` +
+              `If you set $SHOKI_SNAPSHOT_PATH during the shoki run, pass --path.`,
+          );
+          process.exit(1);
+          break;
+        case 'SNAPSHOT_UNRECOGNIZED':
+          console.error(
+            `File at ${opts.path} is not a recognized shoki snapshot (missing _shoki_snapshot_version).`,
+          );
+          process.exit(2);
+          break;
+        case 'SNAPSHOT_STALE':
+          console.error(
+            `Snapshot is ${Math.floor((result.snapshotAgeSeconds ?? 0) / 86400)} days old (>7).\n` +
+              `Pass --force to apply anyway, or delete ${opts.path} if you don't trust it.`,
+          );
+          process.exit(2);
+          break;
+        case 'WRITE_FAILED':
+          console.error(
+            `${result.failures?.length ?? 0} key(s) failed to restore:`,
+          );
+          for (const f of result.failures ?? []) {
+            console.error(`  ${f.key}: ${f.error}`);
+          }
+          console.error(`${result.restoredKeys?.length ?? 0} key(s) succeeded.`);
+          process.exit(2);
+          break;
+        default:
+          console.error(`Unknown error: ${result.code}`);
+          process.exit(ExitCode.UNKNOWN_ERROR);
+      }
+    },
+  );
 
 program.parseAsync(process.argv).catch((err) => {
   console.error(err instanceof Error ? err.message : String(err));
