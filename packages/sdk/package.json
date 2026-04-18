@@ -1,7 +1,7 @@
 {
   "name": "ogmios",
-  "version": "0.1.0",
-  "compatibleAppVersion": "0.1.0",
+  "version": "0.1.1",
+  "compatibleAppVersion": "0.1.1",
   "description": "Screen-reader test automation SDK — TypeScript surface + CLI + matchers + Vitest plugin for Ogmios's Zig native core",
   "license": "MIT",
   "repository": {
