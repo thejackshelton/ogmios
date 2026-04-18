@@ -1,6 +1,6 @@
 {
   "name": "@shoki/binding-darwin-arm64",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Shoki native addon — darwin arm64 (Apple Silicon)",
   "license": "MIT",
   "repository": {

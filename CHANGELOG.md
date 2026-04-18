@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Phase 10 (v1.1 prep, continued)
+## [Unreleased]
+
+## [0.1.0] - 2026-04-18
+
+First public release.
 
 ### Changed
 
@@ -167,7 +171,7 @@ Then run `npx shoki setup --force` to grab the latest `Shoki.app` + `Shoki Setup
 - `.github/workflows/docs.yml` builds + deploys the docs site to GitHub Pages
   on push to main where `docs/**` changed. (Phase 6)
 
-## [0.1.0] - 2026-04-17
+## [0.1.0-pre-alpha] - 2026-04-17 (unreleased, superseded by 0.1.0)
 
 First pre-alpha release. v1-scope foundations through CI are in place; the
 public docs + release polish land in this release. Do not use in production.
@@ -242,3 +246,4 @@ MIT. Contributions welcome — see `CONTRIBUTING.md` and
 
 [Unreleased]: https://github.com/shoki/shoki/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/shoki/shoki/releases/tag/v0.1.0
+[0.1.0-pre-alpha]: https://github.com/shoki/shoki/compare/v0.1.0-pre-alpha...v0.1.0
