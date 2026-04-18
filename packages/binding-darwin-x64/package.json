@@ -9,9 +9,9 @@
     "url": "git+https://github.com/thejackshelton/ogmios.git",
     "directory": "packages/binding-darwin-x64"
   },
-  "main": "munadi.node",
+  "main": "ogmios.node",
   "files": [
-    "munadi.node",
+    "ogmios.node",
     "README.md",
     "LICENSE"
   ],
