@@ -1,4 +1,4 @@
-import { shokiVitest } from '@shoki/core/vitest';
+import { shokiVitest } from 'dicta/vitest';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';

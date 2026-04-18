@@ -74,7 +74,7 @@ export interface DoctorReport {
   checks: DoctorCheckResult[];
   /** ISO-8601 timestamp of the run. */
   ranAt: string;
-  /** `report` = `shoki doctor`, `fix` = `shoki doctor --fix`. */
+  /** `report` = `dicta doctor`, `fix` = `dicta doctor --fix`. */
   mode: 'report' | 'fix';
 }
 

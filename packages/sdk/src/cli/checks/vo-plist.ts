@@ -107,7 +107,7 @@ export async function checkVOPlist(
         ? `VoiceOver AppleScript is explicitly disabled in ${plistPath}`
         : `VoiceOver AppleScript key SCREnableAppleScript is absent from ${plistPath}`,
     detail:
-      `Run \`shoki doctor --fix\` to write the key, or manually: \`defaults write "${plistPath}" SCREnableAppleScript -bool true\`. ` +
+      `Run \`dicta doctor --fix\` to write the key, or manually: \`defaults write "${plistPath}" SCREnableAppleScript -bool true\`. ` +
       (tahoeCaveat ?? ''),
     exitCode: ExitCode.VO_APPLESCRIPT_DISABLED,
     fixActions,

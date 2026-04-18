@@ -70,7 +70,7 @@ function assertIsNativeBinding(mod: unknown, pkg: string): asserts mod is Native
     if (typeof (mod as Record<string, unknown>)[fn] !== 'function') {
       throw new ShokiError(
         `Native binding "${pkg}" is missing required export "${fn}" ` +
-          `— likely an ABI drift between @shoki/core and ${pkg}.`,
+          `— likely an ABI drift between dicta and ${pkg}.`,
         'ERR_BINDING_ABI_MISMATCH',
       );
     }

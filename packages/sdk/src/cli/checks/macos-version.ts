@@ -62,9 +62,9 @@ export async function checkMacOSVersion(
       status: 'fail',
       summary: `macOS ${productVersion} is not supported (major=${major}; supported: 14, 15, 26)`,
       detail:
-        `shoki supports macOS 14 (Sonoma), 15 (Sequoia), 26 (Tahoe). ` +
+        `dicta supports macOS 14 (Sonoma), 15 (Sequoia), 26 (Tahoe). ` +
         `Earlier versions predate the current VoiceOver AppleScript surface; ` +
-        `later versions have not been tested — check for a shoki release that explicitly covers macOS ${major}.`,
+        `later versions have not been tested — check for a dicta release that explicitly covers macOS ${major}.`,
       exitCode: ExitCode.OS_UNSUPPORTED,
       meta: { major, productVersion },
     };

@@ -47,7 +47,7 @@ export async function runDoctor(
         {
           id: 'os-version',
           status: 'fail',
-          summary: `shoki doctor only runs on macOS (detected: ${process.platform})`,
+          summary: `dicta doctor only runs on macOS (detected: ${process.platform})`,
           exitCode: ExitCode.OS_UNSUPPORTED,
         },
       ],

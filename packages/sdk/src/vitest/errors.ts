@@ -1,7 +1,7 @@
 /**
- * Browser-safe base class — does NOT import from the @shoki/core Node entry because
- * the browser entry (`@shoki/core/vitest/browser`) must not pull in Node-only modules.
- * Structurally compatible with the @shoki/core `ShokiError` (Error + `.code`).
+ * Browser-safe base class — does NOT import from the dicta Node entry because
+ * the browser entry (`dicta/vitest/browser`) must not pull in Node-only modules.
+ * Structurally compatible with the dicta `ShokiError` (Error + `.code`).
  */
 export class ShokiError extends Error {
   constructor(
@@ -28,7 +28,7 @@ export class ShokiPlatformUnsupportedError extends ShokiError {
   constructor(public readonly platform: string) {
     super(
       `Shoki Vitest integration requires macOS; this host is ${platform}. ` +
-        'Run `npx shoki doctor` or set up a macOS runner — see https://github.com/shoki/shoki.',
+        'Run `npx dicta doctor` or set up a macOS runner — see https://github.com/shoki/shoki.',
       'ERR_SHOKI_PLATFORM_UNSUPPORTED',
     );
     this.name = 'ShokiPlatformUnsupportedError';
@@ -48,9 +48,9 @@ export class ShokiSessionNotFoundError extends ShokiError {
 export class ShokiBindingNotAvailableError extends ShokiError {
   constructor(cause?: string) {
     super(
-      'The @shoki/core native binding is not available in this process. ' +
+      'The dicta native binding is not available in this process. ' +
         (cause ? `Underlying error: ${cause}. ` : '') +
-        'Run `npx shoki doctor` or check that the platform-specific binding is installed.',
+        'Run `npx dicta doctor` or check that the platform-specific binding is installed.',
       'ERR_SHOKI_BINDING_NOT_AVAILABLE',
     );
     this.name = 'ShokiBindingNotAvailableError';

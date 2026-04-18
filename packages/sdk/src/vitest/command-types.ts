@@ -1,5 +1,5 @@
 /**
- * Frozen command contracts for @shoki/core/vitest BrowserCommands.
+ * Frozen command contracts for dicta/vitest BrowserCommands.
  *
  * Every return payload must be structured-clone-safe (VITEST-06):
  * - no bigint

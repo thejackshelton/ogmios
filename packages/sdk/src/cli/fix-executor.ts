@@ -36,7 +36,7 @@ const defaultDefaultsWriter = async (
 
 /**
  * Default launcher — `open <ShokiSetup.app>`. Fire-and-forget (the user drives
- * the GUI from here; the doctor re-check happens on the next `shoki doctor`
+ * the GUI from here; the doctor re-check happens on the next `dicta doctor`
  * invocation after TCC grants land).
  */
 const defaultSetupAppLauncher = async (appPath: string): Promise<void> => {

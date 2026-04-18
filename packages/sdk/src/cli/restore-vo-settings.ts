@@ -1,5 +1,5 @@
 /**
- * `shoki restore-vo-settings` — Plan 07-05 SIGKILL-recovery escape hatch.
+ * `dicta restore-vo-settings` — Plan 07-05 SIGKILL-recovery escape hatch.
  *
  * Reads the plist snapshot file that `voiceOver.start()` writes (see
  * zig/src/drivers/voiceover/lifecycle.zig `writeSnapshotFile`) and re-applies

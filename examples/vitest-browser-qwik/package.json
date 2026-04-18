@@ -14,7 +14,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@shoki/core": "workspace:*",
+    "dicta": "workspace:*",
     "@qwik.dev/core": "^2.0.0-beta.32"
   },
   "devDependencies": {

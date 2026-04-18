@@ -1,6 +1,6 @@
 /**
- * `@shoki/core/cli` (doctor) typed error taxonomy.
- * Mirrors the `@shoki/core` ShokiError pattern (stable `code` string + `name`).
+ * `dicta/cli` (doctor) typed error taxonomy.
+ * Mirrors the `dicta` ShokiError pattern (stable `code` string + `name`).
  */
 
 export class DoctorError extends Error {
@@ -16,7 +16,7 @@ export class DoctorError extends Error {
 export class UnsupportedMacOSError extends DoctorError {
   constructor(public readonly version: string) {
     super(
-      `This macOS version (${version}) is not supported by shoki. ` +
+      `This macOS version (${version}) is not supported by dicta. ` +
         `Supported: 14.x (Sonoma), 15.x (Sequoia), 26.x (Tahoe). ` +
         `See the platform-risk docs for the current matrix.`,
       'ERR_UNSUPPORTED_MACOS',
@@ -29,7 +29,7 @@ export class HelperNotFoundError extends DoctorError {
   constructor(public readonly searchedPaths: string[]) {
     super(
       `ShokiRunner.app was not found in any known location. Searched:\n  - ${searchedPaths.join('\n  - ')}\n` +
-        `Install @shoki/core (which pulls in the platform binding containing the helper), ` +
+        `Install dicta (which pulls in the platform binding containing the helper), ` +
         `or set SHOKI_HELPER_PATH to override.`,
       'ERR_HELPER_NOT_FOUND',
     );
@@ -40,7 +40,7 @@ export class HelperNotFoundError extends DoctorError {
 export class NonDarwinHostError extends DoctorError {
   constructor(public readonly platform: string) {
     super(
-      `shoki doctor only runs on macOS (detected platform: ${platform}). ` +
+      `dicta doctor only runs on macOS (detected platform: ${platform}). ` +
         `Windows/Linux variants are tracked for v2+.`,
       'ERR_NON_DARWIN_HOST',
     );

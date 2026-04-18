@@ -34,8 +34,8 @@ const pkg = require('../../package.json') as {
 const program = new Command();
 
 program
-  .name('shoki')
-  .description('shoki CLI — VoiceOver/TCC diagnostics and setup for macOS 14/15/26')
+  .name('dicta')
+  .description('dicta CLI — VoiceOver/TCC diagnostics and setup for macOS 14/15/26')
   .version(pkg.version, '-v, --version');
 
 program
@@ -182,7 +182,7 @@ program
     if (userOpen.ok) userOpen.db.close();
     if (systemOpen.ok) systemOpen.db.close();
 
-    console.log(`shoki v${pkg.version}`);
+    console.log(`dicta v${pkg.version}`);
     console.log(`node ${process.version}`);
     console.log(`platform ${process.platform} ${process.arch}`);
     console.log(
@@ -200,7 +200,7 @@ program
 program
   .command('restore-vo-settings')
   .description(
-    'Escape hatch: re-apply the VO plist snapshot written by shoki. Use this if a crash (SIGKILL, OOM, power loss) left your Mac with altered VoiceOver settings (Plan 07-05).',
+    'Escape hatch: re-apply the VO plist snapshot written by dicta. Use this if a crash (SIGKILL, OOM, power loss) left your Mac with altered VoiceOver settings (Plan 07-05).',
   )
   .option('-p, --path <path>', 'Snapshot file path', DEFAULT_SNAPSHOT_PATH)
   .option('-f, --force', 'Apply even if the snapshot is >7 days old')
@@ -230,7 +230,7 @@ program
           );
         if (!hasVersion) {
           console.error(
-            `File at ${opts.path} is not a recognized shoki snapshot (missing _shoki_snapshot_version).`,
+            `File at ${opts.path} is not a recognized dicta snapshot (missing _shoki_snapshot_version).`,
           );
           process.exit(2);
         }
@@ -257,13 +257,13 @@ program
         case 'SNAPSHOT_MISSING':
           console.error(
             `No snapshot at ${opts.path} — nothing to restore.\n` +
-              `If you set $SHOKI_SNAPSHOT_PATH during the shoki run, pass --path.`,
+              `If you set $SHOKI_SNAPSHOT_PATH during the dicta run, pass --path.`,
           );
           process.exit(1);
           break;
         case 'SNAPSHOT_UNRECOGNIZED':
           console.error(
-            `File at ${opts.path} is not a recognized shoki snapshot (missing _shoki_snapshot_version).`,
+            `File at ${opts.path} is not a recognized dicta snapshot (missing _shoki_snapshot_version).`,
           );
           process.exit(2);
           break;

@@ -1,5 +1,5 @@
 {
-  "name": "@shoki/core",
+  "name": "dicta",
   "version": "0.1.0",
   "compatibleAppVersion": "0.1.0",
   "description": "Screen-reader test automation SDK — TypeScript surface + CLI + matchers + Vitest plugin for Shoki's Zig native core",
@@ -13,7 +13,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "shoki": "./dist/cli/main.js"
+    "dicta": "dist/cli/main.js"
   },
   "exports": {
     ".": {

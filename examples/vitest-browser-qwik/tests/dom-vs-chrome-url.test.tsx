@@ -1,4 +1,4 @@
-import { type ShokiBrowserSession, voiceOver } from '@shoki/core/vitest/browser';
+import { type ShokiBrowserSession, voiceOver } from 'dicta/vitest/browser';
 import { page } from '@vitest/browser/context';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-qwik';

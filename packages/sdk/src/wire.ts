@@ -39,7 +39,7 @@ export function decodeEvents(buf: Buffer): ShokiEvent[] {
   if (version !== EXPECTED_WIRE_VERSION) {
     throw new ShokiError(
       `Wire format version mismatch: binding produced ${version}, SDK expects ${EXPECTED_WIRE_VERSION}. ` +
-        `Reinstall @shoki/core and @shoki/binding-* so their versions match.`,
+        `Reinstall dicta and @shoki/binding-* so their versions match.`,
       'ERR_WIRE_VERSION_MISMATCH',
     );
   }
