@@ -144,14 +144,20 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 ### Phase 7: v1 integration verification and QA — real VoiceOver announcements in Vitest browser mode
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Claude acts as a manual QA engineer. Autonomously prove the v1 stack works end-to-end: install Zig, build helper + Zig binding, run a Vitest browser-mode test that asserts on REAL VoiceOver announcements from actual DOM content (not Chrome URL bar), and guarantee VO settings restore on the developer's Mac. Produce a QA-REPORT.md that is copy-paste-able into a GitHub issue.
+**Requirements**: N/A — verification phase, not new v1 requirement implementation. Verifies Phase 3 CAP-01..16, Phase 4 VITEST-01..08, Phase 6 DOCS-01..04, plus CONTEXT.md's 15-item verification checklist.
 **Depends on:** Phase 6
-**Plans:** 0 plans
+**Plans:** 6 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 7 to break down)
+- [ ] 07-01-PLAN.md — Toolchain + build verification (install Zig 0.16, zig build + test, swift build + test, helper .app, libShokiXPCClient.dylib, .node, playwright chromium, docs build) [Wave 1]
+- [ ] 07-02-PLAN.md — Close known stubs: realAppleScriptSpawner via std.process.Child + libShokiXPCClient.dylib link path in zig/build.zig [Wave 2]
+- [ ] 07-03-PLAN.md — API reshape: end() alias + top-level voiceOver.start/end singleton + cheap-reset test + docs update [Wave 2]
+- [ ] 07-04-PLAN.md — DOM-content-vs-URL-bar test: scope AX observer to Chromium renderer pid + paired positive/negative magic-marker tests [Wave 3]
+- [ ] 07-05-PLAN.md — Settings restore SIGKILL verification + shoki restore-vo-settings CLI escape hatch + permission-setup docs [Wave 2]
+- [ ] 07-06-PLAN.md — End-to-end verification + QA-REPORT.md with all 15 CONTEXT.md checklist items + human-verify checkpoint [Wave 4]
 
 ---
 *Roadmap created: 2026-04-17*
 *Granularity: standard (target 5-8 phases) — 6 phases derived from natural delivery boundaries; Phase 3 is requirement-dense (16 reqs) but cohesive and will be split into 3-4 plans during /gsd-plan-phase.*
+*Phase 7 added 2026-04-17 as a post-Phase-6 verification phase (not in the original 6-phase v1 plan).*
