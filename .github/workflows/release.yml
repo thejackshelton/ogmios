@@ -1,3 +1,7 @@
+# SDK release (shoki + @shoki/binding-darwin-*). Helper apps (Shoki.app,
+# Shoki Setup.app) are shipped via .github/workflows/app-release.yml on
+# app-v* tags, NOT from this workflow. Phase 10-04 split the two channels:
+# npm tarballs contain only shoki.node, helper bundles live on GitHub Releases.
 name: Release
 
 on:
@@ -39,27 +43,13 @@ jobs:
         with:
           target: aarch64-macos
           binding-package-dir: packages/binding-darwin-arm64
-      - uses: ./.github/actions/build-helper-app
-        with:
-          binding-package-dir: packages/binding-darwin-arm64
-          sign: "true"
-        env:
-          DEVELOPER_ID_IDENTITY: ${{ secrets.DEVELOPER_ID_IDENTITY }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
-          APPLE_API_KEY_B64: ${{ secrets.APPLE_API_KEY_B64 }}
       - name: Verify signatures
         run: |
           codesign -dvvv packages/binding-darwin-arm64/shoki.node || echo "shoki.node is not independently signed (helper app is the TCC trust anchor)"
-          codesign -dvvv packages/binding-darwin-arm64/helper/ShokiRunner.app
-          codesign -dvvv packages/binding-darwin-arm64/helper/ShokiSetup.app
       - uses: actions/upload-artifact@v4
         with:
           name: binding-darwin-arm64
-          path: |
-            packages/binding-darwin-arm64/shoki.node
-            packages/binding-darwin-arm64/helper/
+          path: packages/binding-darwin-arm64/shoki.node
 
   build-darwin-x64:
     name: Build darwin-x64 binding (cross-compile from macos-14)
@@ -79,27 +69,13 @@ jobs:
         with:
           target: x86_64-macos
           binding-package-dir: packages/binding-darwin-x64
-      - uses: ./.github/actions/build-helper-app
-        with:
-          binding-package-dir: packages/binding-darwin-x64
-          sign: "true"
-        env:
-          DEVELOPER_ID_IDENTITY: ${{ secrets.DEVELOPER_ID_IDENTITY }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
-          APPLE_API_KEY_B64: ${{ secrets.APPLE_API_KEY_B64 }}
       - name: Verify signatures
         run: |
           codesign -dvvv packages/binding-darwin-x64/shoki.node || echo "shoki.node is not independently signed (helper app is the TCC trust anchor)"
-          codesign -dvvv packages/binding-darwin-x64/helper/ShokiRunner.app
-          codesign -dvvv packages/binding-darwin-x64/helper/ShokiSetup.app
       - uses: actions/upload-artifact@v4
         with:
           name: binding-darwin-x64
-          path: |
-            packages/binding-darwin-x64/shoki.node
-            packages/binding-darwin-x64/helper/
+          path: packages/binding-darwin-x64/shoki.node
 
   publish:
     name: Publish to npm via OIDC

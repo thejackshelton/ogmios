@@ -110,7 +110,6 @@ jobs:
           binding-package-dir: packages/binding-darwin-arm64
       - uses: ./.github/actions/build-helper-app
         with:
-          binding-package-dir: packages/binding-darwin-arm64
           sign: "false"
       - name: Run SDK tests with native binding
         env:

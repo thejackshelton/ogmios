@@ -1,13 +1,12 @@
 name: Build helper apps
 description: >-
-  Builds ShokiRunner.app AND ShokiSetup.app via helper/scripts/build-app-bundle.sh
-  (zig build) and optionally signs + notarizes both when Apple secrets are present.
-  Drops both built .app bundles into the binding package's helper/ directory.
+  Builds ShokiRunner.app + ShokiSetup.app via helper/scripts/build-app-bundle.sh
+  (zig build) and optionally signs + notarizes both when Apple secrets are
+  present. Used by the `helper-smoke` CI job and by .github/workflows/app-release.yml
+  (Plan 10-03). Does NOT bundle the .apps into npm binding packages — Phase 10
+  moved helper distribution to GitHub Releases (see app-release.yml).
 
 inputs:
-  binding-package-dir:
-    description: "Path to the @shoki/binding-<os>-<arch> package directory"
-    required: true
   sign:
     description: "Sign + notarize the built .apps (requires APPLE_* env)"
     required: false
@@ -53,12 +52,18 @@ runs:
             ./scripts/sign-and-notarize.sh "$app"
         done
 
-    - name: Copy signed bundles into binding package
+    - name: Assert no .app leaks into binding packages
       shell: bash
       run: |
         set -euo pipefail
-        TARGET_DIR="$GITHUB_WORKSPACE/${{ inputs.binding-package-dir }}/helper"
-        mkdir -p "$TARGET_DIR"
-        cp -R helper/.build/ShokiRunner.app "$TARGET_DIR/"
-        cp -R helper/.build/ShokiSetup.app "$TARGET_DIR/"
-        ls -la "$TARGET_DIR/"
+        # Phase 10-04 guard: helper bundles must never land inside the
+        # packages/binding-darwin-* directories. They ship via GitHub Releases
+        # (app-release.yml), not npm. This catches accidental resurrections
+        # of the old "copy .apps into binding package" step.
+        if find packages/binding-darwin-* -maxdepth 4 -name '*.app' -type d 2>/dev/null | grep -q .; then
+            echo "ERROR: .app bundle found inside a binding package directory." >&2
+            echo "       Helper .apps ship via app-release.yml — never via npm tarballs." >&2
+            find packages/binding-darwin-* -maxdepth 4 -name '*.app' -type d >&2
+            exit 1
+        fi
+        echo "ok: no .app bundles under packages/binding-darwin-*"
