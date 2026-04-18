@@ -48,14 +48,16 @@ public final class ShokiRunnerService: NSObject, ShokiRunnerProtocol {
             return
         }
 
-        // T-03-31: validate the PID loosely — must be > 0. Deep-identity check
-        // (process name == "VoiceOver") is deferred to Plan 05 where we have a
-        // helper for PID inspection.
+        // T-03-31 / Phase 7 Plan 04: validate the PID loosely — must be > 0.
+        // IMPORTANT: the protocol parameter is still named `voicePID` for
+        // wire-format stability, but it now carries the TARGET APP PID (the
+        // app being observed — typically the Chromium renderer under Vitest
+        // browser-mode). See AXObserver.swift for the full rationale.
         if voicePID <= 0 {
             reply(NSError(
                 domain: "org.shoki.runner",
                 code: -11,
-                userInfo: [NSLocalizedDescriptionKey: "invalid voicePID \(voicePID)"]
+                userInfo: [NSLocalizedDescriptionKey: "invalid targetAppPID \(voicePID)"]
             ))
             return
         }
@@ -69,7 +71,7 @@ public final class ShokiRunnerService: NSObject, ShokiRunnerProtocol {
             proxy?.receiveAXEvent(phrase: phrase, tsNanos: ts, role: role, name: name)
         }
         do {
-            try session.start(voicePID: voicePID)
+            try session.start(targetAppPID: voicePID)
             lock.lock()
             self.axSession = session
             lock.unlock()

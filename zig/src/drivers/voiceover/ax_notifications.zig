@@ -111,8 +111,18 @@ pub const AxNotifications = struct {
         return .{ .allocator = allocator, .ring = ring, .backend = backend };
     }
 
-    /// Connect to the helper (if not already) and subscribe to AX events for `vopid`.
-    pub fn start(self: *AxNotifications, vopid: i32) !void {
+    /// Connect to the helper (if not already) and subscribe to AX events for
+    /// `target_app_pid`.
+    ///
+    /// IMPORTANT (Phase 7 Plan 04): `target_app_pid` is the pid of the APP
+    /// BEING OBSERVED (typically the Chromium renderer child process under
+    /// vitest-browser-mode), NOT the VoiceOver process pid. The helper-side
+    /// `AXObserverSession` now calls `AXUIElementCreateApplication(pid)` to
+    /// scope the subscription so only the target app's AX events reach the
+    /// callback — this is how shoki excludes Chrome URL-bar / tab-title noise
+    /// from the capture log. See `resolveChromeRendererPid` in `driver.zig`
+    /// and the `SHOKI_AX_TARGET_PID` env var override.
+    pub fn start(self: *AxNotifications, target_app_pid: i32) !void {
         self.mutex.lock();
         defer self.mutex.unlock();
         if (self.started) return;
@@ -121,7 +131,7 @@ pub const AxNotifications = struct {
         if (self.handle == null) self.handle = h;
 
         self.backend.setCallback(h, cEventCallback, @ptrCast(self));
-        try self.backend.startObserver(h, vopid);
+        try self.backend.startObserver(h, target_app_pid);
         self.started = true;
     }
 

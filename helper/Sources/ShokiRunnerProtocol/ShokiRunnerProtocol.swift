@@ -18,9 +18,13 @@ import Foundation
     /// Liveness check. Returns `"shoki-runner-pong"` when the service is reachable.
     func ping(reply: @escaping (String) -> Void)
 
-    // Phase 3 additions (CAP-05). AX observer on the system-wide element targeting
-    // the VoiceOver PID; events are delivered via the sibling ShokiClientProtocol's
-    // receiveAXEvent on the same NSXPCConnection.
+    // Phase 3 additions (CAP-05), re-scoped in Phase 7 Plan 04:
+    // `voicePID` is the TARGET APP PID — the app whose AX announcements we
+    // observe (typically the Chromium renderer child process under Vitest
+    // browser-mode), NOT the VoiceOver process PID. The parameter name is
+    // retained for wire-format stability (EXT-01); semantics documented in
+    // AXObserverSession.swift. Events are delivered via the sibling
+    // ShokiClientProtocol's receiveAXEvent on the same NSXPCConnection.
     func startAXObserver(voicePID: Int32, reply: @escaping (Error?) -> Void)
     func stopAXObserver(reply: @escaping (Error?) -> Void)
 }

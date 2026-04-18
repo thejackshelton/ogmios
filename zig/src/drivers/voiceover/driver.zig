@@ -1,4 +1,5 @@
 const std = @import("std");
+const c = std.c;
 const driver_mod = @import("../../core/driver.zig");
 const opts_mod = @import("../../core/options.zig");
 const rb_mod = @import("../../core/ring_buffer.zig");
@@ -119,12 +120,25 @@ pub const VoiceOverDriver = struct {
         }
         self.poll_loop = poll;
 
-        // 3. Resolve VO PID and start AX observer.
-        const vopid = try resolveVoiceOverPid(self.allocator, self.runner);
+        // 3. Resolve the target-app PID and start the AX observer.
+        //
+        // Phase 7 Plan 04 ("DOM vs Chrome URL bar"): the AX observer is now
+        // scoped to a TARGET APP pid (see ax_notifications.zig's start()
+        // doc-comment). Priority order:
+        //   1. SHOKI_AX_TARGET_PID env var — set by Vitest-browser test setup
+        //      after resolving the Chromium renderer pid via pgrep.
+        //   2. Back-compat fallback: the VoiceOver process pid, preserving the
+        //      Phase 3 semantic for any caller that hasn't updated. Under this
+        //      fallback the helper observes VO's own AXUIElement — which emits
+        //      nothing useful on its own, so tests that care about correctness
+        //      MUST set SHOKI_AX_TARGET_PID.
+        const target_pid = readTargetPidEnv() orelse
+            (try resolveVoiceOverPid(self.allocator, self.runner));
+
         const ax = try self.allocator.create(ax_mod.AxNotifications);
         errdefer self.allocator.destroy(ax);
         ax.* = ax_mod.AxNotifications.init(self.allocator, &self.ring, self.xpc_backend);
-        try ax.start(vopid);
+        try ax.start(target_pid);
         self.ax = ax;
     }
 
@@ -204,4 +218,56 @@ fn resolveVoiceOverPid(allocator: std.mem.Allocator, runner: defaults_mod.Subpro
     var it = std.mem.splitScalar(u8, trimmed, '\n');
     const first = it.next() orelse return error.VOPidNotFound;
     return std.fmt.parseInt(i32, first, 10);
+}
+
+/// Read the `SHOKI_AX_TARGET_PID` env var and parse it as an i32. Returns null
+/// when the var is absent, empty, or fails to parse (fail-closed so a bogus
+/// value falls through to the VO-pid default rather than crashing the driver).
+///
+/// Phase 7 Plan 04: the env-var overrides the AX observer target pid. Zero
+/// wire-format impact (CAP-15) — we read it at driver start time inside the
+/// driver process, not across the XPC/N-API boundary.
+fn readTargetPidEnv() ?i32 {
+    const ptr = c.getenv("SHOKI_AX_TARGET_PID") orelse return null;
+    const slice = std.mem.span(@as([*:0]const u8, ptr));
+    const trimmed = std.mem.trim(u8, slice, " \t\r\n");
+    if (trimmed.len == 0) return null;
+    return std.fmt.parseInt(i32, trimmed, 10) catch null;
+}
+
+/// Resolve the youngest Chromium renderer-helper child PID via `pgrep -f`.
+///
+/// Phase 7 Plan 04 ("DOM vs Chrome URL bar"): under Vitest browser-mode,
+/// Playwright launches Chromium which then forks renderer-helper children —
+/// one per tab. The parent Chromium process owns the URL bar / tab title /
+/// chrome; the renderer owns the DOM viewport the test exercises. To keep
+/// captured announcements scoped to page content, we bind the AX observer to
+/// the renderer's pid via `SHOKI_AX_TARGET_PID`. Test harnesses can resolve
+/// the pid themselves (the `@shoki/vitest` plugin runs `pgrep` directly from
+/// Node) OR call this Zig helper from their setup code.
+///
+/// Returns the LAST-listed pid from pgrep (most recently spawned — typically
+/// the Vitest-spawned test tab on a freshly-booted headless Chromium).
+pub fn resolveChromeRendererPid(
+    allocator: std.mem.Allocator,
+    runner: defaults_mod.SubprocessRunner,
+) !i32 {
+    const argv = [_][]const u8{ "/usr/bin/pgrep", "-f", "Chromium Helper (Renderer)" };
+    var result = try runner.run(allocator, &argv);
+    defer result.deinit(allocator);
+    if (result.exit_code != 0) return error.RendererNotFound;
+    const trimmed = std.mem.trim(u8, result.stdout, " \t\r\n");
+    if (trimmed.len == 0) return error.RendererNotFound;
+
+    // Multiple renderer pids possible (one per tab). The youngest is almost
+    // always the Vitest-spawned test tab when running a single-instance
+    // browser-mode config. Threat register T-07-42: accepted risk.
+    var it = std.mem.splitScalar(u8, trimmed, '\n');
+    var last: []const u8 = "";
+    while (it.next()) |line| {
+        const line_trim = std.mem.trim(u8, line, " \t\r\n");
+        if (line_trim.len > 0) last = line_trim;
+    }
+    if (last.len == 0) return error.RendererNotFound;
+    return std.fmt.parseInt(i32, last, 10) catch error.RendererNotFound;
 }
