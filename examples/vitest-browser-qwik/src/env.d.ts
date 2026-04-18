@@ -1,8 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly SHOKI_INTEGRATION?: string;
-  readonly SHOKI_PLATFORM?: string;
+  readonly OGMIOS_INTEGRATION?: string;
+  readonly OGMIOS_PLATFORM?: string;
 }
 
 interface ImportMeta {

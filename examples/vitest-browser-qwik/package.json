@@ -2,7 +2,7 @@
   "name": "vitest-browser-qwik-example",
   "version": "0.0.0",
   "private": true,
-  "description": "Canonical Shoki example: Vitest browser-mode + Qwik (CSR + SSR) + VoiceOver assertions.",
+  "description": "Canonical Ogmios example: Vitest browser-mode + Qwik (CSR + SSR) + VoiceOver assertions.",
   "license": "MIT",
   "type": "module",
   "scripts": {

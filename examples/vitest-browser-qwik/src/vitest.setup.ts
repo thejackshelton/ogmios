@@ -1,4 +1,4 @@
-/// <reference path="./shoki-matchers.d.ts" />
+/// <reference path="./ogmios-matchers.d.ts" />
 
-// Extend Vitest's `expect` with dicta/matchers via dicta/vitest's setup shim.
-import 'dicta/vitest/setup';
+// Extend Vitest's `expect` with ogmios/matchers via ogmios/vitest's setup shim.
+import 'ogmios/vitest/setup';

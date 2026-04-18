@@ -1,12 +1,12 @@
 # vitest-browser-qwik-example
 
-Canonical Shoki example — a Qwik app whose Submit button announcement is
+Canonical Ogmios example — a Qwik app whose Submit button announcement is
 captured by **real VoiceOver** and asserted with semantic matchers, and whose
 **server-rendered HTML** (the initial accessibility tree the screen reader
 actually sees first) is tested directly without running any JavaScript.
 
 This example replaces the earlier `vitest-browser-react` canonical example.
-The move to Qwik unlocks one capability no other framework in Shoki's
+The move to Qwik unlocks one capability no other framework in Ogmios's
 Vitest-browser-mode story can offer: **testing the a11y tree before JS
 executes** via `renderSSR()`.
 
@@ -34,9 +34,9 @@ executes** via `renderSSR()`.
   (the "most important functional requirement" from Phase 7-04), ported
   verbatim from the React example to prove the pid filter is
   framework-agnostic.
-- `vitest.config.ts` — wires `testSSR()` + `qwikVite()` + `shokiVitest()`.
-- `src/vitest.setup.ts` — imports `dicta/vitest/setup` to register the four
-  Dicta matchers on Vitest's `expect`.
+- `vitest.config.ts` — wires `testSSR()` + `qwikVite()` + `ogmiosVitest()`.
+- `src/vitest.setup.ts` — imports `ogmios/vitest/setup` to register the four
+  Ogmios matchers on Vitest's `expect`.
 
 ## Why Qwik (and why SSR)
 
@@ -54,7 +54,7 @@ assertable from any Vitest test.
 - Node.js >= 24
 - pnpm >= 10
 - **macOS** with VoiceOver set up for AppleScript control (run
-  `npx dicta doctor`)
+  `npx ogmios doctor`)
 - Playwright's Chromium browser
   (`pnpm exec playwright install chromium`)
 
@@ -98,7 +98,7 @@ This runs:
 **With VoiceOver** (full canonical test suite):
 
 ```sh
-SHOKI_INTEGRATION=1 pnpm --filter vitest-browser-qwik-example test
+OGMIOS_INTEGRATION=1 pnpm --filter vitest-browser-qwik-example test
 ```
 
 On macOS with VoiceOver set up, this additionally:
@@ -126,7 +126,7 @@ runs; SSR tests prove the user doesn't see broken a11y before JS loads.
 ## Why the VO tests are gated
 
 Running VoiceOver requires a real darwin host with Accessibility +
-Automation permissions. The `SHOKI_INTEGRATION=1` gate keeps:
+Automation permissions. The `OGMIOS_INTEGRATION=1` gate keeps:
 
 - Linux/Windows developers unblocked (SSR tests still run green).
 - CI explicit about which jobs run the real VO path.
@@ -136,10 +136,10 @@ Automation permissions. The `SHOKI_INTEGRATION=1` gate keeps:
 ## Troubleshooting
 
 - **"VoiceOver driver is macOS-only"** — non-darwin host; run without
-  `SHOKI_INTEGRATION=1` to use SSR + render-only tests.
+  `OGMIOS_INTEGRATION=1` to use SSR + render-only tests.
 - **SSR test fails with "JSX not valid"** — ensure `jsxImportSource` in
   `tsconfig.json` is `@qwik.dev/core`.
-- **`toHaveAnnounced` fails with an empty log** — run `npx dicta doctor`.
+- **`toHaveAnnounced` fails with an empty log** — run `npx ogmios doctor`.
   #1 cause is a missing Automation grant.
 - **Test times out** — increase `quietMs` or `timeoutMs` on
   `session.awaitStable`. 500ms of silence is tight on slow machines.
@@ -153,4 +153,4 @@ stock `macos-latest`) run this example. See `.github/workflows/examples/`.
 
 ## License
 
-MIT — part of the [Shoki](https://github.com/shoki/shoki) monorepo.
+MIT — part of the [Ogmios](https://github.com/thejackshelton/ogmios) monorepo.

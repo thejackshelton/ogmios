@@ -1,14 +1,14 @@
-import { type ShokiBrowserSession, voiceOver } from 'dicta/vitest/browser';
+import { type OgmiosBrowserSession, voiceOver } from 'ogmios/vitest/browser';
 import { page } from '@vitest/browser/context';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-qwik';
 import { DefaultPage } from '../src/app';
 
 // Vite exposes only explicitly declared env vars to browser code via
-// import.meta.env. Both SHOKI_INTEGRATION and the host platform are stamped
+// import.meta.env. Both OGMIOS_INTEGRATION and the host platform are stamped
 // into the test bundle at transform time (see vitest.config.ts `define`).
-const integrationMode = import.meta.env.SHOKI_INTEGRATION === '1';
-const isDarwin = import.meta.env.SHOKI_PLATFORM === 'darwin';
+const integrationMode = import.meta.env.OGMIOS_INTEGRATION === '1';
+const isDarwin = import.meta.env.OGMIOS_PLATFORM === 'darwin';
 const runVoTest = integrationMode && isDarwin;
 
 describe('vitest-browser-qwik canonical CSR example', () => {
@@ -17,8 +17,8 @@ describe('vitest-browser-qwik canonical CSR example', () => {
     await expect.element(screen.getByRole('button', { name: 'Submit' })).toBeVisible();
   });
 
-  describe('with real VoiceOver (SHOKI_INTEGRATION=1 on darwin)', () => {
-    let session: ShokiBrowserSession | undefined;
+  describe('with real VoiceOver (OGMIOS_INTEGRATION=1 on darwin)', () => {
+    let session: OgmiosBrowserSession | undefined;
 
     beforeAll(async () => {
       if (!runVoTest) return;

@@ -1,4 +1,4 @@
-import { type ShokiBrowserSession, voiceOver } from 'dicta/vitest/browser';
+import { type OgmiosBrowserSession, voiceOver } from 'ogmios/vitest/browser';
 import { page } from '@vitest/browser/context';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-qwik';
@@ -9,7 +9,7 @@ import { App } from '../src/app';
  * ported verbatim from the React example to prove the renderer-pid filter
  * is framework-agnostic.
  *
- * CONTEXT.md calls this the "most important functional requirement": shoki
+ * CONTEXT.md calls this the "most important functional requirement": ogmios
  * captures announcements from the DOM content Vitest is actually testing,
  * NOT from Chromium's URL bar / tab title / address-bar autofill / window
  * chrome.
@@ -31,11 +31,11 @@ import { App } from '../src/app';
  * DOM. A single-sided test could pass for the wrong reason (e.g. an empty
  * log passes the negative check but also proves nothing).
  *
- * Gated on SHOKI_INTEGRATION=1 + darwin; everywhere else, skip cleanly.
+ * Gated on OGMIOS_INTEGRATION=1 + darwin; everywhere else, skip cleanly.
  */
 
-const integrationMode = import.meta.env.SHOKI_INTEGRATION === '1';
-const isDarwin = import.meta.env.SHOKI_PLATFORM === 'darwin';
+const integrationMode = import.meta.env.OGMIOS_INTEGRATION === '1';
+const isDarwin = import.meta.env.OGMIOS_PLATFORM === 'darwin';
 const runVoTest = integrationMode && isDarwin;
 
 /**
@@ -48,7 +48,7 @@ function navigate(path: string): void {
 }
 
 describe('DOM content vs Chrome URL bar (CONTEXT.md most-important)', () => {
-  let session: ShokiBrowserSession | undefined;
+  let session: OgmiosBrowserSession | undefined;
 
   beforeAll(async () => {
     if (!runVoTest) return;

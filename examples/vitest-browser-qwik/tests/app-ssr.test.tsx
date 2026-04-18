@@ -3,7 +3,7 @@ import { renderSSR } from 'vitest-browser-qwik';
 import { DefaultPage } from '../src/app';
 
 /**
- * Unique Shoki + Qwik capability: the server-rendered HTML IS the initial
+ * Unique Ogmios + Qwik capability: the server-rendered HTML IS the initial
  * accessibility tree — before any JavaScript runs. This test asserts on the
  * a11y shape that VoiceOver would encounter if the user's browser had JS
  * disabled or if they're reading before hydration.
@@ -32,7 +32,7 @@ describe('vitest-browser-qwik SSR accessibility tree', () => {
   it('SSR output includes the accessible heading for context', async () => {
     const screen = await renderSSR(<DefaultPage />);
     await expect
-      .element(screen.getByRole('heading', { name: /Shoki Vitest Browser Example/ }))
+      .element(screen.getByRole('heading', { name: /Ogmios Vitest Browser Example/ }))
       .toBeVisible();
   });
 });

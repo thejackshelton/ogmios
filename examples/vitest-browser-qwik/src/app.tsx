@@ -22,7 +22,7 @@ export const DefaultPage = component$(() => {
 
   return (
     <main>
-      <h1>Shoki Vitest Browser Example</h1>
+      <h1>Ogmios Vitest Browser Example</h1>
       <form
         preventdefault:submit
         onSubmit$={onSubmit}
@@ -45,14 +45,14 @@ export const SubmitButton = DefaultPage;
 /**
  * Phase 7 Plan 04 negative-test fixture. The route path contains the magic
  * marker `xxyyzz-not-in-dom` — but this component deliberately does NOT render
- * that marker anywhere. If shoki captures the marker, the only source is VO
+ * that marker anywhere. If ogmios captures the marker, the only source is VO
  * reading Chromium's URL bar / tab title / chrome — exactly what the pid
  * filter is meant to suppress. See tests/dom-vs-chrome-url.test.tsx for
  * the paired assertion.
  */
 export const NotInDomPage = component$(() => (
   <main>
-    <h1>Shoki Test Page — DOM must not contain the URL marker</h1>
+    <h1>Ogmios Test Page — DOM must not contain the URL marker</h1>
     <button type="button">Click me</button>
     <p aria-live="polite" role="status" id="announced-after-click">
       navigated
@@ -68,7 +68,7 @@ export const NotInDomPage = component$(() => (
  */
 export const DomPage = component$(() => (
   <main>
-    <h1>Shoki Test Page — DOM marker visible</h1>
+    <h1>Ogmios Test Page — DOM marker visible</h1>
     <p>xxyyzz-DOM-MARKER</p>
     <button type="button">Focus here</button>
   </main>

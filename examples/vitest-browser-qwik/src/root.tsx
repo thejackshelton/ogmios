@@ -11,7 +11,7 @@ export const Root = component$(() => (
   <>
     <head>
       <meta charset="utf-8" />
-      <title>Shoki · Vitest Browser Qwik Example</title>
+      <title>Ogmios · Vitest Browser Qwik Example</title>
     </head>
     <body>
       <App />
