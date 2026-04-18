@@ -109,6 +109,52 @@ Not actually fatal for local work — it just means you'll re-grant permissions 
 
 `shoki doctor` exits non-zero on any failure so CI scripts can branch on the cause. The full table is in the [CLI reference](/api/cli).
 
+## Recovery: `shoki restore-vo-settings`
+
+If shoki crashes hard (SIGKILL, power loss, OOM killer), its normal cleanup hooks may not run and your Mac can be left with altered VoiceOver settings — typically muted audio or an unusual speech rate. Zig's signal handlers trap SIGINT/SIGTERM/SIGHUP, but **SIGKILL is unhandleable by any user process**, so a separate recovery path is required.
+
+Every time `voiceOver.start()` runs, shoki writes a snapshot of your original VoiceOver plist values to `~/.shoki/vo-snapshot.plist` (override with `$SHOKI_SNAPSHOT_PATH`). On a clean `voiceOver.stop()` / `voiceOver.end()` that file is deleted — its presence means the previous shoki run terminated uncleanly.
+
+Restore the saved settings at any time with:
+
+```bash
+shoki restore-vo-settings
+```
+
+Output when it works:
+
+```
+Restored 9 keys from /Users/you/.shoki/vo-snapshot.plist
+```
+
+### Flags
+
+- `--path <path>` — Read the snapshot from a non-default path. Useful if you set `$SHOKI_SNAPSHOT_PATH` during the shoki run (common in CI).
+- `--force` — Apply a snapshot older than 7 days. Without `--force` the command refuses stale snapshots to avoid restoring values from an older shoki version that no longer reflect your current defaults.
+- `--dry-run` — Print which keys would be restored without actually writing them.
+
+### Exit codes
+
+- `0` — All keys restored successfully.
+- `1` — No snapshot file at the given path (nothing to restore).
+- `2` — Snapshot is unrecognized (missing `_shoki_snapshot_version` magic key), stale (>7 days, no `--force`), or one or more `defaults write` calls failed.
+
+### Which keys are snapshotted?
+
+The 9 VoiceOver keys shoki writes during `voiceOver.start()`, pulled from `com.apple.VoiceOver4` (Sonoma) or `~/Library/Group Containers/group.com.apple.VoiceOver4/Library/Preferences/com.apple.VoiceOver4.plist` (Sequoia+):
+
+- `SCREnableAppleScript`
+- `SCRCategories_SCRCategorySystemWide_SCRSoundComponentSettings_SCRDisableSound` (mute)
+- `SCRCategories_SCRCategoryRotorAndTables_SCRGeneralSettings_SCRRateAsPercent` (speech rate)
+- `SCRCategories_SCRCategoryActivities_SCRVerbositySettings_SCRVerbosityLevel`
+- `SCRCategories_SCRCategoryHintsAndTips_SCRHintDelay_SCRShouldSpeakHints`
+- `SCRCategories_SCRCategoryPunctuationAndSymbols_SCRPunctuationSettings_SCRPunctuationLevel`
+- `SCRCategories_SCRCategoryVerbosity_SCRShouldSpeakStaticText`
+- `SCRCategories_SCRCategoryVoices_SCRSpeakChannel` (voice)
+- `SCRShouldAnnounceKeyCommands`
+
+If shoki starts up and finds a stale snapshot file, that's informational — no automatic restore happens (we can't know whether the user's state in the meantime is intentional). Run `shoki restore-vo-settings` explicitly if you want to roll back.
+
 ## Next step
 
 Once `shoki doctor` exits 0, head to the [Vitest quickstart](./vitest-quickstart) and run your first real test.
