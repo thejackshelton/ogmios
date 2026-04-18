@@ -49,10 +49,11 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
           APPLE_API_KEY_B64: ${{ secrets.APPLE_API_KEY_B64 }}
-      - name: Verify signature
+      - name: Verify signatures
         run: |
           codesign -dvvv packages/binding-darwin-arm64/shoki.node || echo "shoki.node is not independently signed (helper app is the TCC trust anchor)"
           codesign -dvvv packages/binding-darwin-arm64/helper/ShokiRunner.app
+          codesign -dvvv packages/binding-darwin-arm64/helper/ShokiSetup.app
       - uses: actions/upload-artifact@v4
         with:
           name: binding-darwin-arm64
@@ -88,6 +89,11 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
           APPLE_API_KEY_B64: ${{ secrets.APPLE_API_KEY_B64 }}
+      - name: Verify signatures
+        run: |
+          codesign -dvvv packages/binding-darwin-x64/shoki.node || echo "shoki.node is not independently signed (helper app is the TCC trust anchor)"
+          codesign -dvvv packages/binding-darwin-x64/helper/ShokiRunner.app
+          codesign -dvvv packages/binding-darwin-x64/helper/ShokiSetup.app
       - uses: actions/upload-artifact@v4
         with:
           name: binding-darwin-x64
