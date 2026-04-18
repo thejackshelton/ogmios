@@ -32,6 +32,12 @@ function renderFixActionOneLiner(a: FixAction): string | null {
       return `defaults write "${a.plistPath}" ${a.key} -bool ${a.value ? 'true' : 'false'}`;
     case 'open-system-settings':
       return `open "${a.url}"`;
+    case 'launch-setup-app':
+      // Plan 08-04: the GUI path is the recommended fix (triggers TCC
+      // prompts via a bundled .app trust anchor — Phase 7 lesson).
+      return a.appPath
+        ? `open "${a.appPath}"  # or: shoki setup`
+        : 'shoki setup  # launches ShokiSetup.app to grant TCC permissions';
     case 'manual':
       return a.instructions[0] ?? null;
   }

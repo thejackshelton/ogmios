@@ -34,6 +34,17 @@ export type FixAction =
       url: string; // CONTEXT.md D-05 — stable 14-26
       pane: 'accessibility' | 'automation';
     }
+  | {
+      /**
+       * Plan 08-04 — launch the bundled ShokiSetup.app GUI.
+       * The GUI cleanly triggers macOS Accessibility + Automation TCC prompts
+       * via a real `.app`-bundle trust anchor (Phase 7 proved CLI-parent
+       * prompts don't fire). --fix executes this action automatically.
+       */
+      kind: 'launch-setup-app';
+      /** Resolved path, or null if resolution should happen at fix time. */
+      appPath?: string | null;
+    }
   | { kind: 'manual'; instructions: string[] };
 
 export interface DoctorCheckResult {

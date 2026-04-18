@@ -314,7 +314,12 @@ export function checkTCCStaleEntries(
 // ---- helpers ----
 
 function accessibilityFix(): FixAction[] {
+  // Plan 08-04: emit the GUI launcher FIRST so `doctor --fix` launches the
+  // bundled ShokiSetup.app (which triggers the TCC prompt cleanly via a real
+  // .app trust anchor). The open-system-settings deep link remains as a
+  // fallback that the reporter prints for users who prefer the manual path.
   return [
+    { kind: 'launch-setup-app', appPath: null },
     {
       kind: 'open-system-settings',
       url: DEEP_LINK_ACCESSIBILITY,
@@ -325,6 +330,7 @@ function accessibilityFix(): FixAction[] {
 
 function automationFix(): FixAction[] {
   return [
+    { kind: 'launch-setup-app', appPath: null },
     {
       kind: 'open-system-settings',
       url: DEEP_LINK_AUTOMATION,

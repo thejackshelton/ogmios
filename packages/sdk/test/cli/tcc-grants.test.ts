@@ -74,10 +74,18 @@ describe('checkTCCAccessibility', () => {
     const r = checkTCCAccessibility(e);
     expect(r.status).toBe('fail');
     expect(r.exitCode).toBe(ExitCode.SIGNATURE_MISMATCH);
-    expect(r.fixActions?.[0]).toMatchObject({
-      kind: 'open-system-settings',
-      pane: 'accessibility',
-    });
+    // Plan 08-04: fix-actions array carries both the GUI launcher (preferred
+    // --fix path) and the deep-link fallback. Assert both are present
+    // rather than pinning the ordering.
+    expect(r.fixActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: 'launch-setup-app' }),
+        expect.objectContaining({
+          kind: 'open-system-settings',
+          pane: 'accessibility',
+        }),
+      ]),
+    );
   });
 
   it('fails with TCC_MISSING_ACCESSIBILITY when no grant exists', () => {
@@ -151,11 +159,18 @@ describe('checkTCCAutomation', () => {
       rowSource: { user: [], system: [] },
     });
     const r = checkTCCAutomation(e);
-    expect(r.fixActions?.[0]).toMatchObject({
-      kind: 'open-system-settings',
-      pane: 'automation',
-      url: expect.stringContaining('Privacy_Automation'),
-    });
+    // Plan 08-04: launch-setup-app is the primary fix path; the deep link
+    // remains as a fallback. Assert both are present.
+    expect(r.fixActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: 'launch-setup-app' }),
+        expect.objectContaining({
+          kind: 'open-system-settings',
+          pane: 'automation',
+          url: expect.stringContaining('Privacy_Automation'),
+        }),
+      ]),
+    );
   });
 });
 

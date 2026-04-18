@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execa } from 'execa';
 import { Command } from 'commander';
 import { createRequire } from 'node:module';
 import { discoverHelper } from './checks/index.js';
@@ -16,6 +17,7 @@ import {
   restoreVoSettingsFromSnapshot,
 } from './restore-vo-settings.js';
 import { runDoctor } from './run-doctor.js';
+import { resolveSetupAppPath } from './setup-app-path.js';
 
 const require = createRequire(import.meta.url);
 // Path is relative to dist/cli/main.js — climbs to packages/sdk/package.json.
@@ -61,11 +63,31 @@ program
 
 program
   .command('setup')
-  .description('Alias for `shoki doctor --fix` (discoverability)')
-  .action(async () => {
-    const report = await runDoctor({ fix: true });
-    printHumanReport(report);
-    process.exit(report.exitCode);
+  .description('Launch the macOS GUI setup app to grant required TCC permissions')
+  .option('--dry-run', 'Print the resolved ShokiSetup.app path without opening it')
+  .action(async (opts: { dryRun?: boolean }) => {
+    const resolved = await resolveSetupAppPath();
+    if (!resolved.path) {
+      console.error(
+        'ShokiSetup.app not found. Install @shoki/binding-darwin-arm64 or\n' +
+          '@shoki/binding-darwin-x64, or set $SHOKI_SETUP_APP_PATH.\n' +
+          `Searched:\n  - ${resolved.searched.join('\n  - ')}`,
+      );
+      process.exit(ExitCode.HELPER_MISSING);
+    }
+    if (opts.dryRun) {
+      console.log(resolved.path);
+      return;
+    }
+    try {
+      await execa('/usr/bin/open', [resolved.path]);
+      console.log(`Launched ${resolved.path}`);
+    } catch (err) {
+      console.error(
+        `Failed to launch ${resolved.path}: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      process.exit(ExitCode.UNKNOWN_ERROR);
+    }
   });
 
 program

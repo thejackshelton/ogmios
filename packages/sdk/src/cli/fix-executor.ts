@@ -1,5 +1,6 @@
 import { execa } from 'execa';
 import type { FixAction } from './report-types.js';
+import { resolveSetupAppPath } from './setup-app-path.js';
 
 export interface FixExecutionResult {
   appliedActions: FixAction[];
@@ -15,6 +16,10 @@ export interface ApplyFixActionsOptions {
     key: string,
     value: boolean,
   ) => Promise<void>;
+  /** Test seam: replace the `open ShokiSetup.app` invocation. */
+  setupAppLauncher?: (appPath: string) => Promise<void>;
+  /** Test seam: replace the ShokiSetup.app path resolver. */
+  setupAppResolver?: () => Promise<string | null>;
 }
 
 const defaultDefaultsWriter = async (
@@ -27,6 +32,20 @@ const defaultDefaultsWriter = async (
     ['write', plistPath, key, '-bool', value ? 'true' : 'false'],
     { timeout: 5_000 },
   );
+};
+
+/**
+ * Default launcher — `open <ShokiSetup.app>`. Fire-and-forget (the user drives
+ * the GUI from here; the doctor re-check happens on the next `shoki doctor`
+ * invocation after TCC grants land).
+ */
+const defaultSetupAppLauncher = async (appPath: string): Promise<void> => {
+  await execa('/usr/bin/open', [appPath], { timeout: 5_000 });
+};
+
+const defaultSetupAppResolver = async (): Promise<string | null> => {
+  const res = await resolveSetupAppPath();
+  return res.path;
 };
 
 /**
@@ -43,11 +62,38 @@ export async function applyFixActions(
   options: ApplyFixActionsOptions,
 ): Promise<FixExecutionResult> {
   const writer = options.defaultsWriter ?? defaultDefaultsWriter;
+  const launcher = options.setupAppLauncher ?? defaultSetupAppLauncher;
+  const resolver = options.setupAppResolver ?? defaultSetupAppResolver;
   const applied: FixAction[] = [];
   const skipped: Array<{ action: FixAction; reason: string }> = [];
   const errors: Array<{ action: FixAction; error: string }> = [];
 
   for (const action of actions) {
+    if (action.kind === 'launch-setup-app') {
+      // Resolve path now if the action didn't pin one. Deferring resolution
+      // to fix time keeps the doctor report pure data — resolution touches
+      // the filesystem + env, which the reporter shouldn't do.
+      const resolved = action.appPath ?? (await resolver());
+      if (!resolved) {
+        errors.push({
+          action,
+          error:
+            'ShokiSetup.app not found — install @shoki/binding-darwin-arm64 or @shoki/binding-darwin-x64, or set $SHOKI_SETUP_APP_PATH.',
+        });
+        continue;
+      }
+      try {
+        await launcher(resolved);
+        applied.push({ kind: 'launch-setup-app', appPath: resolved });
+      } catch (err) {
+        errors.push({
+          action,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+      continue;
+    }
+
     if (action.kind === 'defaults-write') {
       // SIP gating: user-scope plists ($HOME/Library/...) are always writable when SIP is on;
       // the SIP concern applies to /private/var/db/Accessibility/.VoiceOverAppleScriptEnabled,
