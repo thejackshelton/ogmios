@@ -1,5 +1,5 @@
 import { createDriverHandle } from './driver-handle.js';
-import { MunadiError } from './errors.js';
+import { OgmiosError } from './errors.js';
 import type { ScreenReaderHandle } from './screen-reader.js';
 
 export interface VoiceOverOptions {
@@ -15,7 +15,7 @@ export interface VoiceOverOptions {
  * a macOS-only screen reader; Linux runs Orca and Windows runs NVDA — those
  * drivers land in later phases.
  */
-export class VoiceOverUnsupportedPlatformError extends MunadiError {
+export class VoiceOverUnsupportedPlatformError extends OgmiosError {
   constructor(public readonly platform: string) {
     super(
       `VoiceOver driver is macOS-only; this process is running on ${platform}. ` +
@@ -75,7 +75,7 @@ function voiceOverFactory(opts: VoiceOverOptions = {}): ScreenReaderHandle {
 // ---------------------------------------------------------------------------
 // Process-singleton for the convenience API (Phase 7 Decision D-03)
 //
-// Refcount model mirrors munadi/vitest's SessionStore (VITEST-05): the first
+// Refcount model mirrors ogmios/vitest's SessionStore (VITEST-05): the first
 // start() boots the driver; subsequent starts return the same handle and
 // bump a refcount. The last end() tears the handle down (stop + deinit).
 // end() without a prior start() is a no-op — matches the "afterAll is safe

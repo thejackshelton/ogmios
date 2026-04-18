@@ -1,8 +1,8 @@
 import { loadBinding } from './binding-loader.js';
-import { DriverNotFoundError, MunadiError } from './errors.js';
+import { DriverNotFoundError, OgmiosError } from './errors.js';
 import { LogStore } from './handle-internals.js';
 import { listenImpl } from './listen.js';
-import type { AwaitStableLogOptions, ScreenReaderHandle, MunadiEvent } from './screen-reader.js';
+import type { AwaitStableLogOptions, ScreenReaderHandle, OgmiosEvent } from './screen-reader.js';
 import { decodeEvents } from './wire.js';
 
 export interface CreateDriverHandleOptions {
@@ -40,7 +40,7 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
     if (err instanceof Error && err.message.includes('DriverNotFound')) {
       throw new DriverNotFoundError(opts.driverName);
     }
-    throw new MunadiError(
+    throw new OgmiosError(
       `Failed to create driver "${opts.driverName}": ${(err as Error).message}`,
       'ERR_DRIVER_CREATE_FAILED',
     );
@@ -52,7 +52,7 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
 
   function assertAlive(): bigint {
     if (deinited || id === null) {
-      throw new MunadiError(
+      throw new OgmiosError(
         `Driver "${opts.driverName}" has been deinit'd; create a new handle.`,
         'ERR_DRIVER_DEINITED',
       );
@@ -60,7 +60,7 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
     return id;
   }
 
-  function drainOnceSync(): MunadiEvent[] {
+  function drainOnceSync(): OgmiosEvent[] {
     const currentId = assertAlive();
     const buf = binding.driverDrain(currentId);
     const events = decodeEvents(buf);
@@ -118,7 +118,7 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
       store.clear();
     },
 
-    listen(): AsyncIterable<MunadiEvent> {
+    listen(): AsyncIterable<OgmiosEvent> {
       return listenImpl(store);
     },
 
@@ -143,7 +143,7 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
       return n;
     },
 
-    async awaitStableLog(options: AwaitStableLogOptions): Promise<MunadiEvent[]> {
+    async awaitStableLog(options: AwaitStableLogOptions): Promise<OgmiosEvent[]> {
       return store.awaitStable(options);
     },
 

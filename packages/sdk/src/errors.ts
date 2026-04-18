@@ -1,46 +1,46 @@
 /**
- * Munadi error taxonomy. Every error thrown by the SDK inherits from MunadiError
+ * Ogmios error taxonomy. Every error thrown by the SDK inherits from OgmiosError
  * and carries a stable `code` suitable for programmatic handling.
  */
-export class MunadiError extends Error {
+export class OgmiosError extends Error {
   constructor(
     message: string,
     public readonly code: string,
   ) {
     super(message);
-    this.name = 'MunadiError';
+    this.name = 'OgmiosError';
   }
 }
 
-export class UnsupportedPlatformError extends MunadiError {
+export class UnsupportedPlatformError extends OgmiosError {
   constructor(
     public readonly platform: string,
     public readonly arch: string,
   ) {
     super(
-      `Munadi does not support platform=${platform} arch=${arch}. ` +
+      `Ogmios does not support platform=${platform} arch=${arch}. ` +
         `Supported in v1: darwin-arm64, darwin-x64. ` +
-        `See https://github.com/thejackshelton/munadi/blob/main/README.md for the current platform matrix.`,
+        `See https://github.com/thejackshelton/ogmios/blob/main/README.md for the current platform matrix.`,
       'ERR_UNSUPPORTED_PLATFORM',
     );
     this.name = 'UnsupportedPlatformError';
   }
 }
 
-export class BindingNotInstalledError extends MunadiError {
+export class BindingNotInstalledError extends OgmiosError {
   constructor(public readonly expectedPackage: string) {
     super(
       `The native binding package "${expectedPackage}" is not installed. ` +
         `This usually means your package manager skipped optionalDependencies — ` +
         `check your install (npm, pnpm, yarn) and confirm ${expectedPackage} is in node_modules. ` +
-        `Phase 2 ships a 'munadi doctor' CLI that diagnoses this automatically.`,
+        `Phase 2 ships a 'ogmios doctor' CLI that diagnoses this automatically.`,
       'ERR_BINDING_NOT_INSTALLED',
     );
     this.name = 'BindingNotInstalledError';
   }
 }
 
-export class DriverNotFoundError extends MunadiError {
+export class DriverNotFoundError extends OgmiosError {
   constructor(public readonly driverName: string) {
     super(
       `Driver "${driverName}" is not registered in this binding. ` +

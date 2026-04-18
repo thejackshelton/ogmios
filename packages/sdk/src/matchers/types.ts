@@ -1,4 +1,4 @@
-import type { MunadiEventSource } from '../index.js';
+import type { OgmiosEventSource } from '../index.js';
 
 // Anchor `vitest` into the compilation graph so the `declare module 'vitest'`
 // augmentation below resolves under TS NodeNext + composite builds. Without
@@ -10,7 +10,7 @@ import type {} from 'vitest';
 export interface AnnouncementShape {
   role?: string | RegExp;
   name?: string | RegExp;
-  source?: MunadiEventSource;
+  source?: OgmiosEventSource;
   interrupt?: boolean;
 }
 
@@ -30,14 +30,14 @@ export interface ToHaveStableLogOptions {
 // re-export and the underlying `@vitest/expect` surface without needing a
 // second `declare module` block.
 
-interface MunadiExpectMatchers {
+interface OgmiosExpectMatchers {
   toHaveAnnounced(shape: AnnouncementShape): void;
   toHaveAnnouncedText(pattern: string | RegExp): void;
   toHaveNoAnnouncement(): void;
   toHaveStableLog(opts: ToHaveStableLogOptions): Promise<void>;
 }
 
-interface MunadiAsymmetricMatchers {
+interface OgmiosAsymmetricMatchers {
   toHaveAnnounced(shape: AnnouncementShape): unknown;
   toHaveAnnouncedText(pattern: string | RegExp): unknown;
   toHaveNoAnnouncement(): unknown;
@@ -46,12 +46,12 @@ interface MunadiAsymmetricMatchers {
 
 declare module 'vitest' {
   // biome-ignore lint/suspicious/noExplicitAny: match vitest's own Assertion<T = any>
-  interface Assertion<T = any> extends MunadiExpectMatchers {
-    _munadiAssertionT?: T;
+  interface Assertion<T = any> extends OgmiosExpectMatchers {
+    _ogmiosAssertionT?: T;
   }
   // biome-ignore lint/suspicious/noExplicitAny: match @vitest/expect's own Matchers<T = any>
-  interface Matchers<T = any> extends MunadiExpectMatchers {
-    _munadiMatchersT?: T;
+  interface Matchers<T = any> extends OgmiosExpectMatchers {
+    _ogmiosMatchersT?: T;
   }
-  interface AsymmetricMatchersContaining extends MunadiAsymmetricMatchers {}
+  interface AsymmetricMatchersContaining extends OgmiosAsymmetricMatchers {}
 }

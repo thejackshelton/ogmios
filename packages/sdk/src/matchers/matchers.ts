@@ -1,4 +1,4 @@
-import type { MunadiEvent } from '../index.js';
+import type { OgmiosEvent } from '../index.js';
 import type { AnnouncementShape, ToHaveStableLogOptions } from './types.js';
 
 interface MatcherResult {
@@ -12,20 +12,20 @@ interface MatcherResult {
  * Minimal shape of the log events the matchers consume.
  *
  * Matchers are intentionally lenient — they operate on any iterable of
- * objects with the subset of MunadiEvent fields we actually assert on
+ * objects with the subset of OgmiosEvent fields we actually assert on
  * (`role`, `name`, `source`, `phrase`, `flags`). This lets the same matchers
- * work against both `MunadiEvent[]` (Node-side, bigint timestamps) and
- * `WireMunadiEvent[]` (browser-side RPC payloads with numeric timestamps).
+ * work against both `OgmiosEvent[]` (Node-side, bigint timestamps) and
+ * `WireOgmiosEvent[]` (browser-side RPC payloads with numeric timestamps).
  */
 interface MatchableEvent {
-  source?: MunadiEvent['source'];
+  source?: OgmiosEvent['source'];
   flags?: number;
   phrase?: string;
   role?: string;
   name?: string;
 }
 
-function isMunadiEventArray(x: unknown): x is MatchableEvent[] {
+function isOgmiosEventArray(x: unknown): x is MatchableEvent[] {
   return Array.isArray(x);
 }
 
@@ -69,11 +69,11 @@ function serializeLog(log: MatchableEvent[], max = 10): string {
 }
 
 export function toHaveAnnounced(received: unknown, shape: AnnouncementShape): MatcherResult {
-  if (!isMunadiEventArray(received)) {
+  if (!isOgmiosEventArray(received)) {
     return {
       pass: false,
       message: () =>
-        'Expected received to be a MunadiEvent[] array (from voiceOver.drain() or the browser-side session.drain()).',
+        'Expected received to be a OgmiosEvent[] array (from voiceOver.drain() or the browser-side session.drain()).',
       actual: received,
       expected: shape,
     };
@@ -104,10 +104,10 @@ export function toHaveAnnouncedText(
   received: unknown,
   pattern: string | RegExp,
 ): MatcherResult {
-  if (!isMunadiEventArray(received)) {
+  if (!isOgmiosEventArray(received)) {
     return {
       pass: false,
-      message: () => 'Expected received to be a MunadiEvent[] array.',
+      message: () => 'Expected received to be a OgmiosEvent[] array.',
       actual: received,
       expected: pattern,
     };
@@ -129,10 +129,10 @@ export function toHaveAnnouncedText(
 }
 
 export function toHaveNoAnnouncement(received: unknown): MatcherResult {
-  if (!isMunadiEventArray(received)) {
+  if (!isOgmiosEventArray(received)) {
     return {
       pass: false,
-      message: () => 'Expected received to be a MunadiEvent[] array.',
+      message: () => 'Expected received to be a OgmiosEvent[] array.',
       actual: received,
     };
   }
@@ -152,10 +152,10 @@ export async function toHaveStableLog(
   received: unknown,
   opts: ToHaveStableLogOptions,
 ): Promise<MatcherResult> {
-  if (!isMunadiEventArray(received)) {
+  if (!isOgmiosEventArray(received)) {
     return {
       pass: false,
-      message: () => 'Expected received to be a MunadiEvent[] array.',
+      message: () => 'Expected received to be a OgmiosEvent[] array.',
       actual: received,
       expected: opts,
     };

@@ -77,7 +77,7 @@ export async function checkHelperSignature(
     return {
       id: 'helper-signature',
       status: 'fail',
-      summary: `MunadiRunner.app at ${helperPath} is UNSIGNED (dev build)`,
+      summary: `OgmiosRunner.app at ${helperPath} is UNSIGNED (dev build)`,
       detail:
         `Unsigned helpers trigger a TCC prompt on every launch and do not survive binary changes — ` +
         `see PITFALLS.md Pitfall 2. For release builds, Developer ID sign + notarize.`,
@@ -90,7 +90,7 @@ export async function checkHelperSignature(
     return {
       id: 'helper-signature',
       status: 'warn',
-      summary: `MunadiRunner.app at ${helperPath} is ad-hoc signed (not Developer ID)`,
+      summary: `OgmiosRunner.app at ${helperPath} is ad-hoc signed (not Developer ID)`,
       detail:
         `Ad-hoc signatures are local-dev-only; they change on every rebuild and TCC will re-prompt.`,
       meta: { helperPath, parsed },
@@ -111,7 +111,7 @@ export async function checkHelperSignature(
   return {
     id: 'helper-signature',
     status: 'pass',
-    summary: `MunadiRunner.app signed: ${parsed.authority}`,
+    summary: `OgmiosRunner.app signed: ${parsed.authority}`,
     meta: { helperPath, parsed },
   };
 }

@@ -1,5 +1,5 @@
 /**
- * Plan 10-02 — `munadi setup` orchestrator.
+ * Plan 10-02 — `ogmios setup` orchestrator.
  *
  * Decision tree (runSetup):
  *   1. installDir = opts.installDir ?? ~/Applications
@@ -10,7 +10,7 @@
  *      - Stale or --force → fall through to download.
  *   5. --no-download + missing bundles → reject.
  *   6. Otherwise: download+verify → install (ditto) → strip quarantine.
- *   7. --skip-launch? return without launching. Else: open -W Munadi Setup.app.
+ *   7. --skip-launch? return without launching. Else: open -W Ogmios Setup.app.
  *
  * The commander subcommand in main.ts is a thin wrapper that calls runSetup,
  * formats the SetupResult (human vs JSON), and maps it to a process exit code.
@@ -22,7 +22,7 @@ import { join } from 'node:path';
 import {
   downloadAndVerifyZip,
   resolveReleaseBaseUrlFromPackageJson,
-  type MunadiAppPlatform,
+  type OgmiosAppPlatform,
 } from './setup-download.js';
 import {
   installFromZip,
@@ -49,9 +49,9 @@ export interface SetupOptions {
 
   // --- Non-commander options, injected by tests or main.ts -----------------
 
-  /** Munadi.app version this SDK is pinned against (packages/sdk/package.json). */
+  /** Ogmios.app version this SDK is pinned against (packages/sdk/package.json). */
   compatibleAppVersion?: string;
-  /** Release base URL, e.g. https://github.com/thejackshelton/munadi/releases/download */
+  /** Release base URL, e.g. https://github.com/thejackshelton/ogmios/releases/download */
   releaseBaseUrl?: string;
   /** Injected fetch for tests (default: globalThis.fetch). */
   fetch?: typeof globalThis.fetch;
@@ -65,7 +65,7 @@ export type SetupAction =
   | 'noop' // dry-run or other non-acting path
   | 'downloaded' // apps were missing, we downloaded + installed them
   | 'reinstalled' // apps were present but stale / --force
-  | 'launched-only'; // apps already fresh; we only launched Munadi Setup.app
+  | 'launched-only'; // apps already fresh; we only launched Ogmios Setup.app
 
 export interface SetupResult {
   action: SetupAction;
@@ -78,7 +78,7 @@ export interface SetupResult {
   exitCode: number;
 }
 
-/** Exit codes (CONTEXT.md § `munadi setup` flags + plan verify step). */
+/** Exit codes (CONTEXT.md § `ogmios setup` flags + plan verify step). */
 export const SETUP_EXIT = {
   OK: 0,
   GENERIC: 1,
@@ -90,18 +90,18 @@ export const SETUP_EXIT = {
   UNSUPPORTED_PLATFORM: 7,
 } as const;
 
-function resolvePlatform(opts: SetupOptions): MunadiAppPlatform {
+function resolvePlatform(opts: SetupOptions): OgmiosAppPlatform {
   const raw =
     opts.platformOverride ?? `${process.platform}-${process.arch}`;
   if (raw !== 'darwin-arm64' && raw !== 'darwin-x64') {
     const err = new Error(
-      `munadi setup only supports macOS (darwin-arm64 / darwin-x64). Detected: ${raw}. Windows/Linux support is tracked for v2+.`,
+      `ogmios setup only supports macOS (darwin-arm64 / darwin-x64). Detected: ${raw}. Windows/Linux support is tracked for v2+.`,
     );
     (err as Error & { exitCode?: number }).exitCode =
       SETUP_EXIT.UNSUPPORTED_PLATFORM;
     throw err;
   }
-  return raw as MunadiAppPlatform;
+  return raw as OgmiosAppPlatform;
 }
 
 async function pathExists(p: string): Promise<boolean> {
@@ -124,15 +124,15 @@ export async function runSetup(opts: SetupOptions): Promise<SetupResult> {
   const version = opts.version ?? opts.compatibleAppVersion ?? '0.0.0';
   const baseUrl =
     opts.releaseBaseUrl ??
-    'https://github.com/thejackshelton/munadi/releases/download';
+    'https://github.com/thejackshelton/ogmios/releases/download';
 
   // URL we would download in the non-dry-run branch — computed up front so
   // both --dry-run and --json callers can log it.
-  const plannedZipUrl = `${baseUrl.replace(/\/+$/, '')}/app-v${version}/munadi-${platform}.zip`;
+  const plannedZipUrl = `${baseUrl.replace(/\/+$/, '')}/app-v${version}/ogmios-${platform}.zip`;
 
   const appPaths = [
-    join(installDir, 'Munadi.app'),
-    join(installDir, 'Munadi Setup.app'),
+    join(installDir, 'Ogmios.app'),
+    join(installDir, 'Ogmios Setup.app'),
   ];
 
   if (opts.dryRun) {
@@ -155,8 +155,8 @@ export async function runSetup(opts: SetupOptions): Promise<SetupResult> {
   if (!bothPresent) {
     if (opts.noDownload) {
       const err = new Error(
-        `munadi setup --no-download: apps are missing at ${installDir} and download is disabled.\n` +
-          `Place Munadi.app + "Munadi Setup.app" into ${installDir} manually, or re-run without --no-download.`,
+        `ogmios setup --no-download: apps are missing at ${installDir} and download is disabled.\n` +
+          `Place Ogmios.app + "Ogmios Setup.app" into ${installDir} manually, or re-run without --no-download.`,
       );
       (err as Error & { exitCode?: number }).exitCode = SETUP_EXIT.MISSING_DEP;
       throw err;
@@ -195,7 +195,7 @@ export async function runSetup(opts: SetupOptions): Promise<SetupResult> {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const wrapped = new Error(
-        `munadi setup failed while stripping quarantine: ${message}`,
+        `ogmios setup failed while stripping quarantine: ${message}`,
       );
       (wrapped as Error & { exitCode?: number }).exitCode =
         SETUP_EXIT.QUARANTINE;
@@ -216,7 +216,7 @@ export async function runSetup(opts: SetupOptions): Promise<SetupResult> {
     ]);
     if (launchResult.exitCode !== 0) {
       const err = new Error(
-        `munadi setup: failed to launch ${appPaths[1]} (open exit ${launchResult.exitCode})${launchResult.stderr ? `: ${launchResult.stderr}` : ''}`,
+        `ogmios setup: failed to launch ${appPaths[1]} (open exit ${launchResult.exitCode})${launchResult.stderr ? `: ${launchResult.stderr}` : ''}`,
       );
       (err as Error & { exitCode?: number }).exitCode = SETUP_EXIT.GENERIC;
       throw err;

@@ -1,5 +1,5 @@
 /**
- * The N-API surface exposed by @munadi/binding-{platform}-{arch}.
+ * The N-API surface exposed by @ogmios/binding-{platform}-{arch}.
  * Mirrors zig/src/core/napi.zig from Plan 02. DO NOT change without
  * updating that file and bumping the wire format version.
  */
@@ -17,8 +17,8 @@ export interface NativeBinding {
 }
 
 export const SUPPORTED_PLATFORMS = [
-  { platform: 'darwin', arch: 'arm64', pkg: '@munadi/binding-darwin-arm64' },
-  { platform: 'darwin', arch: 'x64', pkg: '@munadi/binding-darwin-x64' },
+  { platform: 'darwin', arch: 'arm64', pkg: '@ogmios/binding-darwin-arm64' },
+  { platform: 'darwin', arch: 'x64', pkg: '@ogmios/binding-darwin-x64' },
 ] as const;
 
 export type SupportedPlatform = (typeof SUPPORTED_PLATFORMS)[number];

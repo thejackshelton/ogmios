@@ -18,11 +18,11 @@ const DEEP_LINK_FULL_DISK_ACCESS =
   'x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles';
 
 /**
- * CONTEXT.md D-03 client allowlist — clients munadi cares about when filtering TCC.db rows.
+ * CONTEXT.md D-03 client allowlist — clients ogmios cares about when filtering TCC.db rows.
  * Developers may also have granted their terminal or IDE; we surface those too.
  */
 const DEFAULT_CLIENT_MATCHES = [
-  'org.munadi.runner', // release helper bundle
+  'org.ogmios.runner', // release helper bundle
   'node', // un-wrapped node invocation
   'com.apple.Terminal',
   'com.googlecode.iterm2',
@@ -165,7 +165,7 @@ export function enumerateTCCGrants(
 }
 
 /**
- * CONTEXT.md D-03 — PERM-02: Accessibility grant present for the munadi trust anchor.
+ * CONTEXT.md D-03 — PERM-02: Accessibility grant present for the ogmios trust anchor.
  * auth_value must be 2 (allowed) AND csreq must match the current helper signature.
  */
 export function checkTCCAccessibility(
@@ -196,7 +196,7 @@ export function checkTCCAccessibility(
       status: 'fail',
       summary: `Accessibility grant exists for ${staleMatch.client} but the signature is STALE — helper has been re-signed since the grant`,
       detail:
-        `The TCC entry was granted to a prior signature of MunadiRunner. macOS treats re-signed binaries as different apps ` +
+        `The TCC entry was granted to a prior signature of OgmiosRunner. macOS treats re-signed binaries as different apps ` +
         `(PITFALLS.md Pitfall 2). You must remove the old entry in System Settings and re-grant.`,
       exitCode: ExitCode.SIGNATURE_MISMATCH,
       fixActions: accessibilityFix(),
@@ -207,9 +207,9 @@ export function checkTCCAccessibility(
   return {
     id: 'tcc-accessibility',
     status: 'fail',
-    summary: 'No Accessibility grant found for the munadi trust anchor',
+    summary: 'No Accessibility grant found for the ogmios trust anchor',
     detail:
-      'Grant Accessibility permission to MunadiRunner.app (or your terminal, if running un-wrapped) in System Settings.',
+      'Grant Accessibility permission to OgmiosRunner.app (or your terminal, if running un-wrapped) in System Settings.',
     exitCode: ExitCode.TCC_MISSING_ACCESSIBILITY,
     fixActions: accessibilityFix(),
   };
@@ -263,9 +263,9 @@ export function checkTCCAutomation(
   return {
     id: 'tcc-automation',
     status: 'fail',
-    summary: 'No Automation→VoiceOver grant found for the munadi trust anchor',
+    summary: 'No Automation→VoiceOver grant found for the ogmios trust anchor',
     detail:
-      'Grant Automation permission for VoiceOver to MunadiRunner.app (or your terminal) in System Settings → Privacy → Automation. ' +
+      'Grant Automation permission for VoiceOver to OgmiosRunner.app (or your terminal) in System Settings → Privacy → Automation. ' +
       'Without this grant, AppleScript commands to VoiceOver will silently no-op.',
     exitCode: ExitCode.TCC_MISSING_AUTOMATION,
     fixActions: automationFix(),
@@ -290,7 +290,7 @@ export function checkTCCStaleEntries(
   return {
     id: 'tcc-stale-entries',
     status: 'warn',
-    summary: `${stale.length} stale TCC entr${stale.length === 1 ? 'y' : 'ies'} detected — prior signatures of MunadiRunner`,
+    summary: `${stale.length} stale TCC entr${stale.length === 1 ? 'y' : 'ies'} detected — prior signatures of OgmiosRunner`,
     detail: `${stale
       .map(
         (r) =>
@@ -315,7 +315,7 @@ export function checkTCCStaleEntries(
 
 function accessibilityFix(): FixAction[] {
   // Plan 08-04: emit the GUI launcher FIRST so `doctor --fix` launches the
-  // bundled MunadiSetup.app (which triggers the TCC prompt cleanly via a real
+  // bundled OgmiosSetup.app (which triggers the TCC prompt cleanly via a real
   // .app trust anchor). The open-system-settings deep link remains as a
   // fallback that the reporter prints for users who prefer the manual path.
   return [
@@ -347,7 +347,7 @@ function buildFullDiskAccessFailure(
     id,
     status: 'fail',
     summary:
-      'Cannot read user TCC.db — munadi doctor needs Full Disk Access (or the DB is unreadable)',
+      'Cannot read user TCC.db — ogmios doctor needs Full Disk Access (or the DB is unreadable)',
     detail: `${enumeration.warnings.join('\n')}\n\nGrant Full Disk Access to your terminal/IDE in System Settings → Privacy → Full Disk Access, then rerun doctor.`,
     exitCode: ExitCode.NEEDS_FULL_DISK_ACCESS,
     fixActions: [

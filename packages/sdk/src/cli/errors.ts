@@ -1,6 +1,6 @@
 /**
- * `munadi/cli` (doctor) typed error taxonomy.
- * Mirrors the `munadi` MunadiError pattern (stable `code` string + `name`).
+ * `ogmios/cli` (doctor) typed error taxonomy.
+ * Mirrors the `ogmios` OgmiosError pattern (stable `code` string + `name`).
  */
 
 export class DoctorError extends Error {
@@ -16,7 +16,7 @@ export class DoctorError extends Error {
 export class UnsupportedMacOSError extends DoctorError {
   constructor(public readonly version: string) {
     super(
-      `This macOS version (${version}) is not supported by munadi. ` +
+      `This macOS version (${version}) is not supported by ogmios. ` +
         `Supported: 14.x (Sonoma), 15.x (Sequoia), 26.x (Tahoe). ` +
         `See the platform-risk docs for the current matrix.`,
       'ERR_UNSUPPORTED_MACOS',
@@ -28,9 +28,9 @@ export class UnsupportedMacOSError extends DoctorError {
 export class HelperNotFoundError extends DoctorError {
   constructor(public readonly searchedPaths: string[]) {
     super(
-      `MunadiRunner.app was not found in any known location. Searched:\n  - ${searchedPaths.join('\n  - ')}\n` +
-        `Install munadi (which pulls in the platform binding containing the helper), ` +
-        `or set MUNADI_HELPER_PATH to override.`,
+      `OgmiosRunner.app was not found in any known location. Searched:\n  - ${searchedPaths.join('\n  - ')}\n` +
+        `Install ogmios (which pulls in the platform binding containing the helper), ` +
+        `or set OGMIOS_HELPER_PATH to override.`,
       'ERR_HELPER_NOT_FOUND',
     );
     this.name = 'HelperNotFoundError';
@@ -40,7 +40,7 @@ export class HelperNotFoundError extends DoctorError {
 export class NonDarwinHostError extends DoctorError {
   constructor(public readonly platform: string) {
     super(
-      `munadi doctor only runs on macOS (detected platform: ${platform}). ` +
+      `ogmios doctor only runs on macOS (detected platform: ${platform}). ` +
         `Windows/Linux variants are tracked for v2+.`,
       'ERR_NON_DARWIN_HOST',
     );

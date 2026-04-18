@@ -1,12 +1,12 @@
 {
-  "name": "@munadi/binding-darwin-x64",
+  "name": "@ogmios/binding-darwin-x64",
   "version": "0.1.0",
   "private": true,
-  "description": "Munadi native addon — darwin x64 (Intel)",
+  "description": "Ogmios native addon — darwin x64 (Intel)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thejackshelton/munadi.git",
+    "url": "git+https://github.com/thejackshelton/ogmios.git",
     "directory": "packages/binding-darwin-x64"
   },
   "main": "munadi.node",

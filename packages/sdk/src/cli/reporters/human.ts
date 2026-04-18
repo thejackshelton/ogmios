@@ -36,8 +36,8 @@ function renderFixActionOneLiner(a: FixAction): string | null {
       // Plan 08-04: the GUI path is the recommended fix (triggers TCC
       // prompts via a bundled .app trust anchor — Phase 7 lesson).
       return a.appPath
-        ? `open "${a.appPath}"  # or: munadi setup`
-        : 'munadi setup  # launches MunadiSetup.app to grant TCC permissions';
+        ? `open "${a.appPath}"  # or: ogmios setup`
+        : 'ogmios setup  # launches OgmiosSetup.app to grant TCC permissions';
     case 'manual':
       return a.instructions[0] ?? null;
   }
@@ -59,7 +59,7 @@ export function printHumanReport(
         dim: pc.dim,
       };
 
-  write(color.bold('munadi doctor'));
+  write(color.bold('ogmios doctor'));
   write(
     color.dim(
       `  macOS: ${report.macOSVersion ?? '?'}   helper: ${report.helperPath ?? '<none>'}   mode: ${report.mode}`,
@@ -86,7 +86,7 @@ export function printHumanReport(
 
   write('');
   if (report.ok) {
-    write(color.pass('  OK — munadi is ready on this machine.'));
+    write(color.pass('  OK — ogmios is ready on this machine.'));
   } else {
     write(color.fail(`  exit=${report.exitCode} — fix the ✖ items above and rerun.`));
   }

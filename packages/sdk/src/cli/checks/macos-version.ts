@@ -62,9 +62,9 @@ export async function checkMacOSVersion(
       status: 'fail',
       summary: `macOS ${productVersion} is not supported (major=${major}; supported: 14, 15, 26)`,
       detail:
-        `munadi supports macOS 14 (Sonoma), 15 (Sequoia), 26 (Tahoe). ` +
+        `ogmios supports macOS 14 (Sonoma), 15 (Sequoia), 26 (Tahoe). ` +
         `Earlier versions predate the current VoiceOver AppleScript surface; ` +
-        `later versions have not been tested — check for a munadi release that explicitly covers macOS ${major}.`,
+        `later versions have not been tested — check for a ogmios release that explicitly covers macOS ${major}.`,
       exitCode: ExitCode.OS_UNSUPPORTED,
       meta: { major, productVersion },
     };
