@@ -19,6 +19,8 @@ Think of it as a more ambitious [Guidepup](https://github.com/guidepup/guidepup)
 
 Shoki is a library + CLI. The canonical path is **local install in your test project**:
 
+> **v0.1.0 ships arm64 only** (Apple Silicon Macs). Intel Mac support arrives in v0.2. Most active Mac dev machines are Apple Silicon (Apple stopped selling Intel in 2023).
+
 ```bash
 npm install shoki
 npx shoki setup

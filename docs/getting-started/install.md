@@ -2,11 +2,21 @@
 
 Shoki's v1 target is **macOS + VoiceOver + Vitest browser mode**. If you're on Windows or Linux you can still install and run TypeScript-only unit tests, but the VoiceOver-dependent tests are gated behind `SHOKI_INTEGRATION=1` and only run on darwin hosts.
 
-## Prerequisites
+## Platform support (v0.1.0)
 
-- **macOS 14 (Sonoma), 15 (Sequoia), or 26 (Tahoe)** for the VoiceOver path.
-- **Node.js ≥ 24**. Shoki uses N-API via the [napi-zig](https://github.com/yuku-toolchain/napi-zig) binding loader. Older Node versions may work but 24+ is the CI baseline.
-- **pnpm ≥ 10** (npm and yarn also work, but pnpm is what the monorepo uses and what the docs assume).
+Shoki v0.1.0 supports:
+
+- macOS 14 (Sonoma), 15 (Sequoia), 26 (Tahoe)
+- **Apple Silicon (arm64) only** — Intel Mac (x64) support is planned for v0.2
+
+Most active Mac dev machines are Apple Silicon. If you're on an Intel Mac:
+- Can you upgrade? v0.1.0 will Just Work.
+- If not, [open a GitHub issue](https://github.com/<org>/shoki/issues) so we can prioritize the cross-compile build.
+
+## Node + pnpm requirements
+
+- Node 24 LTS
+- pnpm 10
 - **Playwright's Chromium** if you're using Vitest browser mode: `pnpm exec playwright install chromium`.
 
 See the [Platform risk](/background/platform-risk) page for an honest discussion of the macOS-specific risks Shoki depends on before you commit to this library.

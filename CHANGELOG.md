@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 First public release.
 
+### Platform support
+
+- macOS 14+ on **Apple Silicon (arm64)**
+- Intel Mac support (x64) will ship in v0.2 once cross-compile infrastructure is built
+
+### Known limitations
+
+- Intel Mac users cannot install v0.1.0 — the binding package for `darwin-x64` is not published
+- Ad-hoc signed (no Apple Developer ID) — users may see "cannot verify developer" on first `Shoki.app` launch and must right-click → Open once. Notarization arrives when Dev ID is configured.
+
 ### Changed
 
 - **BREAKING — package rename:** `@shoki/sdk` is now published as the unscoped

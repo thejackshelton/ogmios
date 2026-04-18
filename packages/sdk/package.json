@@ -55,8 +55,7 @@
     "picocolors": "^1.0.0"
   },
   "optionalDependencies": {
-    "@shoki/binding-darwin-arm64": "workspace:*",
-    "@shoki/binding-darwin-x64": "workspace:*"
+    "@shoki/binding-darwin-arm64": "workspace:*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
