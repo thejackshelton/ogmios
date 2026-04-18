@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed all 4 Phase 4 plans (matchers + vitest + SessionStore + canonical example); ready for Phase 5 CI
-last_updated: "2026-04-17T22:19:20.620Z"
+stopped_at: "Completed 07-03-PLAN.md (API reshape: handle.end() alias + voiceOver.start/end singleton + cheap-reset tests + docs)"
+last_updated: "2026-04-18T00:58:01.835Z"
 last_activity: 2026-04-17
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 2
-  total_plans: 21
-  completed_plans: 13
-  percent: 62
+  total_plans: 31
+  completed_plans: 18
+  percent: 58
 ---
 
 # Project State
@@ -59,6 +59,7 @@ Progress: [█░░░░░░░░░] 17%
 | Phase 04-vitest-browser-mode-integration P02 | 15m | 2 tasks | 27 files |
 | Phase 04-vitest-browser-mode-integration P03 | 10m | 2 tasks | 17 files |
 | Phase 04-vitest-browser-mode-integration P04 | 10m | 2 tasks | 17 files |
+| Phase 07-v1-integration-verification-and-qa-real-voiceover-announceme P03 | 6 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 01-foundations]: WIRE_VERSION=1 frozen for Phase 1; regression test in wire_test.zig fails if field widths or ordering change
 - [Phase 01-foundations]: ShokiRunner Swift package scaffolded with 3-module split (Protocol/Service/Runner); hardened-runtime entitlements gate only apple-events; Phase 1 XPC surface frozen to ping()
 - [Phase 01-foundations]: Developer ID signing env-var contract established (APPLE_DEVELOPER_ID_APP/APPLE_ID/APPLE_TEAM_ID/APPLE_APP_SPECIFIC_PASSWORD); Plan 05 picks the keychain-import action
+- [Phase 07-v1-integration-verification-and-qa-real-voiceover-announceme]: voiceOver is both a factory AND a namespace: Object.assign(voiceOverFactory, { start: startSingleton, end: endSingleton }) with explicit VoiceOverFn interface. Process-singleton refcounted — start() boots on first call, end() tears down on last call, end()-without-start is a no-op.
+- [Phase 07-v1-integration-verification-and-qa-real-voiceover-announceme]: handle.stop() and handle.end() share one doStop closure in createDriverHandle so mock-call counts are symmetric across both names and there is no 'this'-binding footgun for destructured callers.
 
 ### Pending Todos
 
@@ -100,6 +103,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-04-17T22:19:20.618Z
-Stopped at: Completed all 4 Phase 4 plans (matchers + vitest + SessionStore + canonical example); ready for Phase 5 CI
+Last session: 2026-04-18T00:58:01.832Z
+Stopped at: Completed 07-03-PLAN.md (API reshape: handle.end() alias + voiceOver.start/end singleton + cheap-reset tests + docs)
 Resume file: None
