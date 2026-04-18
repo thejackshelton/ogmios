@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { execa } from 'execa';
 import { Command } from 'commander';
 import { createRequire } from 'node:module';
 import { discoverHelper } from './checks/index.js';
@@ -17,11 +16,20 @@ import {
   restoreVoSettingsFromSnapshot,
 } from './restore-vo-settings.js';
 import { runDoctor } from './run-doctor.js';
-import { resolveSetupAppPath } from './setup-app-path.js';
+import {
+  resolveReleaseBaseUrlFromPackageJson,
+  runSetup,
+  SETUP_EXIT,
+  type SetupResult,
+} from './setup-command.js';
 
 const require = createRequire(import.meta.url);
 // Path is relative to dist/cli/main.js — climbs to packages/sdk/package.json.
-const pkg = require('../../package.json') as { version: string };
+const pkg = require('../../package.json') as {
+  version: string;
+  compatibleAppVersion?: string;
+  repository?: { url?: string } | string;
+};
 
 const program = new Command();
 
@@ -63,32 +71,106 @@ program
 
 program
   .command('setup')
-  .description('Launch the macOS GUI setup app to grant required TCC permissions')
-  .option('--dry-run', 'Print the resolved ShokiSetup.app path without opening it')
-  .action(async (opts: { dryRun?: boolean }) => {
-    const resolved = await resolveSetupAppPath();
-    if (!resolved.path) {
-      console.error(
-        'ShokiSetup.app not found. Install @shoki/binding-darwin-arm64 or\n' +
-          '@shoki/binding-darwin-x64, or set $SHOKI_SETUP_APP_PATH.\n' +
-          `Searched:\n  - ${resolved.searched.join('\n  - ')}`,
-      );
-      process.exit(ExitCode.HELPER_MISSING);
-    }
-    if (opts.dryRun) {
-      console.log(resolved.path);
-      return;
-    }
-    try {
-      await execa('/usr/bin/open', [resolved.path]);
-      console.log(`Launched ${resolved.path}`);
-    } catch (err) {
-      console.error(
-        `Failed to launch ${resolved.path}: ${err instanceof Error ? err.message : String(err)}`,
-      );
-      process.exit(ExitCode.UNKNOWN_ERROR);
-    }
-  });
+  .description(
+    'Download Shoki.app + Shoki Setup.app from GitHub Releases, install into ~/Applications, and launch the TCC-prompt setup GUI',
+  )
+  .option('--force', 'Redownload + reinstall even if apps are already present')
+  .option(
+    '--no-download',
+    'Fail if apps are missing (never make a network request) — use for pre-seeded CI',
+  )
+  .option(
+    '--install-dir <path>',
+    'Override the install directory (default: ~/Applications)',
+  )
+  .option('--skip-launch', 'Download + install but do not auto-open Shoki Setup.app')
+  .option('--json', 'Emit structured JSON output (SetupResult) for CI pipelines')
+  .option(
+    '--version <ver>',
+    "Download a specific Shoki.app version (default: SDK's compatibleAppVersion)",
+  )
+  .option(
+    '--dry-run',
+    'Print the resolved download URL + install dir without touching the network or filesystem',
+  )
+  .action(
+    async (opts: {
+      force?: boolean;
+      download?: boolean; // commander inverts --no-download into download:false
+      installDir?: string;
+      skipLaunch?: boolean;
+      json?: boolean;
+      version?: string;
+      dryRun?: boolean;
+    }) => {
+      const releaseBaseUrl = (() => {
+        try {
+          return resolveReleaseBaseUrlFromPackageJson(pkg);
+        } catch {
+          return 'https://github.com/shoki/shoki/releases/download';
+        }
+      })();
+
+      let result: SetupResult;
+      try {
+        result = await runSetup({
+          force: opts.force,
+          noDownload: opts.download === false,
+          installDir: opts.installDir,
+          skipLaunch: opts.skipLaunch,
+          json: opts.json,
+          version: opts.version,
+          dryRun: opts.dryRun,
+          compatibleAppVersion: pkg.compatibleAppVersion,
+          releaseBaseUrl,
+        });
+      } catch (err) {
+        const exitCode =
+          (err as { exitCode?: number } | null)?.exitCode ?? SETUP_EXIT.GENERIC;
+        const message = err instanceof Error ? err.message : String(err);
+        if (opts.json) {
+          process.stdout.write(
+            `${JSON.stringify({ ok: false, error: message, exitCode })}\n`,
+          );
+        } else {
+          console.error(message);
+        }
+        process.exit(exitCode);
+      }
+
+      if (opts.json) {
+        process.stdout.write(`${JSON.stringify(result)}\n`);
+      } else if (opts.dryRun) {
+        console.log(`Would download: ${result.downloadedFromUrl}`);
+        console.log(`Would install to: ${result.installDir}`);
+      } else {
+        switch (result.action) {
+          case 'downloaded':
+            console.log(
+              `Installed Shoki.app + Shoki Setup.app into ${result.installDir}`,
+            );
+            break;
+          case 'reinstalled':
+            console.log(
+              `Reinstalled Shoki.app + Shoki Setup.app into ${result.installDir}`,
+            );
+            break;
+          case 'launched-only':
+            console.log(
+              `Shoki.app already installed at ${result.installDir}; launched Shoki Setup.app`,
+            );
+            break;
+          case 'noop':
+            console.log('No action taken.');
+            break;
+        }
+        if (result.launched) {
+          console.log('Shoki Setup.app has exited.');
+        }
+      }
+      process.exit(result.exitCode);
+    },
+  );
 
 program
   .command('info')
