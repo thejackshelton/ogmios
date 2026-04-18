@@ -159,13 +159,18 @@ Plans:
 
 ### Phase 8: Zig helper port + ShokiSetup.app GUI + package consolidation
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Swift helper deleted end-to-end and replaced by a Zig-only `helper/` (build.zig, hand-written XPC + AX externs, main entry on CFRunLoopRun); new `ShokiSetup.app` Zig-compiled GUI bundle that triggers macOS Accessibility + Automation TCC prompts cleanly on first launch; packages consolidated from 7 to 4 (doctor + matchers merged into `@shoki/sdk`; docs out of the pnpm workspace). Every deliverable verified by running the tool (zig build, ./ShokiRunner --version, ./ShokiSetup --self-test, pnpm -r test, cd docs && pnpm build) — no source-grep-as-verification.
+**Requirements**: N/A — refactor/port/consolidation phase; verifies CONTEXT.md's Verification Mandate and inherits Phase 7's YELLOW gate.
 **Depends on:** Phase 7
-**Plans:** 0 plans
+**Plans:** 6 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 8 to break down)
+- [ ] 08-01-PLAN.md — Helper Zig port Wave 1: build.zig skeleton + hand-written XPC externs + dispatcher with ping handler + unit tests (no Swift deletion yet; Swift coexists) [Wave 1]
+- [ ] 08-02-PLAN.md — Helper Zig port Wave 2: AX observer + CFRunLoop + main entry + Zig-built libShokiXPCClient.dylib + build-app-bundle.sh rewrite + DELETE all Swift (Package.swift, Sources/, Tests/) [Wave 2]
+- [ ] 08-03-PLAN.md — ShokiSetup.app: Zig + AppKit/Obj-C runtime externs + second executable target in helper/build.zig + --version/--self-test/--bogus flags + interactive flow that triggers AX + Automation TCC prompts + human-verify checkpoint [Wave 3]
+- [ ] 08-04-PLAN.md — CI integration: action.yml + ci.yml + release.yml updated to Zig-native, remove helper-test Swift job, add helper-smoke job that LAUNCHES both bundles, sign+notarize BOTH apps per architecture [Wave 4]
+- [ ] 08-05-PLAN.md — Package consolidation: doctor + matchers merged into @shoki/sdk (bin + exports['./cli'] + exports['./matchers']); @shoki/vitest owns expect.extend at /setup subpath; delete packages/doctor, packages/matchers; rewrite all imports across packages + examples [Wave 1 — orthogonal to helper work]
+- [ ] 08-06-PLAN.md — Docs out of pnpm workspace + standalone docs CI + 4-package-world doc sweep (install snippets, quickstarts, matcher/CLI pages) + CHANGELOG entry + final end-to-end verify + 08-SUMMARY.md [Wave 5]
 
 ### Phase 9: Qwik example + docs switch from React
 
@@ -181,3 +186,4 @@ Plans:
 *Roadmap created: 2026-04-17*
 *Granularity: standard (target 5-8 phases) — 6 phases derived from natural delivery boundaries; Phase 3 is requirement-dense (16 reqs) but cohesive and will be split into 3-4 plans during /gsd-plan-phase.*
 *Phase 7 added 2026-04-17 as a post-Phase-6 verification phase (not in the original 6-phase v1 plan).*
+*Phase 8 plans added 2026-04-17: Zig helper port + ShokiSetup.app + package consolidation (7→4) + docs out of workspace. Wave 1 parallelism: 08-01 and 08-05 are orthogonal and run in parallel; 08-05 does not depend on helper work at all.*
