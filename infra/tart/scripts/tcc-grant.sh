@@ -5,8 +5,8 @@
 # USAGE
 #   tcc-grant.sh <bundle-id>
 #
-# Default bundle: org.munadi.runner (MunadiRunner.app, the helper that holds
-# the stable TCC trust anchor for munadi sessions).
+# Default bundle: org.ogmios.runner (OgmiosRunner.app, the helper that holds
+# the stable TCC trust anchor for ogmios sessions).
 #
 # REQUIREMENTS
 #   - Running INSIDE a tart VM during image bake
@@ -22,17 +22,17 @@
 #
 # VALIDATION
 #   No runtime validation of success here — this runs inside an image-bake
-#   VM and the real check is performed by `munadi doctor --json` in the final
+#   VM and the real check is performed by `ogmios doctor --json` in the final
 #   provisioning step + by the Phase 5 parity workflow exercising the image.
 #
 # SAFETY
 #   This script refuses to run on a non-VM host. Guards:
-#     - checks /etc/munadi-image marker OR /.tart-vm flag
+#     - checks /etc/ogmios-image marker OR /.tart-vm flag
 #     - refuses if SIP is enabled (csrutil status)
 #
 set -euo pipefail
 
-BUNDLE_ID="${1:-org.munadi.runner}"
+BUNDLE_ID="${1:-org.ogmios.runner}"
 
 if [[ -z "${BUNDLE_ID}" ]]; then
   echo "usage: $0 <bundle-id>" >&2
@@ -40,11 +40,11 @@ if [[ -z "${BUNDLE_ID}" ]]; then
 fi
 
 # Guard 1: refuse to run outside a tart VM context.
-# During image-bake Packer leaves the VM discoverable via either the munadi
+# During image-bake Packer leaves the VM discoverable via either the ogmios
 # marker (if an earlier step wrote it) or a generic VM indicator. We check
 # a combination so the script is safe when invoked manually.
 is_vm() {
-  if [[ -f "/etc/munadi-image" ]]; then return 0; fi
+  if [[ -f "/etc/ogmios-image" ]]; then return 0; fi
   if [[ -f "/.tart-vm" ]]; then return 0; fi
   if ioreg -l 2>/dev/null | grep -qi "virtual machine"; then return 0; fi
   return 1
@@ -52,8 +52,8 @@ is_vm() {
 
 if ! is_vm; then
   echo "error: refusing to run on a non-VM host (TCC.db manipulation is destructive)" >&2
-  echo "if you're sure, create /tmp/.munadi-force-tcc to override" >&2
-  if [[ ! -f "/tmp/.munadi-force-tcc" ]]; then exit 78; fi
+  echo "if you're sure, create /tmp/.ogmios-force-tcc to override" >&2
+  if [[ ! -f "/tmp/.ogmios-force-tcc" ]]; then exit 78; fi
 fi
 
 # Guard 2: SIP must be off. If it's on, the sqlite write silently succeeds
@@ -103,7 +103,7 @@ SQL
   echo "inserted: ${service} → ${client}"
 }
 
-# Grant Accessibility — munadi needs this for AX dispatch even with VO running.
+# Grant Accessibility — ogmios needs this for AX dispatch even with VO running.
 grant_service "kTCCServiceAccessibility" "$BUNDLE_ID"
 
 # Grant Automation (AppleEvents) for the VoiceOver target.

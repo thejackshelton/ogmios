@@ -1,14 +1,14 @@
-// Packer template for the munadi VO-ready macOS Sonoma (14) image.
+// Packer template for the ogmios VO-ready macOS Sonoma (14) image.
 //
-// Produces: ghcr.io/thejackshelton/munadi/macos-vo-ready:sonoma (slim, ~<15 GB)
-// Optional: ghcr.io/thejackshelton/munadi/macos-vo-ready:sonoma@full (Xcode + iOS sims, ~50 GB)
+// Produces: ghcr.io/thejackshelton/ogmios/macos-vo-ready:sonoma (slim, ~<15 GB)
+// Optional: ghcr.io/thejackshelton/ogmios/macos-vo-ready:sonoma@full (Xcode + iOS sims, ~50 GB)
 //
 // Build locally:
 //   packer init infra/tart/packer/sonoma.pkr.hcl
 //   packer build infra/tart/packer/sonoma.pkr.hcl
 //
 // Publish (from release pipeline):
-//   tart push ghcr.io/thejackshelton/munadi/macos-vo-ready:sonoma --shallow
+//   tart push ghcr.io/thejackshelton/ogmios/macos-vo-ready:sonoma --shallow
 
 packer {
   required_plugins {
@@ -36,7 +36,7 @@ variable "base_image" {
 
 variable "output_name" {
   type    = string
-  default = "munadi-vo-ready-sonoma"
+  default = "ogmios-vo-ready-sonoma"
 }
 
 variable "disk_size_gb" {
@@ -76,7 +76,7 @@ source "tart-cli" "sonoma" {
 }
 
 build {
-  name    = "munadi-macos-sonoma"
+  name    = "ogmios-macos-sonoma"
   sources = ["source.tart-cli.sonoma"]
 
   // Wait for the VM to be reachable + the admin account to be ready.
@@ -121,7 +121,7 @@ build {
     ]
   }
 
-  // Final health probe. This is the canary that Phase 5 images boot with munadi doctor ready.
+  // Final health probe. This is the canary that Phase 5 images boot with ogmios doctor ready.
   provisioner "shell" {
     inline = [
       "which node && node --version",
