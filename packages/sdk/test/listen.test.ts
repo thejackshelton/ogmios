@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { LogStore } from '../src/handle-internals.js';
 import { listenImpl } from '../src/listen.js';
-import type { ShokiEvent } from '../src/screen-reader.js';
+import type { MunadiEvent } from '../src/screen-reader.js';
 
-function makeEvent(phrase: string): ShokiEvent {
+function makeEvent(phrase: string): MunadiEvent {
   return {
     tsNanos: BigInt(Date.now()) * 1_000_000n,
     source: 'applescript',

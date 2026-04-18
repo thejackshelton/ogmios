@@ -1,10 +1,10 @@
 /**
- * Unit tests for the `shoki restore-vo-settings` CLI logic — Plan 07-05.
+ * Unit tests for the `munadi restore-vo-settings` CLI logic — Plan 07-05.
  *
  * `restoreVoSettingsFromSnapshot` reads a plist snapshot written by the Zig
  * lifecycle layer (zig/src/drivers/voiceover/lifecycle.zig → writeSnapshotFile)
  * and re-applies each of the 9 VO catalog keys via `defaults write`. The
- * snapshot file includes `_shoki_snapshot_{version,pid,ts_unix}` magic keys
+ * snapshot file includes `_munadi_snapshot_{version,pid,ts_unix}` magic keys
  * so this module can refuse stale or unrecognized files.
  *
  * We spy on `execa` so tests don't actually mutate the host's plist. Each test
@@ -26,7 +26,7 @@ vi.mock('execa', () => ({
 // Import under test AFTER the mock is in place.
 import { restoreVoSettingsFromSnapshot } from '../../src/cli/restore-vo-settings.js';
 
-const tmpRoot = mkdtempSync(join(tmpdir(), 'shoki-restore-test-'));
+const tmpRoot = mkdtempSync(join(tmpdir(), 'munadi-restore-test-'));
 
 afterAll(() => {
   rmSync(tmpRoot, { recursive: true, force: true });
@@ -81,13 +81,13 @@ function buildFixturePlist(opts: {
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>_shoki_snapshot_domain</key>
+    <key>_munadi_snapshot_domain</key>
     <string>${domain}</string>
-${keys}${extrasXml}    <key>_shoki_snapshot_version</key>
+${keys}${extrasXml}    <key>_munadi_snapshot_version</key>
     <integer>${version}</integer>
-    <key>_shoki_snapshot_pid</key>
+    <key>_munadi_snapshot_pid</key>
     <integer>12345</integer>
-    <key>_shoki_snapshot_ts_unix</key>
+    <key>_munadi_snapshot_ts_unix</key>
     <integer>${ts}</integer>
 </dict>
 </plist>
@@ -111,7 +111,7 @@ describe('restoreVoSettingsFromSnapshot', () => {
   });
 
   it('rejects with SNAPSHOT_UNRECOGNIZED when the magic key is absent', async () => {
-    // Plist without the _shoki_snapshot_version marker.
+    // Plist without the _munadi_snapshot_version marker.
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0"><dict>
   <key>SomeOtherKey</key><string>whatever</string>

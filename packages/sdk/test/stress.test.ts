@@ -7,15 +7,15 @@ import { describe, expect, it } from 'vitest';
  * voiceOver() handle. Expects droppedCount > 0 (overflow observable),
  * no OOM, no crash.
  *
- * Gated by SHOKI_INTEGRATION=1 + darwin + SHOKI_NATIVE_BUILT=1 — the
+ * Gated by MUNADI_INTEGRATION=1 + darwin + MUNADI_NATIVE_BUILT=1 — the
  * stress run requires the real native binding. Without the env vars
  * this file runs zero assertions and prints a skip reason.
  */
 
 const skipReason = (() => {
   if (process.platform !== 'darwin') return `platform=${process.platform}, need darwin`;
-  if (process.env.SHOKI_INTEGRATION !== '1') return 'SHOKI_INTEGRATION != 1';
-  if (process.env.SHOKI_NATIVE_BUILT !== '1') return 'SHOKI_NATIVE_BUILT != 1';
+  if (process.env.MUNADI_INTEGRATION !== '1') return 'MUNADI_INTEGRATION != 1';
+  if (process.env.MUNADI_NATIVE_BUILT !== '1') return 'MUNADI_NATIVE_BUILT != 1';
   return null;
 })();
 

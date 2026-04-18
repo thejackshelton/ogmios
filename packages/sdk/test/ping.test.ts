@@ -3,8 +3,8 @@ import { ping, version, wireVersion } from '../src/index.js';
 
 const isMac = process.platform === 'darwin';
 // Native-binding tests only run when the Zig addon has been built locally or in CI.
-// See packages/sdk/README.md for how to set SHOKI_NATIVE_BUILT=1 after `zig build`.
-const nativeReady = isMac && !!process.env.SHOKI_NATIVE_BUILT;
+// See packages/sdk/README.md for how to set MUNADI_NATIVE_BUILT=1 after `zig build`.
+const nativeReady = isMac && !!process.env.MUNADI_NATIVE_BUILT;
 
 describe.skipIf(!nativeReady)('native binding round-trip', () => {
   it('ping returns "pong"', () => {

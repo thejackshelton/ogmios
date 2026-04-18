@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const FIXTURE_DIR = join(__dirname, '..', 'fixtures', 'setup');
-const GOOD_ZIP = join(FIXTURE_DIR, 'shoki-darwin-arm64.zip');
+const GOOD_ZIP = join(FIXTURE_DIR, 'munadi-darwin-arm64.zip');
 const INFO_PLIST_FIXTURE = join(FIXTURE_DIR, 'Info.plist');
 
 function mkExec() {
@@ -28,7 +28,7 @@ describe('installFromZip', () => {
   let installDir: string;
 
   beforeEach(async () => {
-    installDir = await mkdtemp(join(tmpdir(), 'shoki-install-'));
+    installDir = await mkdtemp(join(tmpdir(), 'munadi-install-'));
   });
 
   afterEach(async () => {
@@ -48,8 +48,8 @@ describe('installFromZip', () => {
       ['-x', '-k', GOOD_ZIP, installDir],
     );
     expect(result.installedPaths).toEqual([
-      join(installDir, 'Shoki.app'),
-      join(installDir, 'Shoki Setup.app'),
+      join(installDir, 'Munadi.app'),
+      join(installDir, 'Munadi Setup.app'),
     ]);
   });
 
@@ -66,19 +66,19 @@ describe('stripQuarantine', () => {
   it('calls xattr -dr com.apple.quarantine once per path', async () => {
     const exec = mkExec();
     await stripQuarantine(
-      ['/tmp/Shoki.app', '/tmp/Shoki Setup.app'],
+      ['/tmp/Munadi.app', '/tmp/Munadi Setup.app'],
       exec as unknown as Parameters<typeof stripQuarantine>[1],
     );
     expect(exec).toHaveBeenCalledTimes(2);
     expect(exec).toHaveBeenNthCalledWith(
       1,
       '/usr/bin/xattr',
-      ['-dr', 'com.apple.quarantine', '/tmp/Shoki.app'],
+      ['-dr', 'com.apple.quarantine', '/tmp/Munadi.app'],
     );
     expect(exec).toHaveBeenNthCalledWith(
       2,
       '/usr/bin/xattr',
-      ['-dr', 'com.apple.quarantine', '/tmp/Shoki Setup.app'],
+      ['-dr', 'com.apple.quarantine', '/tmp/Munadi Setup.app'],
     );
   });
 
@@ -90,7 +90,7 @@ describe('stripQuarantine', () => {
     }));
     await expect(
       stripQuarantine(
-        ['/tmp/Shoki.app'],
+        ['/tmp/Munadi.app'],
         exec as unknown as Parameters<typeof stripQuarantine>[1],
       ),
     ).resolves.toBeUndefined();
@@ -104,7 +104,7 @@ describe('stripQuarantine', () => {
     }));
     await expect(
       stripQuarantine(
-        ['/tmp/Shoki.app'],
+        ['/tmp/Munadi.app'],
         exec as unknown as Parameters<typeof stripQuarantine>[1],
       ),
     ).rejects.toThrowError(/xattr/i);
@@ -115,7 +115,7 @@ describe('readInstalledAppVersion', () => {
   let appRoot: string;
 
   beforeEach(async () => {
-    appRoot = await mkdtemp(join(tmpdir(), 'shoki-fixture-app-'));
+    appRoot = await mkdtemp(join(tmpdir(), 'munadi-fixture-app-'));
     await mkdir(join(appRoot, 'Contents'), { recursive: true });
   });
 

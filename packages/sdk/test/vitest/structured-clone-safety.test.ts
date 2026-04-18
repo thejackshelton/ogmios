@@ -1,8 +1,8 @@
-import type { ScreenReaderHandle, ShokiEvent } from '../../src/index.js';
+import type { ScreenReaderHandle, MunadiEvent } from '../../src/index.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createCommands } from '../../src/vitest/commands/index.js';
-import { ShokiConcurrentTestError } from '../../src/vitest/errors.js';
-import { SessionStore, type ShokiSdkDriver } from '../../src/vitest/session-store.js';
+import { MunadiConcurrentTestError } from '../../src/vitest/errors.js';
+import { SessionStore, type MunadiSdkDriver } from '../../src/vitest/session-store.js';
 
 function makeMockHandle(): ScreenReaderHandle {
   const stop = vi.fn(async () => {});
@@ -13,18 +13,18 @@ function makeMockHandle(): ScreenReaderHandle {
     // Phase 7 API reshape: end() aliases stop() — point both at the same mock.
     end: stop,
     deinit: vi.fn(async () => {}),
-    drain: vi.fn(async () => [] as ShokiEvent[]),
+    drain: vi.fn(async () => [] as MunadiEvent[]),
     reset: vi.fn(async () => {}),
     clear: vi.fn(async () => {}),
     listen: vi.fn(() => (async function* () {})()),
     phraseLog: vi.fn(async () => [] as string[]),
     lastPhrase: vi.fn(async () => undefined as string | undefined),
     droppedCount: vi.fn(async () => 0n),
-    awaitStableLog: vi.fn(async () => [] as ShokiEvent[]),
+    awaitStableLog: vi.fn(async () => [] as MunadiEvent[]),
   };
 }
 
-function mockDriver(h: ScreenReaderHandle): ShokiSdkDriver {
+function mockDriver(h: ScreenReaderHandle): MunadiSdkDriver {
   return { create: () => h };
 }
 
@@ -36,64 +36,64 @@ describe('structured-clone safety (VITEST-06)', () => {
   beforeEach(async () => {
     const store = new SessionStore();
     commands = createCommands({ sessionStore: store, driver: mockDriver(makeMockHandle()) });
-    const r = await commands.shokiStart(ctx, {});
+    const r = await commands.munadiStart(ctx, {});
     sessionId = r.sessionId;
   });
 
-  it('shokiStart returns clone-safe { sessionId }', async () => {
-    const r = await commands.shokiStart(ctx, {});
+  it('munadiStart returns clone-safe { sessionId }', async () => {
+    const r = await commands.munadiStart(ctx, {});
     expect(structuredClone(r)).toEqual(r);
     expect(typeof r.sessionId).toBe('string');
   });
 
-  it('shokiStop returns clone-safe { stopped, remainingRefs }', async () => {
-    const r = await commands.shokiStop(ctx, { sessionId });
+  it('munadiStop returns clone-safe { stopped, remainingRefs }', async () => {
+    const r = await commands.munadiStop(ctx, { sessionId });
     expect(structuredClone(r)).toEqual(r);
     expect(typeof r.stopped).toBe('boolean');
     expect(typeof r.remainingRefs).toBe('number');
   });
 
   it.each([
-    ['shokiListen', {}],
-    ['shokiDrain', {}],
-    ['shokiAwaitStable', { quietMs: 10 }],
-  ] as const)('%s returns clone-safe WireShokiEvent[]', async (name, extra) => {
+    ['munadiListen', {}],
+    ['munadiDrain', {}],
+    ['munadiAwaitStable', { quietMs: 10 }],
+  ] as const)('%s returns clone-safe WireMunadiEvent[]', async (name, extra) => {
     // biome-ignore lint/suspicious/noExplicitAny: dynamic dispatch over command bag
     const r = await (commands as any)[name](ctx, { sessionId, ...extra });
     expect(Array.isArray(r)).toBe(true);
     expect(structuredClone(r)).toEqual(r);
   });
 
-  it('shokiPhraseLog returns clone-safe string[]', async () => {
-    const r = await commands.shokiPhraseLog(ctx, { sessionId });
+  it('munadiPhraseLog returns clone-safe string[]', async () => {
+    const r = await commands.munadiPhraseLog(ctx, { sessionId });
     expect(Array.isArray(r)).toBe(true);
     expect(structuredClone(r)).toEqual(r);
   });
 
-  it('shokiLastPhrase returns null or string (never undefined)', async () => {
-    const r = await commands.shokiLastPhrase(ctx, { sessionId });
+  it('munadiLastPhrase returns null or string (never undefined)', async () => {
+    const r = await commands.munadiLastPhrase(ctx, { sessionId });
     expect(r === null || typeof r === 'string').toBe(true);
     expect(structuredClone(r)).toEqual(r);
   });
 
-  it.each(['shokiClear', 'shokiReset'] as const)('%s returns { ok: true }', async (name) => {
+  it.each(['munadiClear', 'munadiReset'] as const)('%s returns { ok: true }', async (name) => {
     // biome-ignore lint/suspicious/noExplicitAny: dynamic dispatch
     const r = await (commands as any)[name](ctx, { sessionId });
     expect(r).toEqual({ ok: true });
     expect(structuredClone(r)).toEqual(r);
   });
 
-  it('shokiGetDroppedCount returns number (not bigint)', async () => {
-    const r = await commands.shokiGetDroppedCount(ctx, { sessionId });
+  it('munadiGetDroppedCount returns number (not bigint)', async () => {
+    const r = await commands.munadiGetDroppedCount(ctx, { sessionId });
     expect(typeof r.droppedCount).toBe('number');
     expect(structuredClone(r)).toEqual(r);
   });
 });
 
-describe('ShokiConcurrentTestError', () => {
+describe('MunadiConcurrentTestError', () => {
   it('carries the expected code and message prefix', () => {
-    const e = new ShokiConcurrentTestError();
-    expect(e.code).toBe('ERR_SHOKI_CONCURRENT_TEST');
+    const e = new MunadiConcurrentTestError();
+    expect(e.code).toBe('ERR_MUNADI_CONCURRENT_TEST');
     expect(e.message).toContain('VoiceOver is a system singleton');
   });
 });

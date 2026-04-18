@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { shokiVitest } from '../../src/vitest/plugin.js';
+import { munadiVitest } from '../../src/vitest/plugin.js';
 
-describe('shokiVitest plugin', () => {
+describe('munadiVitest plugin', () => {
   it('has the expected name and config hook', () => {
-    const p = shokiVitest();
-    expect(p.name).toBe('dicta/vitest');
+    const p = munadiVitest();
+    expect(p.name).toBe('munadi/vitest');
     expect(typeof p.config).toBe('function');
   });
 });

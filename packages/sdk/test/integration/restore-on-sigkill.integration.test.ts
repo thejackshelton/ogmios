@@ -5,22 +5,22 @@
  * unhandleable, Zig's signal handlers (lifecycle.installExitHooks) do NOT
  * run. The only recovery mechanism is the on-disk snapshot file that
  * lifecycle.writeSnapshotFile persists inside voiceOver.start(). The
- * `shoki restore-vo-settings` CLI reads that file and re-applies every key.
+ * `munadi restore-vo-settings` CLI reads that file and re-applies every key.
  *
  * Sequence:
  *   1. Snapshot all 9 VO plist keys (reference).
- *   2. Fork sigkill-child.ts with $SHOKI_SNAPSHOT_PATH pointing at a
+ *   2. Fork sigkill-child.ts with $MUNADI_SNAPSHOT_PATH pointing at a
  *      tempfile. Wait for "started" IPC — means voiceOver.start() finished
  *      AND the snapshot file was written.
- *   3. Assert the snapshot file exists and has _shoki_snapshot_version.
+ *   3. Assert the snapshot file exists and has _munadi_snapshot_version.
  *   4. SIGKILL the child; wait for exit.
  *   5. Assert at least one plist key currently differs from the pre-test
- *      snapshot (proves shoki actually altered settings before the kill).
- *   6. Run `shoki restore-vo-settings --path <tempfile>`.
+ *      snapshot (proves munadi actually altered settings before the kill).
+ *   6. Run `munadi restore-vo-settings --path <tempfile>`.
  *   7. Re-read all 9 plist keys; assert equality with step 1.
  *   8. Assert pgrep VoiceOver is empty (no ghost VO).
  *
- * Gate: darwin + SHOKI_INTEGRATION=1 + SHOKI_NATIVE_BUILT=1.
+ * Gate: darwin + MUNADI_INTEGRATION=1 + MUNADI_NATIVE_BUILT=1.
  */
 import { execFile, spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
@@ -57,8 +57,8 @@ async function runCmd(
 
 const skipReason = (() => {
   if (process.platform !== 'darwin') return `platform=${process.platform}, need darwin`;
-  if (process.env.SHOKI_INTEGRATION !== '1') return 'SHOKI_INTEGRATION != 1';
-  if (process.env.SHOKI_NATIVE_BUILT !== '1') return 'SHOKI_NATIVE_BUILT != 1';
+  if (process.env.MUNADI_INTEGRATION !== '1') return 'MUNADI_INTEGRATION != 1';
+  if (process.env.MUNADI_NATIVE_BUILT !== '1') return 'MUNADI_NATIVE_BUILT != 1';
   return null;
 })();
 
@@ -76,14 +76,14 @@ const CLI_PATH = resolve(__dirname, '..', '..', '..', 'doctor', 'dist', 'cli.js'
 
 maybeDescribe('restore-on-sigkill (Plan 07-05 CONTEXT.md § Settings restore)', () => {
   it(
-    'SIGKILL crash → shoki restore-vo-settings restores all 9 plist keys',
+    'SIGKILL crash → munadi restore-vo-settings restores all 9 plist keys',
     async () => {
       // 1. Reference snapshot of all 9 keys before we do anything.
       const before = await readSnapshot();
       expect(Object.keys(before)).toHaveLength(9);
 
-      // Tempfile for the snapshot — keeps ~/.shoki/vo-snapshot.plist untouched.
-      const tmpRoot = mkdtempSync(join(tmpdir(), 'shoki-sigkill-'));
+      // Tempfile for the snapshot — keeps ~/.munadi/vo-snapshot.plist untouched.
+      const tmpRoot = mkdtempSync(join(tmpdir(), 'munadi-sigkill-'));
       const snapshotPath = join(tmpRoot, 'vo-snapshot.plist');
 
       const childPath = fileURLToPath(
@@ -91,7 +91,7 @@ maybeDescribe('restore-on-sigkill (Plan 07-05 CONTEXT.md § Settings restore)', 
       );
       const child = spawn(process.execPath, ['--import', 'tsx/esm', childPath], {
         stdio: ['ignore', 'inherit', 'inherit', 'ipc'],
-        env: { ...process.env, SHOKI_SNAPSHOT_PATH: snapshotPath },
+        env: { ...process.env, MUNADI_SNAPSHOT_PATH: snapshotPath },
       });
 
       try {
@@ -118,7 +118,7 @@ maybeDescribe('restore-on-sigkill (Plan 07-05 CONTEXT.md § Settings restore)', 
         // 3. Snapshot file must exist with the magic version key.
         expect(existsSync(snapshotPath)).toBe(true);
         const xml = readFileSync(snapshotPath, 'utf8');
-        expect(xml).toContain('_shoki_snapshot_version');
+        expect(xml).toContain('_munadi_snapshot_version');
         expect(xml).toContain('<key>SCREnableAppleScript</key>');
 
         // 4. SIGKILL. Unhandleable — Zig exit hooks do NOT run.
@@ -131,13 +131,13 @@ maybeDescribe('restore-on-sigkill (Plan 07-05 CONTEXT.md § Settings restore)', 
         });
 
         // 5. At least one plist key currently differs from pre-test — proves
-        // shoki actually wrote its defaults before the kill. (Some keys may
-        // legitimately match if the user already had shoki's default value.)
+        // munadi actually wrote its defaults before the kill. (Some keys may
+        // legitimately match if the user already had munadi's default value.)
         const mid = await readSnapshot();
         const anyChanged = Object.keys(before).some((k) => before[k] !== mid[k]);
         expect(
           anyChanged,
-          'no plist key differed from pre-test — shoki never wrote its defaults?',
+          'no plist key differed from pre-test — munadi never wrote its defaults?',
         ).toBe(true);
 
         // 6. Restore via the CLI, explicit --path to our tempfile.
@@ -154,7 +154,7 @@ maybeDescribe('restore-on-sigkill (Plan 07-05 CONTEXT.md § Settings restore)', 
         const after = await readSnapshot();
         expect(
           after,
-          'plist not restored to pre-test state after `shoki restore-vo-settings`',
+          'plist not restored to pre-test state after `munadi restore-vo-settings`',
         ).toEqual(before);
 
         // 8. pgrep -x VoiceOver must be empty. The SIGKILLed child left no

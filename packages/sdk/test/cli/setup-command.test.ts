@@ -9,8 +9,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const FIXTURE_DIR = join(__dirname, '..', 'fixtures', 'setup');
-const GOOD_ZIP = join(FIXTURE_DIR, 'shoki-darwin-arm64.zip');
-const SHA_FILE = join(FIXTURE_DIR, 'shoki-darwin-arm64.zip.sha256');
+const GOOD_ZIP = join(FIXTURE_DIR, 'munadi-darwin-arm64.zip');
+const SHA_FILE = join(FIXTURE_DIR, 'munadi-darwin-arm64.zip.sha256');
 const INFO_PLIST_FIXTURE = join(FIXTURE_DIR, 'Info.plist');
 
 /**
@@ -46,7 +46,7 @@ async function seedInstalledApps(installDir: string, version = '0.1.0') {
     /<string>0\.1\.0<\/string>/g,
     `<string>${version}</string>`,
   );
-  for (const name of ['Shoki.app', 'Shoki Setup.app']) {
+  for (const name of ['Munadi.app', 'Munadi Setup.app']) {
     await mkdir(join(installDir, name, 'Contents'), { recursive: true });
     await writeFile(join(installDir, name, 'Contents', 'Info.plist'), plist, 'utf8');
   }
@@ -56,7 +56,7 @@ describe('runSetup', () => {
   let installDir: string;
 
   beforeEach(async () => {
-    installDir = await mkdtemp(join(tmpdir(), 'shoki-setup-cmd-'));
+    installDir = await mkdtemp(join(tmpdir(), 'munadi-setup-cmd-'));
   });
 
   afterEach(async () => {
@@ -78,7 +78,7 @@ describe('runSetup', () => {
     // The only exec should be the `open -W` launch.
     expect(exec).toHaveBeenCalledWith('/usr/bin/open', [
       '-W',
-      join(installDir, 'Shoki Setup.app'),
+      join(installDir, 'Munadi Setup.app'),
     ]);
   });
 
@@ -163,13 +163,13 @@ describe('runSetup', () => {
     } as SetupOptions);
     expect(result.action).toBe('noop');
     expect(result.launched).toBe(false);
-    expect(result.downloadedFromUrl).toContain('shoki-darwin');
+    expect(result.downloadedFromUrl).toContain('munadi-darwin');
     expect(fetchFn).not.toHaveBeenCalled();
     expect(exec).not.toHaveBeenCalled();
   });
 
   it('--install-dir <path> routes everything into the custom dir', async () => {
-    const altDir = await mkdtemp(join(tmpdir(), 'shoki-altdir-'));
+    const altDir = await mkdtemp(join(tmpdir(), 'munadi-altdir-'));
     try {
       const result = await runSetup({
         installDir: altDir,

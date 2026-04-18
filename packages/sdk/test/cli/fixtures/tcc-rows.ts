@@ -8,18 +8,18 @@ export interface TCCRowFixture {
   indirect_object_identifier: string | null;
 }
 
-// A grant for ShokiRunner to do Accessibility, signed with the current helper identity.
+// A grant for MunadiRunner to do Accessibility, signed with the current helper identity.
 export const ROW_ACCESSIBILITY_GRANTED: TCCRowFixture = {
-  client: 'com.shoki.runner',
+  client: 'org.munadi.runner',
   service: 'kTCCServiceAccessibility',
   auth_value: 2, // allowed
   csreq: CSREQ_DEVELOPER_ID_JACK,
   indirect_object_identifier: null,
 };
 
-// An Automation grant: client=ShokiRunner controls indirect_object=VoiceOver.
+// An Automation grant: client=MunadiRunner controls indirect_object=VoiceOver.
 export const ROW_AUTOMATION_VOICEOVER_GRANTED: TCCRowFixture = {
-  client: 'com.shoki.runner',
+  client: 'org.munadi.runner',
   service: 'kTCCServiceAppleEvents',
   auth_value: 2,
   csreq: CSREQ_DEVELOPER_ID_JACK,
@@ -28,7 +28,7 @@ export const ROW_AUTOMATION_VOICEOVER_GRANTED: TCCRowFixture = {
 
 // A stale Accessibility grant: csreq is from the old signature.
 export const ROW_ACCESSIBILITY_STALE: TCCRowFixture = {
-  client: 'com.shoki.runner',
+  client: 'org.munadi.runner',
   service: 'kTCCServiceAccessibility',
   auth_value: 2,
   csreq: CSREQ_DEVELOPER_ID_OLD,
@@ -37,7 +37,7 @@ export const ROW_ACCESSIBILITY_STALE: TCCRowFixture = {
 
 // Denied grant.
 export const ROW_ACCESSIBILITY_DENIED: TCCRowFixture = {
-  client: 'com.shoki.runner',
+  client: 'org.munadi.runner',
   service: 'kTCCServiceAccessibility',
   auth_value: 0,
   csreq: CSREQ_DEVELOPER_ID_JACK,
@@ -54,7 +54,7 @@ export const ROW_UNRELATED_TERMINAL: TCCRowFixture = {
 };
 
 export const ROW_AUTOMATION_WRONG_TARGET: TCCRowFixture = {
-  client: 'com.shoki.runner',
+  client: 'org.munadi.runner',
   service: 'kTCCServiceAppleEvents',
   auth_value: 2,
   csreq: CSREQ_DEVELOPER_ID_JACK,

@@ -11,7 +11,7 @@ import { readSnapshot, waitForVOExit } from './helpers/plist-verify.js';
  * handlers (lifecycle.installExitHooks) should call crashRestore, which
  * restores the plist and force-kills VO.
  *
- * Gate: darwin + SHOKI_INTEGRATION=1 + SHOKI_NATIVE_BUILT=1.
+ * Gate: darwin + MUNADI_INTEGRATION=1 + MUNADI_NATIVE_BUILT=1.
  *
  * A separate `it.skip` documents the SIGKILL limitation — SIGKILL is
  * unhandleable by any user process, so Zig exit hooks cannot run. The only
@@ -24,8 +24,8 @@ import { readSnapshot, waitForVOExit } from './helpers/plist-verify.js';
  */
 const skipReason = (() => {
   if (process.platform !== 'darwin') return `platform=${process.platform}, need darwin`;
-  if (process.env.SHOKI_INTEGRATION !== '1') return 'SHOKI_INTEGRATION != 1';
-  if (process.env.SHOKI_NATIVE_BUILT !== '1') return 'SHOKI_NATIVE_BUILT != 1';
+  if (process.env.MUNADI_INTEGRATION !== '1') return 'MUNADI_INTEGRATION != 1';
+  if (process.env.MUNADI_NATIVE_BUILT !== '1') return 'MUNADI_NATIVE_BUILT != 1';
   return null;
 })();
 
@@ -91,7 +91,7 @@ maybeDescribe('crash-recovery (CAP-14, ROADMAP SC-2)', () => {
   it.skip('SIGKILL leaves VO running — documented limitation (use SIGTERM or a watchdog)', () => {
     // SIGKILL is unhandleable by any user process. Zig's signal handlers
     // (lifecycle.installExitHooks) only trap SIGINT, SIGTERM, SIGHUP.
-    // A production Shoki deployment that needs SIGKILL resilience must run
+    // A production Munadi deployment that needs SIGKILL resilience must run
     // a watchdog (e.g. launchd KeepAlive) that reaps orphaned VO + restores
     // plist state out-of-band. That's a Phase 5 (CI/tart) concern, not v1.
   });

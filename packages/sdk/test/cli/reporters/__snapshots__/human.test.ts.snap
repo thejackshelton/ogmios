@@ -1,20 +1,20 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`printHumanReport (snapshot) > renders a passing report with the OK tail 1`] = `
-"shoki doctor
-  macOS: 15.2   helper: /Users/x/node_modules/@shoki/binding-darwin-arm64/helper/ShokiRunner.app   mode: report
+"munadi doctor
+  macOS: 15.2   helper: /Users/x/node_modules/@munadi/binding-darwin-arm64/helper/MunadiRunner.app   mode: report
 
   ✔ os-version             macOS 15.2 — supported
 
-  OK — shoki is ready on this machine."
+  OK — munadi is ready on this machine."
 `;
 
 exports[`printHumanReport (snapshot) > renders a sample failing report stably 1`] = `
-"shoki doctor
-  macOS: 15.2   helper: /Users/x/node_modules/@shoki/binding-darwin-arm64/helper/ShokiRunner.app   mode: report
+"munadi doctor
+  macOS: 15.2   helper: /Users/x/node_modules/@munadi/binding-darwin-arm64/helper/MunadiRunner.app   mode: report
 
   ✔ os-version             macOS 15.2 (major 15) — supported
-  ✔ helper-present         ShokiRunner.app found (npm install)
+  ✔ helper-present         MunadiRunner.app found (npm install)
   ✔ helper-signature       Signed: Developer ID
   ✔ sip-status             SIP is enabled
   ✖ vo-plist               VoiceOver AppleScript is explicitly disabled

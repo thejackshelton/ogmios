@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LogStore } from '../src/handle-internals.js';
-import type { ShokiEvent } from '../src/screen-reader.js';
+import type { MunadiEvent } from '../src/screen-reader.js';
 
-function makeEvent(phrase: string): ShokiEvent {
+function makeEvent(phrase: string): MunadiEvent {
   return { tsNanos: 0n, source: 'applescript', flags: 0, phrase };
 }
 

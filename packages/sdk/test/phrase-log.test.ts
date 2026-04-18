@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { LogStore } from '../src/handle-internals.js';
-import type { ShokiEvent } from '../src/screen-reader.js';
+import type { MunadiEvent } from '../src/screen-reader.js';
 
-function makeEvent(phrase: string): ShokiEvent {
+function makeEvent(phrase: string): MunadiEvent {
   return {
     tsNanos: 0n,
     source: 'applescript',
@@ -12,7 +12,7 @@ function makeEvent(phrase: string): ShokiEvent {
 }
 
 describe('LogStore phraseLog / lastPhrase / clear semantics', () => {
-  it('getAll returns ShokiEvents in order; map(phrase) gives the Guidepup surface', () => {
+  it('getAll returns MunadiEvents in order; map(phrase) gives the Guidepup surface', () => {
     const store = new LogStore();
     store.push(makeEvent('one'));
     store.push(makeEvent('two'));

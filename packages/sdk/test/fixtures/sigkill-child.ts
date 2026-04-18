@@ -7,11 +7,11 @@
  * handlers (lifecycle.installExitHooks on SIGINT/SIGTERM/SIGHUP) do NOT run.
  * The ONLY recovery path is the on-disk snapshot file that
  * lifecycle.writeSnapshotFile persisted inside voiceOver.start(). The parent
- * then invokes `shoki restore-vo-settings --path <fixture-tempfile>` and
+ * then invokes `munadi restore-vo-settings --path <fixture-tempfile>` and
  * asserts every plist key returned to its pre-test value.
  *
- * The child honors $SHOKI_SNAPSHOT_PATH so the parent can point it at a
- * tempfile and avoid polluting the user's ~/.shoki/vo-snapshot.plist.
+ * The child honors $MUNADI_SNAPSHOT_PATH so the parent can point it at a
+ * tempfile and avoid polluting the user's ~/.munadi/vo-snapshot.plist.
  */
 import { voiceOver } from '../../src/index.js';
 

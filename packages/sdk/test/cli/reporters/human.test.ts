@@ -8,7 +8,7 @@ function sampleReport(overrides: Partial<DoctorReport> = {}): DoctorReport {
     exitCode: ExitCode.VO_APPLESCRIPT_DISABLED,
     macOSVersion: '15.2',
     helperPath:
-      '/Users/x/node_modules/@shoki/binding-darwin-arm64/helper/ShokiRunner.app',
+      '/Users/x/node_modules/@munadi/binding-darwin-arm64/helper/MunadiRunner.app',
     helperSignature: 'Developer ID Application: Jack Shelton (TEAMIDXYZ)',
     checks: [
       {
@@ -19,7 +19,7 @@ function sampleReport(overrides: Partial<DoctorReport> = {}): DoctorReport {
       {
         id: 'helper-present',
         status: 'pass',
-        summary: 'ShokiRunner.app found (npm install)',
+        summary: 'MunadiRunner.app found (npm install)',
       },
       { id: 'helper-signature', status: 'pass', summary: 'Signed: Developer ID' },
       { id: 'sip-status', status: 'pass', summary: 'SIP is enabled' },

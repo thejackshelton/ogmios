@@ -1,14 +1,14 @@
-import type { ScreenReaderHandle, ShokiEvent } from '../../src/index.js';
+import type { ScreenReaderHandle, MunadiEvent } from '../../src/index.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ShokiSessionNotFoundError } from '../../src/vitest/errors.js';
+import { MunadiSessionNotFoundError } from '../../src/vitest/errors.js';
 import {
   SessionStore,
-  type ShokiSdkDriver,
+  type MunadiSdkDriver,
   toWireEvent,
 } from '../../src/vitest/session-store.js';
 
 function makeMockHandle() {
-  const eventsOnNextDrain: ShokiEvent[][] = [];
+  const eventsOnNextDrain: MunadiEvent[][] = [];
   const stop = vi.fn(async () => {});
   const handle: ScreenReaderHandle = {
     name: 'mock',
@@ -24,12 +24,12 @@ function makeMockHandle() {
     phraseLog: vi.fn(async () => ['alpha', 'beta']),
     lastPhrase: vi.fn(async () => 'beta' as string | undefined),
     droppedCount: vi.fn(async () => 0n),
-    awaitStableLog: vi.fn(async () => [] as ShokiEvent[]),
+    awaitStableLog: vi.fn(async () => [] as MunadiEvent[]),
   };
-  return { handle, queueNextDrain: (evs: ShokiEvent[]) => eventsOnNextDrain.push(evs) };
+  return { handle, queueNextDrain: (evs: MunadiEvent[]) => eventsOnNextDrain.push(evs) };
 }
 
-function mockDriver(factory: () => ScreenReaderHandle): ShokiSdkDriver & { createCalls: number } {
+function mockDriver(factory: () => ScreenReaderHandle): MunadiSdkDriver & { createCalls: number } {
   let calls = 0;
   const d = {
     create: (): ScreenReaderHandle => {
@@ -40,10 +40,10 @@ function mockDriver(factory: () => ScreenReaderHandle): ShokiSdkDriver & { creat
       return calls;
     },
   };
-  return d as ShokiSdkDriver & { createCalls: number };
+  return d as MunadiSdkDriver & { createCalls: number };
 }
 
-function ev(tsNanos: bigint, phrase: string, role?: string): ShokiEvent {
+function ev(tsNanos: bigint, phrase: string, role?: string): MunadiEvent {
   return { tsNanos, source: 'applescript', flags: 0, phrase, role, name: undefined };
 }
 
@@ -58,15 +58,15 @@ describe('SessionStore', () => {
     const driver = mockDriver(() => mh.handle);
     const id1 = await store.start(driver, {});
     const id2 = await store.start(driver, {});
-    expect(id1).toBe('shoki-1');
-    expect(id2).toBe('shoki-2');
+    expect(id1).toBe('munadi-1');
+    expect(id2).toBe('munadi-2');
     expect(driver.createCalls).toBe(1);
     expect(mh.handle.start).toHaveBeenCalledTimes(1);
     expect(store._startRefs).toBe(2);
   });
 
   it('refcount is NOT incremented when start fails', async () => {
-    const driver: ShokiSdkDriver = {
+    const driver: MunadiSdkDriver = {
       create: () => {
         throw new Error('boom');
       },
@@ -77,7 +77,7 @@ describe('SessionStore', () => {
     const mh = makeMockHandle();
     const d2 = mockDriver(() => mh.handle);
     const id = await store.start(d2, {});
-    expect(id).toBe('shoki-1'); // counter advances from 0, not 1
+    expect(id).toBe('munadi-1'); // counter advances from 0, not 1
     expect(store._startRefs).toBe(1);
   });
 
@@ -102,8 +102,8 @@ describe('SessionStore', () => {
     expect(stopOrder).toBeLessThan(deinitOrder);
   });
 
-  it('stop on unknown id throws ShokiSessionNotFoundError', async () => {
-    await expect(store.stop('does-not-exist')).rejects.toBeInstanceOf(ShokiSessionNotFoundError);
+  it('stop on unknown id throws MunadiSessionNotFoundError', async () => {
+    await expect(store.stop('does-not-exist')).rejects.toBeInstanceOf(MunadiSessionNotFoundError);
   });
 
   it('reset clears cursors and calls handle.reset', async () => {
