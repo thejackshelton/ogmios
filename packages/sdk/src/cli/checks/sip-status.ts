@@ -58,7 +58,7 @@ export async function checkSIPStatus(
     status: 'pass',
     summary: `SIP is ${parsed.enabled ? 'enabled' : 'DISABLED'}`,
     detail: parsed.enabled
-      ? 'SIP is enabled — shoki doctor --fix can write the VoiceOver plist in user scope; TCC.db writes are not attempted (sealed database).'
+      ? 'SIP is enabled — munadi doctor --fix can write the VoiceOver plist in user scope; TCC.db writes are not attempted (sealed database).'
       : 'SIP is disabled — this is UNUSUAL on a dev machine but expected inside tart VMs for CI.',
     meta: { enabled: parsed.enabled, raw: parsed.raw.slice(0, 200) },
   };

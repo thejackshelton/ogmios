@@ -1,58 +1,58 @@
 /**
- * Browser-safe base class — does NOT import from the dicta Node entry because
- * the browser entry (`dicta/vitest/browser`) must not pull in Node-only modules.
- * Structurally compatible with the dicta `ShokiError` (Error + `.code`).
+ * Browser-safe base class — does NOT import from the munadi Node entry because
+ * the browser entry (`munadi/vitest/browser`) must not pull in Node-only modules.
+ * Structurally compatible with the munadi `MunadiError` (Error + `.code`).
  */
-export class ShokiError extends Error {
+export class MunadiError extends Error {
   constructor(
     message: string,
     public readonly code: string,
   ) {
     super(message);
-    this.name = 'ShokiError';
+    this.name = 'MunadiError';
   }
 }
 
-export class ShokiConcurrentTestError extends ShokiError {
+export class MunadiConcurrentTestError extends MunadiError {
   constructor() {
     super(
       'VoiceOver is a system singleton; test.concurrent is not supported. ' +
         'Use test() or it() (serial) inside a VO-scoped test file.',
-      'ERR_SHOKI_CONCURRENT_TEST',
+      'ERR_MUNADI_CONCURRENT_TEST',
     );
-    this.name = 'ShokiConcurrentTestError';
+    this.name = 'MunadiConcurrentTestError';
   }
 }
 
-export class ShokiPlatformUnsupportedError extends ShokiError {
+export class MunadiPlatformUnsupportedError extends MunadiError {
   constructor(public readonly platform: string) {
     super(
-      `Shoki Vitest integration requires macOS; this host is ${platform}. ` +
-        'Run `npx dicta doctor` or set up a macOS runner — see https://github.com/shoki/shoki.',
-      'ERR_SHOKI_PLATFORM_UNSUPPORTED',
+      `Munadi Vitest integration requires macOS; this host is ${platform}. ` +
+        'Run `npx munadi doctor` or set up a macOS runner — see https://github.com/thejackshelton/munadi.',
+      'ERR_MUNADI_PLATFORM_UNSUPPORTED',
     );
-    this.name = 'ShokiPlatformUnsupportedError';
+    this.name = 'MunadiPlatformUnsupportedError';
   }
 }
 
-export class ShokiSessionNotFoundError extends ShokiError {
+export class MunadiSessionNotFoundError extends MunadiError {
   constructor(public readonly sessionId: string) {
     super(
-      `Shoki session "${sessionId}" is not active. Call voiceOver.start() first, or the session was already stopped.`,
-      'ERR_SHOKI_SESSION_NOT_FOUND',
+      `Munadi session "${sessionId}" is not active. Call voiceOver.start() first, or the session was already stopped.`,
+      'ERR_MUNADI_SESSION_NOT_FOUND',
     );
-    this.name = 'ShokiSessionNotFoundError';
+    this.name = 'MunadiSessionNotFoundError';
   }
 }
 
-export class ShokiBindingNotAvailableError extends ShokiError {
+export class MunadiBindingNotAvailableError extends MunadiError {
   constructor(cause?: string) {
     super(
-      'The dicta native binding is not available in this process. ' +
+      'The munadi native binding is not available in this process. ' +
         (cause ? `Underlying error: ${cause}. ` : '') +
-        'Run `npx dicta doctor` or check that the platform-specific binding is installed.',
-      'ERR_SHOKI_BINDING_NOT_AVAILABLE',
+        'Run `npx munadi doctor` or check that the platform-specific binding is installed.',
+      'ERR_MUNADI_BINDING_NOT_AVAILABLE',
     );
-    this.name = 'ShokiBindingNotAvailableError';
+    this.name = 'MunadiBindingNotAvailableError';
   }
 }

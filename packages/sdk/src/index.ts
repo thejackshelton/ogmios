@@ -10,7 +10,7 @@ export {
 export {
   BindingNotInstalledError,
   DriverNotFoundError,
-  ShokiError,
+  MunadiError,
   UnsupportedPlatformError,
 } from './errors.js';
 export {
@@ -21,8 +21,8 @@ export {
 export type {
   AwaitStableLogOptions,
   ScreenReaderHandle,
-  ShokiEvent,
-  ShokiEventSource,
+  MunadiEvent,
+  MunadiEventSource,
 } from './screen-reader.js';
 export {
   type VoiceOverOptions,

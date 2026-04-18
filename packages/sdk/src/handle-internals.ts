@@ -1,4 +1,4 @@
-import type { AwaitStableLogOptions, ShokiEvent } from './screen-reader.js';
+import type { AwaitStableLogOptions, MunadiEvent } from './screen-reader.js';
 
 /**
  * Internal TS-side log store. Mirrors events streamed in from the native drain
@@ -11,22 +11,22 @@ import type { AwaitStableLogOptions, ShokiEvent } from './screen-reader.js';
  *
  * Event broadcast is implemented via an explicit callback list rather than
  * EventTarget/CustomEvent because (a) it avoids the boxing/unboxing cost per
- * event, (b) callbacks receive a typed ShokiEvent directly instead of needing
+ * event, (b) callbacks receive a typed MunadiEvent directly instead of needing
  * to unwrap `CustomEvent.detail`, and (c) it keeps the hot path allocation-free.
  */
 export class LogStore {
-  private events: ShokiEvent[] = [];
-  private subscribers: Set<(event: ShokiEvent) => void> = new Set();
+  private events: MunadiEvent[] = [];
+  private subscribers: Set<(event: MunadiEvent) => void> = new Set();
   private _droppedCount = 0n;
 
   /** Append a single event and synchronously notify all subscribers. */
-  push(event: ShokiEvent): void {
+  push(event: MunadiEvent): void {
     this.events.push(event);
     for (const fn of this.subscribers) fn(event);
   }
 
   /** Append many events. Single pass; each event broadcast individually. */
-  pushMany(events: ShokiEvent[]): void {
+  pushMany(events: MunadiEvent[]): void {
     for (const e of events) this.push(e);
   }
 
@@ -40,7 +40,7 @@ export class LogStore {
   }
 
   /** Defensive copy so callers can't mutate the backing array. */
-  getAll(): ShokiEvent[] {
+  getAll(): MunadiEvent[] {
     return this.events.slice();
   }
 
@@ -61,7 +61,7 @@ export class LogStore {
    * Safe to call during a push (subscribers added mid-broadcast receive the
    * next event, not the in-flight one). Safe to unsubscribe during broadcast.
    */
-  subscribe(fn: (event: ShokiEvent) => void): () => void {
+  subscribe(fn: (event: MunadiEvent) => void): () => void {
     this.subscribers.add(fn);
     return () => {
       this.subscribers.delete(fn);
@@ -75,14 +75,14 @@ export class LogStore {
    * The timer resets on every push — so the resolution time equals
    * `quietMs` after the LAST push. Input validated synchronously.
    */
-  awaitStable(opts: AwaitStableLogOptions): Promise<ShokiEvent[]> {
+  awaitStable(opts: AwaitStableLogOptions): Promise<MunadiEvent[]> {
     const { quietMs, signal } = opts;
     if (!Number.isFinite(quietMs) || quietMs < 0) {
       throw new TypeError(
         `awaitStableLog: quietMs must be a non-negative finite number, got ${quietMs}`,
       );
     }
-    return new Promise<ShokiEvent[]>((resolve, reject) => {
+    return new Promise<MunadiEvent[]>((resolve, reject) => {
       let timer: ReturnType<typeof setTimeout> | undefined;
       let unsubscribe: () => void = () => {};
       let abortHandler: () => void = () => {};

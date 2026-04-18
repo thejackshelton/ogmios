@@ -20,7 +20,7 @@ importers:
       '@qwik.dev/core':
         specifier: ^2.0.0-beta.32
         version: 2.0.0-beta.32(vite@6.4.2(@types/node@24.12.2)(tsx@4.21.0))(vitest@4.1.4)
-      dicta:
+      munadi:
         specifier: workspace:*
         version: link:../../packages/sdk
     devDependencies:
@@ -90,7 +90,7 @@ importers:
         specifier: ^3.0.0
         version: 3.2.4(@types/node@24.12.2)(@vitest/browser@3.2.4)(tsx@4.21.0)
     optionalDependencies:
-      '@shoki/binding-darwin-arm64':
+      '@munadi/binding-darwin-arm64':
         specifier: workspace:*
         version: link:../binding-darwin-arm64
 

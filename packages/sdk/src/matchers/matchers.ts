@@ -1,4 +1,4 @@
-import type { ShokiEvent } from '../index.js';
+import type { MunadiEvent } from '../index.js';
 import type { AnnouncementShape, ToHaveStableLogOptions } from './types.js';
 
 interface MatcherResult {
@@ -12,20 +12,20 @@ interface MatcherResult {
  * Minimal shape of the log events the matchers consume.
  *
  * Matchers are intentionally lenient — they operate on any iterable of
- * objects with the subset of ShokiEvent fields we actually assert on
+ * objects with the subset of MunadiEvent fields we actually assert on
  * (`role`, `name`, `source`, `phrase`, `flags`). This lets the same matchers
- * work against both `ShokiEvent[]` (Node-side, bigint timestamps) and
- * `WireShokiEvent[]` (browser-side RPC payloads with numeric timestamps).
+ * work against both `MunadiEvent[]` (Node-side, bigint timestamps) and
+ * `WireMunadiEvent[]` (browser-side RPC payloads with numeric timestamps).
  */
 interface MatchableEvent {
-  source?: ShokiEvent['source'];
+  source?: MunadiEvent['source'];
   flags?: number;
   phrase?: string;
   role?: string;
   name?: string;
 }
 
-function isShokiEventArray(x: unknown): x is MatchableEvent[] {
+function isMunadiEventArray(x: unknown): x is MatchableEvent[] {
   return Array.isArray(x);
 }
 
@@ -69,11 +69,11 @@ function serializeLog(log: MatchableEvent[], max = 10): string {
 }
 
 export function toHaveAnnounced(received: unknown, shape: AnnouncementShape): MatcherResult {
-  if (!isShokiEventArray(received)) {
+  if (!isMunadiEventArray(received)) {
     return {
       pass: false,
       message: () =>
-        'Expected received to be a ShokiEvent[] array (from voiceOver.drain() or the browser-side session.drain()).',
+        'Expected received to be a MunadiEvent[] array (from voiceOver.drain() or the browser-side session.drain()).',
       actual: received,
       expected: shape,
     };
@@ -104,10 +104,10 @@ export function toHaveAnnouncedText(
   received: unknown,
   pattern: string | RegExp,
 ): MatcherResult {
-  if (!isShokiEventArray(received)) {
+  if (!isMunadiEventArray(received)) {
     return {
       pass: false,
-      message: () => 'Expected received to be a ShokiEvent[] array.',
+      message: () => 'Expected received to be a MunadiEvent[] array.',
       actual: received,
       expected: pattern,
     };
@@ -129,10 +129,10 @@ export function toHaveAnnouncedText(
 }
 
 export function toHaveNoAnnouncement(received: unknown): MatcherResult {
-  if (!isShokiEventArray(received)) {
+  if (!isMunadiEventArray(received)) {
     return {
       pass: false,
-      message: () => 'Expected received to be a ShokiEvent[] array.',
+      message: () => 'Expected received to be a MunadiEvent[] array.',
       actual: received,
     };
   }
@@ -152,10 +152,10 @@ export async function toHaveStableLog(
   received: unknown,
   opts: ToHaveStableLogOptions,
 ): Promise<MatcherResult> {
-  if (!isShokiEventArray(received)) {
+  if (!isMunadiEventArray(received)) {
     return {
       pass: false,
-      message: () => 'Expected received to be a ShokiEvent[] array.',
+      message: () => 'Expected received to be a MunadiEvent[] array.',
       actual: received,
       expected: opts,
     };

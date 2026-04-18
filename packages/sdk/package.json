@@ -1,19 +1,19 @@
 {
-  "name": "dicta",
+  "name": "munadi",
   "version": "0.1.0",
   "compatibleAppVersion": "0.1.0",
-  "description": "Screen-reader test automation SDK — TypeScript surface + CLI + matchers + Vitest plugin for Shoki's Zig native core",
+  "description": "Screen-reader test automation SDK — TypeScript surface + CLI + matchers + Vitest plugin for Munadi's Zig native core",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shoki/shoki.git",
+    "url": "git+https://github.com/thejackshelton/munadi.git",
     "directory": "packages/sdk"
   },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "dicta": "dist/cli/main.js"
+    "munadi": "dist/cli/main.js"
   },
   "exports": {
     ".": {
@@ -55,7 +55,7 @@
     "picocolors": "^1.0.0"
   },
   "optionalDependencies": {
-    "@shoki/binding-darwin-arm64": "workspace:*"
+    "@munadi/binding-darwin-arm64": "workspace:*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

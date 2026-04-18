@@ -4,19 +4,19 @@ import type { Plugin } from 'vitest/config';
 import { createCommands } from './commands/index.js';
 import { SessionStore } from './session-store.js';
 
-export interface ShokiVitestPluginOptions {
+export interface MunadiVitestPluginOptions {
   /** Auto-set poolOptions.threads.singleThread=true when VO imports are detected. Default true. */
   autoSingleThread?: boolean;
-  /** Scan test files for dicta/vitest/browser imports during the config hook. Default true. */
+  /** Scan test files for munadi/vitest/browser imports during the config hook. Default true. */
   detectVoiceOverImports?: boolean;
 }
 
-const IMPORT_NEEDLE = 'dicta/vitest/browser';
+const IMPORT_NEEDLE = 'munadi/vitest/browser';
 const TEST_EXTS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.mjs']);
 
 /**
  * Walk a project tree looking for any JS/TS file that imports
- * `dicta/vitest/browser`. Skips node_modules, .git, dist, and dotfiles.
+ * `munadi/vitest/browser`. Skips node_modules, .git, dist, and dotfiles.
  * Bounded by test-file count; safe against read errors.
  */
 export async function detectVoiceOverImports(rootDir: string): Promise<boolean> {
@@ -56,7 +56,7 @@ export async function detectVoiceOverImports(rootDir: string): Promise<boolean> 
   return walk(resolve(rootDir));
 }
 
-export function shokiVitest(opts: ShokiVitestPluginOptions = {}): Plugin {
+export function munadiVitest(opts: MunadiVitestPluginOptions = {}): Plugin {
   const options = {
     autoSingleThread: opts.autoSingleThread ?? true,
     detectVoiceOverImports: opts.detectVoiceOverImports ?? true,
@@ -65,7 +65,7 @@ export function shokiVitest(opts: ShokiVitestPluginOptions = {}): Plugin {
   const sessionStore = new SessionStore();
 
   return {
-    name: 'dicta/vitest',
+    name: 'munadi/vitest',
     config: async (cfg) => {
       const commands = createCommands({ sessionStore });
 
@@ -86,9 +86,9 @@ export function shokiVitest(opts: ShokiVitestPluginOptions = {}): Plugin {
           const existing = c.test.poolOptions.threads.singleThread;
           if (existing === false) {
             console.warn(
-              "[dicta/vitest] Detected `import ... from 'dicta/vitest/browser'` in test files, " +
+              "[munadi/vitest] Detected `import ... from 'munadi/vitest/browser'` in test files, " +
                 'but poolOptions.threads.singleThread is explicitly `false`. VoiceOver is a system singleton; ' +
-                'cross-test interference is likely. Remove the override or set `shokiVitest({ autoSingleThread: false })`.',
+                'cross-test interference is likely. Remove the override or set `munadiVitest({ autoSingleThread: false })`.',
             );
           } else if (existing === undefined) {
             c.test.poolOptions.threads.singleThread = true;

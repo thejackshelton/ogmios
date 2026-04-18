@@ -1,4 +1,4 @@
-import type { ShokiEvent } from '../index.js';
+import type { MunadiEvent } from '../index.js';
 
 let clock = 0n;
 
@@ -11,7 +11,7 @@ export function nextTs(): bigint {
   return clock;
 }
 
-export function makeEvent(partial: Partial<ShokiEvent>): ShokiEvent {
+export function makeEvent(partial: Partial<MunadiEvent>): MunadiEvent {
   return {
     tsNanos: partial.tsNanos ?? nextTs(),
     source: partial.source ?? 'applescript',

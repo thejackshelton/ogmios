@@ -13,6 +13,6 @@ export function printQuietReport(
   const failed = report.checks.filter((c) => c.status === 'fail').length;
   const warned = report.checks.filter((c) => c.status === 'warn').length;
   write(
-    `dicta-doctor ${summary} fails=${failed} warns=${warned} exit=${report.exitCode}`,
+    `munadi-doctor ${summary} fails=${failed} warns=${warned} exit=${report.exitCode}`,
   );
 }

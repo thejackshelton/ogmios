@@ -1,15 +1,15 @@
 /**
- * TS mirror of zig/src/core/driver.zig ShokiDriver vtable (CONTEXT.md D-11).
+ * TS mirror of zig/src/core/driver.zig MunadiDriver vtable (CONTEXT.md D-11).
  * Every concrete screen reader (voiceOver, nvda, orca, ...) is a factory
  * returning this interface. DO NOT extend without bumping the wire format
  * and updating every driver — EXT-01 depends on stability.
  */
-export type ShokiEventSource = 'applescript' | 'ax' | 'caption' | 'commander' | 'noop';
+export type MunadiEventSource = 'applescript' | 'ax' | 'caption' | 'commander' | 'noop';
 
-export interface ShokiEvent {
+export interface MunadiEvent {
   /** Nanoseconds since epoch; bigint to preserve precision across JS number boundary. */
   tsNanos: bigint;
-  source: ShokiEventSource;
+  source: MunadiEventSource;
   /** Driver-defined bit flags. Current drivers: 0 = none, 1 = interrupted prior. */
   flags: number;
   phrase: string;
@@ -35,10 +35,10 @@ export interface ScreenReaderHandle {
    * implementation and remain available indefinitely for back-compat.
    */
   end(): Promise<void>;
-  drain(): Promise<ShokiEvent[]>;
+  drain(): Promise<MunadiEvent[]>;
   reset(): Promise<void>;
   /** Async iterator yielding events as they're drained. Phase 1 polls drain at a fixed 50ms cadence. */
-  listen(): AsyncIterable<ShokiEvent>;
+  listen(): AsyncIterable<MunadiEvent>;
   /** Guidepup-compat: flat string array of phrases captured so far. */
   phraseLog(): Promise<string[]>;
   lastPhrase(): Promise<string | undefined>;
@@ -50,7 +50,7 @@ export interface ScreenReaderHandle {
    * arriving in the log; resolves with a snapshot of the log at that moment.
    * Used between test steps to wait for VoiceOver to finish announcing.
    */
-  awaitStableLog(opts: AwaitStableLogOptions): Promise<ShokiEvent[]>;
+  awaitStableLog(opts: AwaitStableLogOptions): Promise<MunadiEvent[]>;
   /** Release all driver resources. After this call, the handle is unusable. */
   deinit(): Promise<void>;
 }

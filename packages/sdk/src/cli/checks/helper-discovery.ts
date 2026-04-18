@@ -10,7 +10,7 @@ export interface HelperLocation {
 export interface DiscoverHelperOptions {
   /** Explicit override — skips search and returns this path if it exists. */
   overridePath?: string;
-  /** Root for "npm" search (node_modules/@shoki/binding-*) — defaults to cwd. */
+  /** Root for "npm" search (node_modules/@munadi/binding-*) — defaults to cwd. */
   cwd?: string;
   /** Platform for the binding-<platform>-<arch> name. Defaults to process.platform/arch. */
   platform?: NodeJS.Platform;
@@ -30,9 +30,9 @@ const defaultExists = async (p: string): Promise<boolean> => {
 
 /**
  * CONTEXT.md D-09 search order:
- *   1. explicit override (CLI flag or $SHOKI_HELPER_PATH)
- *   2. node_modules/@shoki/binding-<platform>-<arch>/helper/ShokiRunner.app (npm install path)
- *   3. helper/.build/ShokiRunner.app  (dev build, detected by sibling Package.swift)
+ *   1. explicit override (CLI flag or $MUNADI_HELPER_PATH)
+ *   2. node_modules/@munadi/binding-<platform>-<arch>/helper/MunadiRunner.app (npm install path)
+ *   3. helper/.build/MunadiRunner.app  (dev build, detected by sibling Package.swift)
  *
  * Returns a DoctorCheckResult. On miss → HELPER_MISSING (exit code 8).
  */
@@ -55,7 +55,7 @@ export async function discoverHelper(
         result: {
           id: 'helper-present',
           status: 'pass',
-          summary: `ShokiRunner.app found at ${options.overridePath} (env/flag override)`,
+          summary: `MunadiRunner.app found at ${options.overridePath} (env/flag override)`,
           meta: { path: options.overridePath, source: 'env' },
         },
       };
@@ -66,10 +66,10 @@ export async function discoverHelper(
   const npmPath = join(
     cwd,
     'node_modules',
-    '@shoki',
+    '@munadi',
     `binding-${platform}-${arch}`,
     'helper',
-    'ShokiRunner.app',
+    'MunadiRunner.app',
   );
   searched.push(npmPath);
   if (await exists(npmPath)) {
@@ -78,14 +78,14 @@ export async function discoverHelper(
       result: {
         id: 'helper-present',
         status: 'pass',
-        summary: `ShokiRunner.app found at ${npmPath} (npm install)`,
+        summary: `MunadiRunner.app found at ${npmPath} (npm install)`,
         meta: { path: npmPath, source: 'npm' },
       },
     };
   }
 
   // 3. dev build path — detected by sibling Package.swift
-  const devPath = join(cwd, 'helper', '.build', 'ShokiRunner.app');
+  const devPath = join(cwd, 'helper', '.build', 'MunadiRunner.app');
   const devSiblingManifest = join(cwd, 'helper', 'Package.swift');
   searched.push(devPath);
   if ((await exists(devPath)) && (await exists(devSiblingManifest))) {
@@ -94,7 +94,7 @@ export async function discoverHelper(
       result: {
         id: 'helper-present',
         status: 'pass',
-        summary: `ShokiRunner.app found at ${devPath} (dev build)`,
+        summary: `MunadiRunner.app found at ${devPath} (dev build)`,
         meta: { path: devPath, source: 'dev' },
       },
     };
@@ -105,7 +105,7 @@ export async function discoverHelper(
     result: {
       id: 'helper-present',
       status: 'fail',
-      summary: 'ShokiRunner.app was not found in any known location',
+      summary: 'MunadiRunner.app was not found in any known location',
       detail: `Searched:\n  - ${searched.join('\n  - ')}`,
       exitCode: ExitCode.HELPER_MISSING,
       meta: { searched },

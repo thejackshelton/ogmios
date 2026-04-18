@@ -34,8 +34,8 @@ const pkg = require('../../package.json') as {
 const program = new Command();
 
 program
-  .name('dicta')
-  .description('dicta CLI — VoiceOver/TCC diagnostics and setup for macOS 14/15/26')
+  .name('munadi')
+  .description('munadi CLI — VoiceOver/TCC diagnostics and setup for macOS 14/15/26')
   .version(pkg.version, '-v, --version');
 
 program
@@ -44,7 +44,7 @@ program
   .option('--fix', 'Attempt safe automated remediations (writes VO plist when SIP permits)')
   .option('--json', 'Emit machine-readable JSON instead of human-readable output')
   .option('--quiet', 'Only print summary + exit code (suitable for pre-commit hooks)')
-  .option('--helper-path <path>', 'Override the ShokiRunner.app path (also: $SHOKI_HELPER_PATH)')
+  .option('--helper-path <path>', 'Override the MunadiRunner.app path (also: $MUNADI_HELPER_PATH)')
   .action(
     async (opts: {
       fix?: boolean;
@@ -54,7 +54,7 @@ program
     }) => {
       const report = await runDoctor({
         fix: opts.fix,
-        helperPath: opts.helperPath ?? process.env.SHOKI_HELPER_PATH,
+        helperPath: opts.helperPath ?? process.env.MUNADI_HELPER_PATH,
       });
 
       if (opts.json) {
@@ -72,7 +72,7 @@ program
 program
   .command('setup')
   .description(
-    'Download Shoki.app + Shoki Setup.app from GitHub Releases, install into ~/Applications, and launch the TCC-prompt setup GUI',
+    'Download Munadi.app + Munadi Setup.app from GitHub Releases, install into ~/Applications, and launch the TCC-prompt setup GUI',
   )
   .option('--force', 'Redownload + reinstall even if apps are already present')
   .option(
@@ -83,11 +83,11 @@ program
     '--install-dir <path>',
     'Override the install directory (default: ~/Applications)',
   )
-  .option('--skip-launch', 'Download + install but do not auto-open Shoki Setup.app')
+  .option('--skip-launch', 'Download + install but do not auto-open Munadi Setup.app')
   .option('--json', 'Emit structured JSON output (SetupResult) for CI pipelines')
   .option(
     '--version <ver>',
-    "Download a specific Shoki.app version (default: SDK's compatibleAppVersion)",
+    "Download a specific Munadi.app version (default: SDK's compatibleAppVersion)",
   )
   .option(
     '--dry-run',
@@ -107,7 +107,7 @@ program
         try {
           return resolveReleaseBaseUrlFromPackageJson(pkg);
         } catch {
-          return 'https://github.com/shoki/shoki/releases/download';
+          return 'https://github.com/thejackshelton/munadi/releases/download';
         }
       })();
 
@@ -147,17 +147,17 @@ program
         switch (result.action) {
           case 'downloaded':
             console.log(
-              `Installed Shoki.app + Shoki Setup.app into ${result.installDir}`,
+              `Installed Munadi.app + Munadi Setup.app into ${result.installDir}`,
             );
             break;
           case 'reinstalled':
             console.log(
-              `Reinstalled Shoki.app + Shoki Setup.app into ${result.installDir}`,
+              `Reinstalled Munadi.app + Munadi Setup.app into ${result.installDir}`,
             );
             break;
           case 'launched-only':
             console.log(
-              `Shoki.app already installed at ${result.installDir}; launched Shoki Setup.app`,
+              `Munadi.app already installed at ${result.installDir}; launched Munadi Setup.app`,
             );
             break;
           case 'noop':
@@ -165,7 +165,7 @@ program
             break;
         }
         if (result.launched) {
-          console.log('Shoki Setup.app has exited.');
+          console.log('Munadi Setup.app has exited.');
         }
       }
       process.exit(result.exitCode);
@@ -182,7 +182,7 @@ program
     if (userOpen.ok) userOpen.db.close();
     if (systemOpen.ok) systemOpen.db.close();
 
-    console.log(`dicta v${pkg.version}`);
+    console.log(`munadi v${pkg.version}`);
     console.log(`node ${process.version}`);
     console.log(`platform ${process.platform} ${process.arch}`);
     console.log(
@@ -200,7 +200,7 @@ program
 program
   .command('restore-vo-settings')
   .description(
-    'Escape hatch: re-apply the VO plist snapshot written by dicta. Use this if a crash (SIGKILL, OOM, power loss) left your Mac with altered VoiceOver settings (Plan 07-05).',
+    'Escape hatch: re-apply the VO plist snapshot written by munadi. Use this if a crash (SIGKILL, OOM, power loss) left your Mac with altered VoiceOver settings (Plan 07-05).',
   )
   .option('-p, --path <path>', 'Snapshot file path', DEFAULT_SNAPSHOT_PATH)
   .option('-f, --force', 'Apply even if the snapshot is >7 days old')
@@ -225,12 +225,12 @@ program
           process.exit(1);
         }
         const hasVersion =
-          /<key>_shoki_snapshot_version<\/key>\s*<integer>\d+<\/integer>/.test(
+          /<key>_munadi_snapshot_version<\/key>\s*<integer>\d+<\/integer>/.test(
             xml,
           );
         if (!hasVersion) {
           console.error(
-            `File at ${opts.path} is not a recognized dicta snapshot (missing _shoki_snapshot_version).`,
+            `File at ${opts.path} is not a recognized munadi snapshot (missing _munadi_snapshot_version).`,
           );
           process.exit(2);
         }
@@ -257,13 +257,13 @@ program
         case 'SNAPSHOT_MISSING':
           console.error(
             `No snapshot at ${opts.path} — nothing to restore.\n` +
-              `If you set $SHOKI_SNAPSHOT_PATH during the dicta run, pass --path.`,
+              `If you set $MUNADI_SNAPSHOT_PATH during the munadi run, pass --path.`,
           );
           process.exit(1);
           break;
         case 'SNAPSHOT_UNRECOGNIZED':
           console.error(
-            `File at ${opts.path} is not a recognized dicta snapshot (missing _shoki_snapshot_version).`,
+            `File at ${opts.path} is not a recognized munadi snapshot (missing _munadi_snapshot_version).`,
           );
           process.exit(2);
           break;

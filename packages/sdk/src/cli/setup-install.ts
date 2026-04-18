@@ -1,5 +1,5 @@
 /**
- * Plan 10-02 — unzip a verified shoki-<platform>.zip into ~/Applications,
+ * Plan 10-02 — unzip a verified munadi-<platform>.zip into ~/Applications,
  * strip the quarantine xattr that `fetch` stamped onto the download, and
  * expose a tiny plist reader so the orchestrator can ask "is the installed
  * app version still compatible?".
@@ -69,8 +69,8 @@ export async function installFromZip(
 
   return {
     installedPaths: [
-      join(opts.installDir, 'Shoki.app'),
-      join(opts.installDir, 'Shoki Setup.app'),
+      join(opts.installDir, 'Munadi.app'),
+      join(opts.installDir, 'Munadi Setup.app'),
     ],
   };
 }
@@ -102,7 +102,7 @@ export async function stripQuarantine(
 /**
  * Read `CFBundleShortVersionString` out of `<appPath>/Contents/Info.plist`.
  * Returns null if Info.plist is missing, unreadable, or doesn't carry the
- * key. Uses a narrow regex — Shoki's Info.plist format is stable enough
+ * key. Uses a narrow regex — Munadi's Info.plist format is stable enough
  * (Phase 8's `build-app-bundle.sh`) that we don't need a plist parser.
  */
 export async function readInstalledAppVersion(

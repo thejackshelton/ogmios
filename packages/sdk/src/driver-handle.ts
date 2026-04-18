@@ -1,8 +1,8 @@
 import { loadBinding } from './binding-loader.js';
-import { DriverNotFoundError, ShokiError } from './errors.js';
+import { DriverNotFoundError, MunadiError } from './errors.js';
 import { LogStore } from './handle-internals.js';
 import { listenImpl } from './listen.js';
-import type { AwaitStableLogOptions, ScreenReaderHandle, ShokiEvent } from './screen-reader.js';
+import type { AwaitStableLogOptions, ScreenReaderHandle, MunadiEvent } from './screen-reader.js';
 import { decodeEvents } from './wire.js';
 
 export interface CreateDriverHandleOptions {
@@ -40,7 +40,7 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
     if (err instanceof Error && err.message.includes('DriverNotFound')) {
       throw new DriverNotFoundError(opts.driverName);
     }
-    throw new ShokiError(
+    throw new MunadiError(
       `Failed to create driver "${opts.driverName}": ${(err as Error).message}`,
       'ERR_DRIVER_CREATE_FAILED',
     );
@@ -52,7 +52,7 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
 
   function assertAlive(): bigint {
     if (deinited || id === null) {
-      throw new ShokiError(
+      throw new MunadiError(
         `Driver "${opts.driverName}" has been deinit'd; create a new handle.`,
         'ERR_DRIVER_DEINITED',
       );
@@ -60,7 +60,7 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
     return id;
   }
 
-  function drainOnceSync(): ShokiEvent[] {
+  function drainOnceSync(): MunadiEvent[] {
     const currentId = assertAlive();
     const buf = binding.driverDrain(currentId);
     const events = decodeEvents(buf);
@@ -118,7 +118,7 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
       store.clear();
     },
 
-    listen(): AsyncIterable<ShokiEvent> {
+    listen(): AsyncIterable<MunadiEvent> {
       return listenImpl(store);
     },
 
@@ -143,7 +143,7 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
       return n;
     },
 
-    async awaitStableLog(options: AwaitStableLogOptions): Promise<ShokiEvent[]> {
+    async awaitStableLog(options: AwaitStableLogOptions): Promise<MunadiEvent[]> {
       return store.awaitStable(options);
     },
 

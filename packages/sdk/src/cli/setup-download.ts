@@ -1,5 +1,5 @@
 /**
- * Plan 10-02 — download + verify the unified `shoki-<platform>.zip` artifact
+ * Plan 10-02 — download + verify the unified `munadi-<platform>.zip` artifact
  * from GitHub Releases.
  *
  * The surface is intentionally small and dependency-free: Node 24's native
@@ -17,7 +17,7 @@ import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-export type ShokiAppPlatform = 'darwin-arm64' | 'darwin-x64';
+export type MunadiAppPlatform = 'darwin-arm64' | 'darwin-x64';
 
 export interface DownloadOptions {
   /** Release version without the `app-v` prefix (e.g. "0.1.0"). */
@@ -25,7 +25,7 @@ export interface DownloadOptions {
   /** Override base URL — tests point this at a fixture server. */
   baseUrl?: string;
   /** Resolved platform key. */
-  platform: ShokiAppPlatform;
+  platform: MunadiAppPlatform;
   /** Where to write the zip + sha sidecar. Defaults to a fresh tmp dir. */
   workDir?: string;
   /** Injected fetch — defaults to `globalThis.fetch`. */
@@ -48,7 +48,7 @@ export interface DownloadResult {
   downloadedFromUrl: string;
 }
 
-const DEFAULT_BASE_URL = 'https://github.com/shoki/shoki/releases/download';
+const DEFAULT_BASE_URL = 'https://github.com/thejackshelton/munadi/releases/download';
 const DEFAULT_TIMEOUT_MS = 60_000;
 
 /**
@@ -73,7 +73,7 @@ export function parseShaSidecar(body: string): string {
 function buildUrls(opts: DownloadOptions): { zipUrl: string; shaUrl: string } {
   const base = opts.baseUrl ?? DEFAULT_BASE_URL;
   const trimmed = base.replace(/\/+$/, '');
-  const zipUrl = `${trimmed}/app-v${opts.version}/shoki-${opts.platform}.zip`;
+  const zipUrl = `${trimmed}/app-v${opts.version}/munadi-${opts.platform}.zip`;
   return { zipUrl, shaUrl: `${zipUrl}.sha256` };
 }
 
@@ -110,7 +110,7 @@ export async function downloadAndVerifyZip(
   const { zipUrl, shaUrl } = buildUrls(opts);
 
   const workDir =
-    opts.workDir ?? (await mkdtempImpl(join(tmpdir(), 'shoki-setup-')));
+    opts.workDir ?? (await mkdtempImpl(join(tmpdir(), 'munadi-setup-')));
 
   // 1. Fetch the SHA sidecar first — cheap, and fails fast on a wrong URL.
   const shaResponse = await fetchOrThrow(shaUrl, fetchImpl, timeoutMs);
@@ -131,7 +131,7 @@ export async function downloadAndVerifyZip(
   }
 
   // 4. Persist the verified zip + sidecar so the install stage can ditto from disk.
-  const zipPath = join(workDir, `shoki-${opts.platform}.zip`);
+  const zipPath = join(workDir, `munadi-${opts.platform}.zip`);
   const shaPath = `${zipPath}.sha256`;
   await writeFileImpl(zipPath, zipBuffer);
   await writeFileImpl(shaPath, shaText, 'utf8');

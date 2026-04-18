@@ -1,36 +1,36 @@
-import { realShokiSdkDriver, SessionStore, type ShokiSdkDriver } from '../session-store.js';
-import { createShokiAwaitStableHandler } from './shoki-await-stable.js';
-import { createShokiClearHandler } from './shoki-clear.js';
-import { createShokiDrainHandler } from './shoki-drain.js';
-import { createShokiGetDroppedCountHandler } from './shoki-get-dropped-count.js';
-import { createShokiLastPhraseHandler } from './shoki-last-phrase.js';
-import { createShokiListenHandler } from './shoki-listen.js';
-import { createShokiPhraseLogHandler } from './shoki-phrase-log.js';
-import { createShokiResetHandler } from './shoki-reset.js';
-import { createShokiStartHandler } from './shoki-start.js';
-import { createShokiStopHandler } from './shoki-stop.js';
+import { realMunadiSdkDriver, SessionStore, type MunadiSdkDriver } from '../session-store.js';
+import { createMunadiAwaitStableHandler } from './munadi-await-stable.js';
+import { createMunadiClearHandler } from './munadi-clear.js';
+import { createMunadiDrainHandler } from './munadi-drain.js';
+import { createMunadiGetDroppedCountHandler } from './munadi-get-dropped-count.js';
+import { createMunadiLastPhraseHandler } from './munadi-last-phrase.js';
+import { createMunadiListenHandler } from './munadi-listen.js';
+import { createMunadiPhraseLogHandler } from './munadi-phrase-log.js';
+import { createMunadiResetHandler } from './munadi-reset.js';
+import { createMunadiStartHandler } from './munadi-start.js';
+import { createMunadiStopHandler } from './munadi-stop.js';
 
 export interface CreateCommandsDeps {
   sessionStore?: SessionStore;
-  driver?: ShokiSdkDriver;
+  driver?: MunadiSdkDriver;
 }
 
 export function createCommands(deps: CreateCommandsDeps = {}) {
   const sessionStore = deps.sessionStore ?? new SessionStore();
-  const driver = deps.driver ?? realShokiSdkDriver;
+  const driver = deps.driver ?? realMunadiSdkDriver;
   return {
-    shokiStart: createShokiStartHandler({ sessionStore, driver }),
-    shokiStop: createShokiStopHandler({ sessionStore }),
-    shokiListen: createShokiListenHandler({ sessionStore }),
-    shokiDrain: createShokiDrainHandler({ sessionStore }),
-    shokiPhraseLog: createShokiPhraseLogHandler({ sessionStore }),
-    shokiLastPhrase: createShokiLastPhraseHandler({ sessionStore }),
-    shokiClear: createShokiClearHandler({ sessionStore }),
-    shokiReset: createShokiResetHandler({ sessionStore }),
-    shokiAwaitStable: createShokiAwaitStableHandler({ sessionStore }),
-    shokiGetDroppedCount: createShokiGetDroppedCountHandler({ sessionStore }),
+    munadiStart: createMunadiStartHandler({ sessionStore, driver }),
+    munadiStop: createMunadiStopHandler({ sessionStore }),
+    munadiListen: createMunadiListenHandler({ sessionStore }),
+    munadiDrain: createMunadiDrainHandler({ sessionStore }),
+    munadiPhraseLog: createMunadiPhraseLogHandler({ sessionStore }),
+    munadiLastPhrase: createMunadiLastPhraseHandler({ sessionStore }),
+    munadiClear: createMunadiClearHandler({ sessionStore }),
+    munadiReset: createMunadiResetHandler({ sessionStore }),
+    munadiAwaitStable: createMunadiAwaitStableHandler({ sessionStore }),
+    munadiGetDroppedCount: createMunadiGetDroppedCountHandler({ sessionStore }),
   };
 }
 
-export type ShokiCommands = ReturnType<typeof createCommands>;
+export type MunadiCommands = ReturnType<typeof createCommands>;
 export { SessionStore };

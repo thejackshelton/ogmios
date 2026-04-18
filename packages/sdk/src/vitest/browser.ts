@@ -1,49 +1,49 @@
 import { commands } from '@vitest/browser/context';
 import type {
-  ShokiAwaitStableArgs,
-  ShokiStartArgs,
-  ShokiStartResult,
-  WireShokiEvent,
+  MunadiAwaitStableArgs,
+  MunadiStartArgs,
+  MunadiStartResult,
+  WireMunadiEvent,
 } from './command-types.js';
-import { ShokiConcurrentTestError } from './errors.js';
+import { MunadiConcurrentTestError } from './errors.js';
 
 /**
  * Typed re-view of the generic `commands` object exposed by `@vitest/browser/context`.
  * Browser-side callers go through this proxy; the Node-side plugin supplies the
  * matching handlers (see `packages/vitest/src/commands/*`).
  */
-interface ShokiRpc {
-  shokiStart: (args: ShokiStartArgs) => Promise<ShokiStartResult>;
-  shokiStop: (args: { sessionId: string }) => Promise<{
+interface MunadiRpc {
+  munadiStart: (args: MunadiStartArgs) => Promise<MunadiStartResult>;
+  munadiStop: (args: { sessionId: string }) => Promise<{
     stopped: boolean;
     remainingRefs: number;
   }>;
-  shokiListen: (args: { sessionId: string; sinceMs?: number }) => Promise<WireShokiEvent[]>;
-  shokiDrain: (args: { sessionId: string }) => Promise<WireShokiEvent[]>;
-  shokiPhraseLog: (args: { sessionId: string }) => Promise<string[]>;
-  shokiLastPhrase: (args: { sessionId: string }) => Promise<string | null>;
-  shokiClear: (args: { sessionId: string }) => Promise<{ ok: true }>;
-  shokiReset: (args: { sessionId: string }) => Promise<{ ok: true }>;
-  shokiAwaitStable: (args: ShokiAwaitStableArgs) => Promise<WireShokiEvent[]>;
-  shokiGetDroppedCount: (args: { sessionId: string }) => Promise<{ droppedCount: number }>;
+  munadiListen: (args: { sessionId: string; sinceMs?: number }) => Promise<WireMunadiEvent[]>;
+  munadiDrain: (args: { sessionId: string }) => Promise<WireMunadiEvent[]>;
+  munadiPhraseLog: (args: { sessionId: string }) => Promise<string[]>;
+  munadiLastPhrase: (args: { sessionId: string }) => Promise<string | null>;
+  munadiClear: (args: { sessionId: string }) => Promise<{ ok: true }>;
+  munadiReset: (args: { sessionId: string }) => Promise<{ ok: true }>;
+  munadiAwaitStable: (args: MunadiAwaitStableArgs) => Promise<WireMunadiEvent[]>;
+  munadiGetDroppedCount: (args: { sessionId: string }) => Promise<{ droppedCount: number }>;
 }
-const rpc = commands as unknown as ShokiRpc;
+const rpc = commands as unknown as MunadiRpc;
 
-export interface ShokiBrowserSession {
+export interface MunadiBrowserSession {
   readonly sessionId: string;
   stop(): Promise<{ stopped: boolean; remainingRefs: number }>;
   /**
-   * Alias for {@link ShokiBrowserSession.stop}. Preferred in v1+ for symmetry
+   * Alias for {@link MunadiBrowserSession.stop}. Preferred in v1+ for symmetry
    * with `voiceOver.start()`; both names call the same command over tinyRPC.
    */
   end(): Promise<{ stopped: boolean; remainingRefs: number }>;
-  drain(): Promise<WireShokiEvent[]>;
-  listen(sinceMs?: number): Promise<WireShokiEvent[]>;
+  drain(): Promise<WireMunadiEvent[]>;
+  listen(sinceMs?: number): Promise<WireMunadiEvent[]>;
   phraseLog(): Promise<string[]>;
   lastPhrase(): Promise<string | null>;
   clear(): Promise<void>;
   reset(): Promise<void>;
-  awaitStable(opts: { quietMs: number; timeoutMs?: number }): Promise<WireShokiEvent[]>;
+  awaitStable(opts: { quietMs: number; timeoutMs?: number }): Promise<WireMunadiEvent[]>;
   droppedCount(): Promise<number>;
 }
 
@@ -65,33 +65,33 @@ function detectConcurrentContext(): boolean {
 }
 
 export const voiceOver = {
-  async start(args: ShokiStartArgs = {}): Promise<ShokiBrowserSession> {
+  async start(args: MunadiStartArgs = {}): Promise<MunadiBrowserSession> {
     if (detectConcurrentContext()) {
-      throw new ShokiConcurrentTestError();
+      throw new MunadiConcurrentTestError();
     }
-    const { sessionId } = await rpc.shokiStart(args);
+    const { sessionId } = await rpc.munadiStart(args);
     // Phase 7 API reshape: end() aliases stop() — both call the same tinyRPC
     // command so SessionStore refcount semantics are identical either way.
-    const stop = () => rpc.shokiStop({ sessionId });
+    const stop = () => rpc.munadiStop({ sessionId });
     return {
       sessionId,
       stop,
       end: stop,
-      drain: () => rpc.shokiDrain({ sessionId }),
-      listen: (sinceMs) => rpc.shokiListen({ sessionId, sinceMs }),
-      phraseLog: () => rpc.shokiPhraseLog({ sessionId }),
-      lastPhrase: () => rpc.shokiLastPhrase({ sessionId }),
+      drain: () => rpc.munadiDrain({ sessionId }),
+      listen: (sinceMs) => rpc.munadiListen({ sessionId, sinceMs }),
+      phraseLog: () => rpc.munadiPhraseLog({ sessionId }),
+      lastPhrase: () => rpc.munadiLastPhrase({ sessionId }),
       clear: async () => {
-        await rpc.shokiClear({ sessionId });
+        await rpc.munadiClear({ sessionId });
       },
       reset: async () => {
-        await rpc.shokiReset({ sessionId });
+        await rpc.munadiReset({ sessionId });
       },
-      awaitStable: (opts) => rpc.shokiAwaitStable({ sessionId, ...opts }),
-      droppedCount: async () => (await rpc.shokiGetDroppedCount({ sessionId })).droppedCount,
+      awaitStable: (opts) => rpc.munadiAwaitStable({ sessionId, ...opts }),
+      droppedCount: async () => (await rpc.munadiGetDroppedCount({ sessionId })).droppedCount,
     };
   },
 };
 
-export type { ShokiStartArgs, WireShokiEvent } from './command-types.js';
-export { ShokiConcurrentTestError } from './errors.js';
+export type { MunadiStartArgs, WireMunadiEvent } from './command-types.js';
+export { MunadiConcurrentTestError } from './errors.js';

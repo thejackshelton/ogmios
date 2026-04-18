@@ -22,7 +22,7 @@ import {
 
 export interface RunDoctorOptions {
   fix?: boolean;
-  /** Path override for the helper app (CONTEXT.md D-09 — SHOKI_HELPER_PATH). */
+  /** Path override for the helper app (CONTEXT.md D-09 — MUNADI_HELPER_PATH). */
   helperPath?: string;
   /** When true, runDoctor refuses to run on non-darwin hosts. Defaults to true. */
   requireDarwin?: boolean;
@@ -47,7 +47,7 @@ export async function runDoctor(
         {
           id: 'os-version',
           status: 'fail',
-          summary: `dicta doctor only runs on macOS (detected: ${process.platform})`,
+          summary: `munadi doctor only runs on macOS (detected: ${process.platform})`,
           exitCode: ExitCode.OS_UNSUPPORTED,
         },
       ],

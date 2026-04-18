@@ -1,5 +1,5 @@
 /**
- * Frozen command contracts for dicta/vitest BrowserCommands.
+ * Frozen command contracts for munadi/vitest BrowserCommands.
  *
  * Every return payload must be structured-clone-safe (VITEST-06):
  * - no bigint
@@ -8,7 +8,7 @@
  * - undefined fields are serialized via structuredClone but we prefer `null`
  *   when a missing value crosses the wire (lastPhrase is the prime example).
  */
-export interface ShokiStartArgs {
+export interface MunadiStartArgs {
   speechRate?: number;
   mute?: boolean;
   takeOverExisting?: boolean;
@@ -16,19 +16,19 @@ export interface ShokiStartArgs {
   logBufferSize?: number;
 }
 
-export interface ShokiStartResult {
+export interface MunadiStartResult {
   sessionId: string;
 }
 
-export interface ShokiSessionRef {
+export interface MunadiSessionRef {
   sessionId: string;
 }
 
 /**
- * Wire form of a ShokiEvent. `tsMs` is the floor-to-ms integer of the
+ * Wire form of a MunadiEvent. `tsMs` is the floor-to-ms integer of the
  * original bigint `tsNanos` — see SessionStore.toWireEvent.
  */
-export interface WireShokiEvent {
+export interface WireMunadiEvent {
   tsMs: number;
   source: 'applescript' | 'ax' | 'caption' | 'commander' | 'noop';
   flags: number;
@@ -37,43 +37,43 @@ export interface WireShokiEvent {
   name?: string;
 }
 
-export interface ShokiListenArgs extends ShokiSessionRef {
+export interface MunadiListenArgs extends MunadiSessionRef {
   sinceMs?: number;
 }
-export type ShokiListenResult = WireShokiEvent[];
+export type MunadiListenResult = WireMunadiEvent[];
 
-export type ShokiDrainArgs = ShokiSessionRef;
-export type ShokiDrainResult = WireShokiEvent[];
+export type MunadiDrainArgs = MunadiSessionRef;
+export type MunadiDrainResult = WireMunadiEvent[];
 
-export type ShokiPhraseLogArgs = ShokiSessionRef;
-export type ShokiPhraseLogResult = string[];
+export type MunadiPhraseLogArgs = MunadiSessionRef;
+export type MunadiPhraseLogResult = string[];
 
-export type ShokiLastPhraseArgs = ShokiSessionRef;
-export type ShokiLastPhraseResult = string | null;
+export type MunadiLastPhraseArgs = MunadiSessionRef;
+export type MunadiLastPhraseResult = string | null;
 
-export type ShokiClearArgs = ShokiSessionRef;
-export interface ShokiClearResult {
+export type MunadiClearArgs = MunadiSessionRef;
+export interface MunadiClearResult {
   ok: true;
 }
 
-export type ShokiResetArgs = ShokiSessionRef;
-export interface ShokiResetResult {
+export type MunadiResetArgs = MunadiSessionRef;
+export interface MunadiResetResult {
   ok: true;
 }
 
-export type ShokiStopArgs = ShokiSessionRef;
-export interface ShokiStopResult {
+export type MunadiStopArgs = MunadiSessionRef;
+export interface MunadiStopResult {
   stopped: boolean;
   remainingRefs: number;
 }
 
-export interface ShokiAwaitStableArgs extends ShokiSessionRef {
+export interface MunadiAwaitStableArgs extends MunadiSessionRef {
   quietMs: number;
   timeoutMs?: number;
 }
-export type ShokiAwaitStableResult = WireShokiEvent[];
+export type MunadiAwaitStableResult = WireMunadiEvent[];
 
-export type ShokiGetDroppedCountArgs = ShokiSessionRef;
-export interface ShokiGetDroppedCountResult {
+export type MunadiGetDroppedCountArgs = MunadiSessionRef;
+export interface MunadiGetDroppedCountResult {
   droppedCount: number;
 }

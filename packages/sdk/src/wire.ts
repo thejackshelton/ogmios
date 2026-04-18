@@ -1,5 +1,5 @@
-import { ShokiError } from './errors.js';
-import type { ShokiEvent, ShokiEventSource } from './screen-reader.js';
+import { MunadiError } from './errors.js';
+import type { MunadiEvent, MunadiEventSource } from './screen-reader.js';
 
 /**
  * Mirror of zig/src/core/wire.zig WIRE_VERSION.
@@ -7,7 +7,7 @@ import type { ShokiEvent, ShokiEventSource } from './screen-reader.js';
  */
 export const EXPECTED_WIRE_VERSION = 1;
 
-const SOURCE_TAGS: Record<number, ShokiEventSource> = {
+const SOURCE_TAGS: Record<number, MunadiEventSource> = {
   0: 'applescript',
   1: 'ax',
   2: 'caption',
@@ -27,9 +27,9 @@ const SOURCE_TAGS: Record<number, ShokiEventSource> = {
  * Mirrors zig/src/core/wire.zig byte-for-byte. Zig is the source of truth;
  * any divergence here is a bug.
  */
-export function decodeEvents(buf: Buffer): ShokiEvent[] {
+export function decodeEvents(buf: Buffer): MunadiEvent[] {
   if (buf.byteLength < 8) {
-    throw new ShokiError(
+    throw new MunadiError(
       `Wire buffer too short: ${buf.byteLength} bytes (need at least 8 for header)`,
       'ERR_WIRE_SHORT',
     );
@@ -37,15 +37,15 @@ export function decodeEvents(buf: Buffer): ShokiEvent[] {
 
   const version = buf.readUInt32LE(0);
   if (version !== EXPECTED_WIRE_VERSION) {
-    throw new ShokiError(
+    throw new MunadiError(
       `Wire format version mismatch: binding produced ${version}, SDK expects ${EXPECTED_WIRE_VERSION}. ` +
-        `Reinstall dicta and @shoki/binding-* so their versions match.`,
+        `Reinstall munadi and @munadi/binding-* so their versions match.`,
       'ERR_WIRE_VERSION_MISMATCH',
     );
   }
 
   const count = buf.readUInt32LE(4);
-  const events: ShokiEvent[] = [];
+  const events: MunadiEvent[] = [];
   let offset = 8;
 
   for (let i = 0; i < count; i++) {
@@ -57,7 +57,7 @@ export function decodeEvents(buf: Buffer): ShokiEvent[] {
     offset += 1;
     const source = SOURCE_TAGS[sourceRaw];
     if (!source) {
-      throw new ShokiError(
+      throw new MunadiError(
         `Unknown source tag ${sourceRaw} at entry ${i}; binding/SDK out of sync.`,
         'ERR_WIRE_UNKNOWN_SOURCE',
       );
@@ -82,7 +82,7 @@ export function decodeEvents(buf: Buffer): ShokiEvent[] {
   }
 
   if (offset !== buf.byteLength) {
-    throw new ShokiError(
+    throw new MunadiError(
       `Wire buffer has ${buf.byteLength - offset} trailing bytes after ${count} entries — decoder/encoder disagree.`,
       'ERR_WIRE_TRAILING_BYTES',
     );
