@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>org.shoki.setup</string>
+    <string>org.munadi.setup</string>
     <key>CFBundleName</key>
-    <string>ShokiSetup</string>
+    <string>MunadiSetup</string>
     <key>CFBundleDisplayName</key>
-    <string>Shoki Setup</string>
+    <string>Munadi Setup</string>
     <key>CFBundleExecutable</key>
-    <string>ShokiSetup</string>
+    <string>MunadiSetup</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundlePackageType</key>
@@ -20,16 +20,16 @@
     <string>1</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
-    <!-- ShokiSetup.app is interactive — show in dock while running. -->
+    <!-- MunadiSetup.app is interactive — show in dock while running. -->
     <key>LSUIElement</key>
     <false/>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright (c) 2026 Shoki contributors. MIT licensed.</string>
+    <string>Copyright (c) 2026 Munadi contributors. MIT licensed.</string>
     <key>NSAccessibilityUsageDescription</key>
-    <string>Shoki Setup requests Accessibility access so shoki's test tools can observe VoiceOver announcements during automated tests.</string>
+    <string>Munadi Setup requests Accessibility access so munadi's test tools can observe VoiceOver announcements during automated tests.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>Shoki Setup sends AppleScript to VoiceOver once to enable the Automation permission required for shoki tests.</string>
+    <string>Munadi Setup sends AppleScript to VoiceOver once to enable the Automation permission required for munadi tests.</string>
 </dict>
 </plist>

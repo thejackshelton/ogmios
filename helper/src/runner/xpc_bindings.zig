@@ -1,5 +1,5 @@
 // Hand-written `extern` declarations for the macOS `<xpc/xpc.h>` C API
-// surface that the Shoki helper uses.
+// surface that the Munadi helper uses.
 //
 // Why hand-written and not `@cImport`?
 // Phase 8 CONTEXT.md § "Hand-written extern decls (avoid @cImport drift)":
@@ -169,10 +169,10 @@ pub extern "c" fn xpc_release(object: xpc_object_t) void;
 // Constants
 // ---------------------------------------------------------------------------
 
-/// The Mach service name used by ShokiRunner. Keep in sync with
-/// `helper/Sources/ShokiRunnerProtocol/ShokiRunnerProtocol.swift`
-/// (`ShokiRunnerMachServiceName`).
-pub const mach_service_name: [*:0]const u8 = "org.shoki.runner";
+/// The Mach service name used by MunadiRunner. Keep in sync with
+/// `helper/Sources/MunadiRunnerProtocol/MunadiRunnerProtocol.swift`
+/// (`MunadiRunnerMachServiceName`).
+pub const mach_service_name: [*:0]const u8 = "org.munadi.runner";
 
 // ---------------------------------------------------------------------------
 // Block-ABI shim (Plan 08-04 — previously deferred by 08-02)
@@ -187,14 +187,14 @@ pub const mach_service_name: [*:0]const u8 = "org.shoki.runner";
 
 /// Install a connection-level event handler block. Used on a peer connection
 /// to handle incoming XPC_TYPE_CONNECTION events (new peer, error, cancel).
-pub extern "c" fn shoki_xpc_install_event_handler_block(
+pub extern "c" fn munadi_xpc_install_event_handler_block(
     connection: xpc_connection_t,
     handler: xpc_event_handler_fn,
 ) void;
 
 /// Install a message-level event handler block. Used on an already-accepted
 /// peer connection to receive XPC_TYPE_DICTIONARY messages from the client.
-pub extern "c" fn shoki_xpc_install_peer_message_handler_block(
+pub extern "c" fn munadi_xpc_install_peer_message_handler_block(
     connection: xpc_connection_t,
     handler: xpc_event_handler_fn,
 ) void;
@@ -202,7 +202,7 @@ pub extern "c" fn shoki_xpc_install_peer_message_handler_block(
 /// Self-test — invokes `handler(arg)` through a heap-copied block. Used by
 /// the helper's unit test to prove the block ABI works end-to-end without
 /// needing a live Mach service. Callable with any non-null `arg`.
-pub extern "c" fn shoki_xpc_self_test_invoke_handler_block(
+pub extern "c" fn munadi_xpc_self_test_invoke_handler_block(
     handler: xpc_event_handler_fn,
     arg: xpc_object_t,
 ) void;

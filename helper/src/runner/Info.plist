@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>org.shoki.runner</string>
+    <string>org.munadi.runner</string>
     <key>CFBundleName</key>
-    <string>ShokiRunner</string>
+    <string>MunadiRunner</string>
     <key>CFBundleDisplayName</key>
-    <string>Shoki Runner</string>
+    <string>Munadi Runner</string>
     <key>CFBundleExecutable</key>
-    <string>ShokiRunner</string>
+    <string>MunadiRunner</string>
     <key>CFBundleIconFile</key>
     <string></string>
     <key>CFBundleInfoDictionaryVersion</key>
@@ -25,15 +25,15 @@
     <key>LSUIElement</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright (c) 2026 Shoki contributors. MIT licensed.</string>
+    <string>Copyright (c) 2026 Munadi contributors. MIT licensed.</string>
     <key>MachServices</key>
     <dict>
-        <key>org.shoki.runner</key>
+        <key>org.munadi.runner</key>
         <true/>
     </dict>
     <key>NSAccessibilityUsageDescription</key>
-    <string>ShokiRunner uses Accessibility APIs to observe VoiceOver announcements during automated tests.</string>
+    <string>MunadiRunner uses Accessibility APIs to observe VoiceOver announcements during automated tests.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>ShokiRunner sends AppleScript commands to VoiceOver to retrieve spoken phrases during automated tests.</string>
+    <string>MunadiRunner sends AppleScript commands to VoiceOver to retrieve spoken phrases during automated tests.</string>
 </dict>
 </plist>

@@ -1,9 +1,9 @@
-// ShokiRunner executable entry point (Phase 08 Plan 02 Task 2).
+// MunadiRunner executable entry point (Phase 08 Plan 02 Task 2).
 //
-// Replaces `helper/Sources/ShokiRunner/main.swift`, which consisted of:
+// Replaces `helper/Sources/MunadiRunner/main.swift`, which consisted of:
 //
-//     let delegate = ShokiRunnerListenerDelegate()
-//     let listener = NSXPCListener(machServiceName: ShokiRunnerMachServiceName)
+//     let delegate = MunadiRunnerListenerDelegate()
+//     let listener = NSXPCListener(machServiceName: MunadiRunnerMachServiceName)
 //     listener.delegate = delegate
 //     listener.resume()
 //     RunLoop.main.run()
@@ -15,7 +15,7 @@
 //
 // ## --version flag
 //
-// `ShokiRunner --version` prints a version string and exits 0. This is the
+// `MunadiRunner --version` prints a version string and exits 0. This is the
 // Plan 02 CI smoke test: the binary launches, argv parsing works, stdout flushes,
 // and the process exits cleanly without starting the runloop.
 //
@@ -23,7 +23,7 @@
 //
 // SIGTERM / SIGINT are installed via `std.posix.sigaction` to call `exit(0)`
 // after draining the runloop. `timeout(1)` under macOS delivers SIGTERM; the
-// Plan 02 "`timeout 2 ShokiRunner` exits 124" check proves the process was
+// Plan 02 "`timeout 2 MunadiRunner` exits 124" check proves the process was
 // alive and blocked on the runloop up to timeout's kill signal.
 
 const std = @import("std");
@@ -89,13 +89,13 @@ fn installSignalHandlers() void {
 /// event handler that dispatches messages into `svc.dispatch` and sends the
 /// reply back on the connection.
 ///
-/// Plan 08-04: uses the block-ABI shim (`shoki_xpc_install_peer_message_handler_block`)
+/// Plan 08-04: uses the block-ABI shim (`munadi_xpc_install_peer_message_handler_block`)
 /// to wrap `onPeerMessage` in a real Obj-C block before installing it on the
 /// peer connection. Passing a plain C function pointer to libxpc crashes
 /// inside libsystem_blocks (08-02 deferred item).
 fn onListenerEvent(peer: xpc.xpc_object_t) callconv(.c) void {
     const conn: xpc.xpc_connection_t = @ptrCast(peer);
-    xpc.shoki_xpc_install_peer_message_handler_block(conn, onPeerMessage);
+    xpc.munadi_xpc_install_peer_message_handler_block(conn, onPeerMessage);
     xpc.xpc_connection_resume(conn);
 }
 
@@ -132,7 +132,7 @@ pub fn main(init: std.process.Init.Minimal) !void {
             var buf: [64]u8 = undefined;
             const line = try std.fmt.bufPrint(
                 &buf,
-                "ShokiRunner {s} (zig-compiled)\n",
+                "MunadiRunner {s} (zig-compiled)\n",
                 .{version},
             );
             _ = write(1, line.ptr, line.len);
@@ -149,7 +149,7 @@ pub fn main(init: std.process.Init.Minimal) !void {
     // inside libsystem_blocks.
     //
     // Plan 02's goal is to ship a Zig-compiled binary that blocks on the
-    // runloop (provable via `timeout 2 ShokiRunner` exiting 124/SIGTERM)
+    // runloop (provable via `timeout 2 MunadiRunner` exiting 124/SIGTERM)
     // and exposes a working --version CLI. The full listener wiring lands
     // in Plan 04 alongside the block-ABI shim. For now the binary:
     //   1. Accepts --version

@@ -1,16 +1,16 @@
-// Build graph for the Shoki macOS helper.
+// Build graph for the Munadi macOS helper.
 //
 // ## Phase 08 Plan 02 scope
 //
-// Plan 01 shipped a static `libshoki_xpc_core.a` + test runner. Plan 02
+// Plan 01 shipped a static `libmunadi_xpc_core.a` + test runner. Plan 02
 // extends this file to produce THREE additional products:
 //
-//   1. `ShokiRunner` executable (Zig-compiled Mach-O), from main.zig + the
+//   1. `MunadiRunner` executable (Zig-compiled Mach-O), from main.zig + the
 //      existing xpc_service + new ax_observer modules.
-//   2. `libShokiXPCClient.dylib` — drop-in replacement for the Swift-built
+//   2. `libMunadiXPCClient.dylib` — drop-in replacement for the Swift-built
 //      dylib zig-core links against. Built from `src/client/xpc_client.zig`.
-//   3. The `.app` bundle staged under `helper/.build/ShokiRunner.app/` —
-//      Contents/Info.plist + Contents/MacOS/ShokiRunner.
+//   3. The `.app` bundle staged under `helper/.build/MunadiRunner.app/` —
+//      Contents/Info.plist + Contents/MacOS/MunadiRunner.
 //
 // ## Output layout
 //
@@ -19,14 +19,14 @@
 // zig/build.zig's default to match).
 //
 //     helper/.build/
-//     ├── libShokiXPCClient.dylib
-//     ├── ShokiRunner.app/
+//     ├── libMunadiXPCClient.dylib
+//     ├── MunadiRunner.app/
 //     │   └── Contents/
 //     │       ├── Info.plist
-//     │       └── MacOS/ShokiRunner
-//     └── ShokiRunner                 (raw exe — bundle uses a copy)
+//     │       └── MacOS/MunadiRunner
+//     └── MunadiRunner                 (raw exe — bundle uses a copy)
 //
-// zig-out/ continues to receive the static `libshoki_xpc_core.a` (install
+// zig-out/ continues to receive the static `libmunadi_xpc_core.a` (install
 // artifact) for reference; it isn't what consumers link against.
 
 const std = @import("std");
@@ -58,7 +58,7 @@ pub fn build(b: *std.Build) void {
     xpc_core_mod.addImport("xpc_bindings", xpc_bindings_mod);
 
     const xpc_core = b.addLibrary(.{
-        .name = "shoki_xpc_core",
+        .name = "munadi_xpc_core",
         .linkage = .static,
         .root_module = xpc_core_mod,
     });
@@ -72,7 +72,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(xpc_core);
 
     // -----------------------------------------------------------------------
-    // 2. ShokiRunner executable — Plan 02 Task 2
+    // 2. MunadiRunner executable — Plan 02 Task 2
     // -----------------------------------------------------------------------
     //
     // Root is `main.zig`; it @imports xpc_bindings + xpc_service + ax_observer
@@ -113,7 +113,7 @@ pub fn build(b: *std.Build) void {
     }
 
     const runner_exe = b.addExecutable(.{
-        .name = "ShokiRunner",
+        .name = "MunadiRunner",
         .root_module = runner_mod,
     });
 
@@ -123,7 +123,7 @@ pub fn build(b: *std.Build) void {
     const install_runner = b.addInstallFileWithDir(
         runner_exe.getEmittedBin(),
         .{ .custom = "../.build" },
-        "ShokiRunner",
+        "MunadiRunner",
     );
     b.getInstallStep().dependOn(&install_runner.step);
 
@@ -131,27 +131,27 @@ pub fn build(b: *std.Build) void {
     // Contents/Info.plist
     const install_plist = b.addInstallFileWithDir(
         b.path("src/runner/Info.plist"),
-        .{ .custom = "../.build/ShokiRunner.app/Contents" },
+        .{ .custom = "../.build/MunadiRunner.app/Contents" },
         "Info.plist",
     );
     b.getInstallStep().dependOn(&install_plist.step);
 
-    // Contents/MacOS/ShokiRunner — same binary again; copying once makes the
+    // Contents/MacOS/MunadiRunner — same binary again; copying once makes the
     // bundle self-contained (codesign operates on the bundle, not on the raw
     // exe path).
     const install_bundle_exe = b.addInstallFileWithDir(
         runner_exe.getEmittedBin(),
-        .{ .custom = "../.build/ShokiRunner.app/Contents/MacOS" },
-        "ShokiRunner",
+        .{ .custom = "../.build/MunadiRunner.app/Contents/MacOS" },
+        "MunadiRunner",
     );
     b.getInstallStep().dependOn(&install_bundle_exe.step);
 
     // -----------------------------------------------------------------------
-    // 3. libShokiXPCClient.dylib — Plan 02 Task 2
+    // 3. libMunadiXPCClient.dylib — Plan 02 Task 2
     // -----------------------------------------------------------------------
     //
     // C-ABI drop-in replacement for the Swift-built dylib. zig-core links
-    // against this by name from `helper/.build/libShokiXPCClient.dylib`.
+    // against this by name from `helper/.build/libMunadiXPCClient.dylib`.
 
     const client_mod = b.createModule(.{
         .root_source_file = b.path("src/client/xpc_client.zig"),
@@ -166,28 +166,28 @@ pub fn build(b: *std.Build) void {
     }
 
     const client_dylib = b.addLibrary(.{
-        .name = "ShokiXPCClient",
+        .name = "MunadiXPCClient",
         .linkage = .dynamic,
         .root_module = client_mod,
     });
 
-    // Place the dylib directly at `.build/libShokiXPCClient.dylib`.
+    // Place the dylib directly at `.build/libMunadiXPCClient.dylib`.
     const install_dylib = b.addInstallFileWithDir(
         client_dylib.getEmittedBin(),
         .{ .custom = "../.build" },
-        "libShokiXPCClient.dylib",
+        "libMunadiXPCClient.dylib",
     );
     b.getInstallStep().dependOn(&install_dylib.step);
 
     // -----------------------------------------------------------------------
-    // 4. ShokiSetup executable + .app bundle — Plan 08-03
+    // 4. MunadiSetup executable + .app bundle — Plan 08-03
     // -----------------------------------------------------------------------
     //
     // Zig-compiled GUI whose whole purpose is to trigger the macOS
     // Accessibility + Automation-of-VoiceOver TCC prompts cleanly on first
     // launch. See src/setup/setup_main.zig for the flow.
     //
-    // Framework linkage is a superset of ShokiRunner's because we also need
+    // Framework linkage is a superset of MunadiRunner's because we also need
     // AppKit (NSApplication + NSAlert) and libobjc (objc_msgSend variants).
 
     const setup_mod = b.createModule(.{
@@ -205,31 +205,31 @@ pub fn build(b: *std.Build) void {
     }
 
     const setup_exe = b.addExecutable(.{
-        .name = "ShokiSetup",
+        .name = "MunadiSetup",
         .root_module = setup_mod,
     });
 
-    // Raw exe alongside .build/ShokiRunner so scripts can find it at a
+    // Raw exe alongside .build/MunadiRunner so scripts can find it at a
     // stable path if they want to invoke without the bundle wrapper.
     const install_setup = b.addInstallFileWithDir(
         setup_exe.getEmittedBin(),
         .{ .custom = "../.build" },
-        "ShokiSetup",
+        "MunadiSetup",
     );
     b.getInstallStep().dependOn(&install_setup.step);
 
-    // Stage the .app bundle: Contents/Info.plist + Contents/MacOS/ShokiSetup.
+    // Stage the .app bundle: Contents/Info.plist + Contents/MacOS/MunadiSetup.
     const install_setup_plist = b.addInstallFileWithDir(
         b.path("src/setup/Info.plist"),
-        .{ .custom = "../.build/ShokiSetup.app/Contents" },
+        .{ .custom = "../.build/MunadiSetup.app/Contents" },
         "Info.plist",
     );
     b.getInstallStep().dependOn(&install_setup_plist.step);
 
     const install_setup_bundle_exe = b.addInstallFileWithDir(
         setup_exe.getEmittedBin(),
-        .{ .custom = "../.build/ShokiSetup.app/Contents/MacOS" },
-        "ShokiSetup",
+        .{ .custom = "../.build/MunadiSetup.app/Contents/MacOS" },
+        "MunadiSetup",
     );
     b.getInstallStep().dependOn(&install_setup_bundle_exe.step);
 

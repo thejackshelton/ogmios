@@ -1,4 +1,4 @@
-// Zig port of `helper/Sources/ShokiXPCClient/ShokiXPCClient.swift` — the
+// Zig port of `helper/Sources/MunadiXPCClient/MunadiXPCClient.swift` — the
 // C-callable shim that Zig core (`zig/src/drivers/voiceover/ax_notifications.zig`)
 // dynamically links against.
 //
@@ -6,17 +6,17 @@
 //
 // The Zig core imports these symbols via `extern "c"`:
 //
-//     shoki_xpc_connect()                           -> ?*anyopaque
-//     shoki_xpc_set_event_callback(h, cb, userdata) -> void
-//     shoki_xpc_start_ax_observer(h, pid)           -> i32
-//     shoki_xpc_stop_ax_observer(h)                 -> i32
-//     shoki_xpc_disconnect(h)                       -> void
+//     munadi_xpc_connect()                           -> ?*anyopaque
+//     munadi_xpc_set_event_callback(h, cb, userdata) -> void
+//     munadi_xpc_start_ax_observer(h, pid)           -> i32
+//     munadi_xpc_stop_ax_observer(h)                 -> i32
+//     munadi_xpc_disconnect(h)                       -> void
 //
 // These names MUST match the Swift originals byte-for-byte, because zig-core
 // has already been compiled against the Swift-built dylib. Any rename breaks
 // the linker on the next consumer build.
 //
-// The handle returned by `shoki_xpc_connect` is opaque to callers — we use it
+// The handle returned by `munadi_xpc_connect` is opaque to callers — we use it
 // to index into a process-global table of `Session` structs. The Swift
 // implementation returned a retained Objective-C pointer; the Zig version
 // returns a *Session pointer but the semantics (opaque handle → AX events
@@ -29,13 +29,13 @@
 // message routing (sending `startAXObserver` to the helper, receiving
 // `receiveAXEvent` callbacks) is Plan 04's wave. For now:
 //
-//   * `shoki_xpc_connect`      → creates a Session, opens a Mach-service
-//                                 connection to org.shoki.runner, returns
+//   * `munadi_xpc_connect`      → creates a Session, opens a Mach-service
+//                                 connection to org.munadi.runner, returns
 //                                 the Session pointer.
-//   * `shoki_xpc_set_event_callback` → stores the C function pointer.
-//   * `shoki_xpc_start_ax_observer`  → sends a `startAXObserver` XPC message.
-//   * `shoki_xpc_stop_ax_observer`   → sends a `stopAXObserver` XPC message.
-//   * `shoki_xpc_disconnect`         → cancels the connection and frees the
+//   * `munadi_xpc_set_event_callback` → stores the C function pointer.
+//   * `munadi_xpc_start_ax_observer`  → sends a `startAXObserver` XPC message.
+//   * `munadi_xpc_stop_ax_observer`   → sends a `stopAXObserver` XPC message.
+//   * `munadi_xpc_disconnect`         → cancels the connection and frees the
 //                                       Session.
 
 const std = @import("std");
@@ -55,7 +55,7 @@ pub const EventCCallback = *const fn (
     userdata: ?*anyopaque,
 ) callconv(.c) void;
 
-/// Per-connection state. Leaked on `shoki_xpc_disconnect` via std.heap.c_allocator.
+/// Per-connection state. Leaked on `munadi_xpc_disconnect` via std.heap.c_allocator.
 const Session = struct {
     connection: ?xpc.xpc_connection_t = null,
     callback: ?EventCCallback = null,
@@ -84,11 +84,11 @@ fn releaseSession(s: *Session) void {
 /// Open an XPC connection to the helper and return an opaque handle. Returns
 /// null on allocation failure.
 ///
-/// Production semantics MATCH Swift's `shoki_xpc_connect`:
-///  - creates NSXPCConnection against `org.shoki.runner`
+/// Production semantics MATCH Swift's `munadi_xpc_connect`:
+///  - creates NSXPCConnection against `org.munadi.runner`
 ///  - exports this side as the "client" (receives receiveAXEvent callbacks)
 ///  - returns a retained handle
-export fn shoki_xpc_connect() ?XpcHandle {
+export fn munadi_xpc_connect() ?XpcHandle {
     const session = allocSession() orelse return null;
     const conn = xpc.xpc_connection_create_mach_service(
         xpc.mach_service_name,
@@ -104,7 +104,7 @@ export fn shoki_xpc_connect() ?XpcHandle {
 /// Install the C callback that receives AX events. Plan 02 only stores the
 /// pointer; Plan 04's XPC message routing uses it when the helper pushes
 /// `receiveAXEvent` replies back.
-export fn shoki_xpc_set_event_callback(
+export fn munadi_xpc_set_event_callback(
     h: XpcHandle,
     cb: EventCCallback,
     userdata: ?*anyopaque,
@@ -119,7 +119,7 @@ export fn shoki_xpc_set_event_callback(
 /// the Swift version's `rc == 0` / `rc == -2` return code). Plan 02 sends
 /// the XPC message synchronously and reports success if the connection
 /// was healthy.
-export fn shoki_xpc_start_ax_observer(h: XpcHandle, pid: i32) i32 {
+export fn munadi_xpc_start_ax_observer(h: XpcHandle, pid: i32) i32 {
     const session: *Session = @ptrCast(@alignCast(h));
     const conn = session.connection orelse return -1;
 
@@ -135,7 +135,7 @@ export fn shoki_xpc_start_ax_observer(h: XpcHandle, pid: i32) i32 {
 /// Ask the helper to stop observing AX events. Returns 0 always (the
 /// Swift version's wait-with-timeout path is re-implemented as fire-and-
 /// forget in Plan 02; Plan 04 adds the reply channel).
-export fn shoki_xpc_stop_ax_observer(h: XpcHandle) i32 {
+export fn munadi_xpc_stop_ax_observer(h: XpcHandle) i32 {
     const session: *Session = @ptrCast(@alignCast(h));
     const conn = session.connection orelse return -1;
 
@@ -148,7 +148,7 @@ export fn shoki_xpc_stop_ax_observer(h: XpcHandle) i32 {
 
 /// Tear down the connection and free the session handle. After this call
 /// `h` is invalid.
-export fn shoki_xpc_disconnect(h: XpcHandle) void {
+export fn munadi_xpc_disconnect(h: XpcHandle) void {
     const session: *Session = @ptrCast(@alignCast(h));
     releaseSession(session);
 }
