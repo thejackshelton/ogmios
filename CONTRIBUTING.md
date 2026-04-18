@@ -1,6 +1,6 @@
-# Contributing to Shoki
+# Contributing to Ogmios
 
-Thanks for your interest! Shoki is an early-stage project — the best way to contribute right now is to file detailed issues, discuss architecture, or pick up one of the listed v1 phase tasks.
+Thanks for your interest! Ogmios is an early-stage project — the best way to contribute right now is to file detailed issues, discuss architecture, or pick up one of the listed v1 phase tasks.
 
 ## Dev setup
 
@@ -11,13 +11,12 @@ Thanks for your interest! Shoki is an early-stage project — the best way to co
 - [pnpm 10](https://pnpm.io/installation)
 - [Zig 0.16.0](https://ziglang.org/download/) — pin this exact version. Earlier versions will not build the core.
 - Xcode Command Line Tools (`xcode-select --install`)
-- Swift 5.9+ (bundled with recent Xcode)
 
 ### Clone and install
 
 ```bash
-git clone https://github.com/<org>/shoki.git
-cd shoki
+git clone https://github.com/thejackshelton/ogmios.git
+cd ogmios
 pnpm install
 ```
 
@@ -36,12 +35,12 @@ cd zig && zig build test
 cd helper && zig build test
 ```
 
-End-to-end tests (`noop-roundtrip.test.ts`, `ping.test.ts` in `shoki`) require the native binding to be built and `SHOKI_NATIVE_BUILT=1` in the env. CI does this automatically; locally:
+End-to-end tests (`noop-roundtrip.test.ts`, `ping.test.ts` in `ogmios`) require the native binding to be built and `OGMIOS_NATIVE_BUILT=1` in the env. CI does this automatically; locally:
 
 ```bash
 cd zig && zig build
-cp zig-out/lib/libshoki.dylib ../packages/binding-darwin-arm64/shoki.node
-SHOKI_NATIVE_BUILT=1 pnpm --filter shoki test
+cp zig-out/lib/libogmios.dylib ../packages/binding-darwin-arm64/ogmios.node
+OGMIOS_NATIVE_BUILT=1 pnpm --filter ogmios test
 ```
 
 ### Format + lint
@@ -54,16 +53,16 @@ pnpm format      # Biome format (auto-fix)
 ## Repo layout
 
 ```
-shoki/
+ogmios/
 ├── packages/
-│   ├── sdk/                        shoki — public TS API
-│   ├── binding-darwin-arm64/       @shoki/binding-darwin-arm64 — platform binary
-│   └── binding-darwin-x64/         @shoki/binding-darwin-x64 — platform binary
+│   ├── sdk/                        ogmios — public TS API
+│   ├── binding-darwin-arm64/       @ogmios/binding-darwin-arm64 — platform binary
+│   └── binding-darwin-x64/         @ogmios/binding-darwin-x64 — platform binary
 ├── zig/                            Zig core source
 │   ├── build.zig, build.zig.zon
 │   ├── src/core/                   driver vtable, ring buffer, wire format, N-API surface
 │   └── src/drivers/noop/           placeholder driver (Phase 3 adds voiceover)
-├── helper/                         Zig helper: ShokiRunner.app + ShokiSetup.app (TCC trust anchor + GUI onboarding, all Zig since Phase 8)
+├── helper/                         Zig helper: OgmiosRunner.app + OgmiosSetup.app (TCC trust anchor + GUI onboarding, all Zig since Phase 8)
 ├── .github/                        CI + release workflows
 ├── docs/                           user-facing docs
 ├── .planning/                      GSD planning artifacts (phase plans, roadmap, research)

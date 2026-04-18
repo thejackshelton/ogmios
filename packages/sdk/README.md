@@ -1,19 +1,19 @@
-# dicta
+# ogmios
 
-TypeScript SDK for Dicta — screen-reader test automation.
+TypeScript SDK for Ogmios — screen-reader test automation.
 
-Loads a platform-specific native binding (`@shoki/binding-darwin-arm64` or `@shoki/binding-darwin-x64`) via npm `optionalDependencies`. No postinstall scripts.
+Loads a platform-specific native binding (`@ogmios/binding-darwin-arm64` or `@ogmios/binding-darwin-x64`) via npm `optionalDependencies`. No postinstall scripts.
 
-The CLI bin name is `dicta` — install and use as:
+The CLI bin name is `ogmios` — install and use as:
 
 ```bash
-npm install dicta
-npx dicta setup
-npx dicta doctor
+npm install ogmios
+npx ogmios setup
+npx ogmios doctor
 ```
 
 ```ts
-import { voiceOver } from 'dicta';
+import { voiceOver } from 'ogmios';
 ```
 
 See the [repo README](../../README.md) for the full story.

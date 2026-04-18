@@ -1,6 +1,6 @@
 # Self-hosted tart
 
-The fastest and cheapest topology if you already own a Mac mini or Mac Studio. You run a [tart](https://tart.run/) VM on your hardware that boots from a pre-baked Shoki image with VoiceOver-AppleScript-enabled and TCC grants already applied.
+The fastest and cheapest topology if you already own a Mac mini or Mac Studio. You run a [tart](https://tart.run/) VM on your hardware that boots from a pre-baked Ogmios image with VoiceOver-AppleScript-enabled and TCC grants already applied.
 
 ## When to pick this
 
@@ -18,12 +18,12 @@ Amortized over a year, this is dramatically cheaper than any managed option if y
 
 ## The pre-baked image
 
-Shoki publishes a ready-to-use tart image at `ghcr.io/shoki/macos-vo-ready:<macos>`:
+Ogmios publishes a ready-to-use tart image at `ghcr.io/thejackshelton/ogmios-macos-vo-ready:<macos>`:
 
 ```bash
-tart pull ghcr.io/shoki/macos-vo-ready:sonoma   # macOS 14
-tart pull ghcr.io/shoki/macos-vo-ready:sequoia  # macOS 15
-tart pull ghcr.io/shoki/macos-vo-ready:tahoe    # macOS 26 (includes post-CVE entitlements)
+tart pull ghcr.io/thejackshelton/ogmios-macos-vo-ready:sonoma   # macOS 14
+tart pull ghcr.io/thejackshelton/ogmios-macos-vo-ready:sequoia  # macOS 15
+tart pull ghcr.io/thejackshelton/ogmios-macos-vo-ready:tahoe    # macOS 26 (includes post-CVE entitlements)
 ```
 
 The image has:
@@ -34,7 +34,7 @@ The image has:
 - Background notification apps pre-killed on boot (Slack, Discord, Mail, etc.).
 - `pnpm` and `playwright`'s Chromium pre-installed.
 
-The full build pipeline lives in [`infra/tart/`](https://github.com/shoki/shoki/tree/main/infra/tart) — Packer + Ansible, reproducible.
+The full build pipeline lives in [`infra/tart/`](https://github.com/thejackshelton/ogmios/tree/main/infra/tart) — Packer + Ansible, reproducible.
 
 ## Reference workflow
 
@@ -64,24 +64,24 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      - uses: shoki/setup-action@v1
+      - uses: thejackshelton/ogmios-setup-action@v1
         # On a tart runner this is a no-op (image is pre-baked),
         # but keeping it in the workflow makes the same file
         # portable to other topologies.
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
-      - run: SHOKI_INTEGRATION=1 pnpm test
+      - run: OGMIOS_INTEGRATION=1 pnpm test
 ```
 
-See the full reference at [`.github/workflows/examples/shoki-tart-selfhosted.yml`](https://github.com/shoki/shoki/blob/main/.github/workflows/examples/shoki-tart-selfhosted.yml).
+See the full reference at [`.github/workflows/examples/ogmios-tart-selfhosted.yml`](https://github.com/thejackshelton/ogmios/blob/main/.github/workflows/examples/ogmios-tart-selfhosted.yml).
 
 ## Runner setup (one time)
 
 1. Install [tart](https://tart.run/quick-start/): `brew install cirruslabs/cli/tart`.
 2. Install the GitHub Actions self-hosted runner on your Mac mini following GitHub's docs.
 3. Label it with `self-hosted,macOS,arm64,tart`.
-4. Pull the Shoki image: `tart pull ghcr.io/shoki/macos-vo-ready:sonoma`.
+4. Pull the Ogmios image: `tart pull ghcr.io/thejackshelton/ogmios-macos-vo-ready:sonoma`.
 5. Configure your runner to clone the VM per-job (search the tart docs for "ephemeral runners").
 
 One Mac mini can host multiple sequential jobs; tart's exclusive VM lock serializes them naturally.

@@ -1,7 +1,7 @@
 import { defineConfig } from "vitepress";
 
 /**
- * Shoki documentation site config.
+ * Ogmios documentation site config.
  *
  * Nav mirrors the Phase 6 CONTEXT.md structure:
  *   Getting Started / Guides / API / Background
@@ -9,15 +9,15 @@ import { defineConfig } from "vitepress";
  * Dark-mode default, local search, edit-this-page links, GitHub icon.
  */
 export default defineConfig({
-	title: "Shoki",
+	title: "Ogmios",
 	description:
 		"Run real screen readers — VoiceOver, NVDA, and more — in any test framework and any CI environment.",
 
 	// Force the navy/coral palette — light mode is not supported.
 	appearance: "force-dark",
 
-	// Deployed at /shoki/ on GitHub Pages; override via DOCS_BASE env var for custom domains.
-	base: process.env.DOCS_BASE ?? "/shoki/",
+	// Deployed at /ogmios/ on GitHub Pages; override via DOCS_BASE env var for custom domains.
+	base: process.env.DOCS_BASE ?? "/ogmios/",
 
 	cleanUrls: true,
 	lastUpdated: true,
@@ -28,7 +28,7 @@ export default defineConfig({
 	],
 
 	themeConfig: {
-		logo: { src: "/logo.svg", alt: "Shoki" },
+		logo: { src: "/logo.svg", alt: "Ogmios" },
 
 		// Local search — no external dependencies.
 		search: {
@@ -37,11 +37,13 @@ export default defineConfig({
 
 		// Edit-this-page links land on the repo's docs folder.
 		editLink: {
-			pattern: "https://github.com/shoki/shoki/edit/main/docs/:path",
+			pattern: "https://github.com/thejackshelton/ogmios/edit/main/docs/:path",
 			text: "Edit this page on GitHub",
 		},
 
-		socialLinks: [{ icon: "github", link: "https://github.com/shoki/shoki" }],
+		socialLinks: [
+			{ icon: "github", link: "https://github.com/thejackshelton/ogmios" },
+		],
 
 		nav: [
 			{ text: "Getting Started", link: "/getting-started/install" },
@@ -53,11 +55,11 @@ export default defineConfig({
 				items: [
 					{
 						text: "Changelog",
-						link: "https://github.com/shoki/shoki/blob/main/CHANGELOG.md",
+						link: "https://github.com/thejackshelton/ogmios/blob/main/CHANGELOG.md",
 					},
 					{
 						text: "Contributing",
-						link: "https://github.com/shoki/shoki/blob/main/CONTRIBUTING.md",
+						link: "https://github.com/thejackshelton/ogmios/blob/main/CONTRIBUTING.md",
 					},
 				],
 			},
@@ -118,10 +120,10 @@ export default defineConfig({
 				{
 					text: "API Reference",
 					items: [
-						{ text: "@shoki/sdk", link: "/api/sdk" },
+						{ text: "ogmios", link: "/api/sdk" },
 						{ text: "Matchers", link: "/api/matchers" },
-						{ text: "@shoki/vitest", link: "/api/vitest" },
-						{ text: "shoki (CLI)", link: "/api/cli" },
+						{ text: "ogmios/vitest", link: "/api/vitest" },
+						{ text: "ogmios (CLI)", link: "/api/cli" },
 					],
 				},
 			],
@@ -147,7 +149,7 @@ export default defineConfig({
 
 		footer: {
 			message: "Released under the MIT License.",
-			copyright: "Copyright © 2026-present Shoki contributors",
+			copyright: "Copyright © 2026-present Ogmios contributors",
 		},
 	},
 

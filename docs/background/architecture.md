@@ -1,19 +1,19 @@
 # Architecture
 
-This document captures the load-bearing design decisions for Dicta. Before changing anything here, open an issue and discuss.
+This document captures the load-bearing design decisions for Ogmios. Before changing anything here, open an issue and discuss.
 
 ## Three-layer process model
 
 ```
 ┌────────────────────────┐
 │  Test process (Node)   │
-│  dicta (TS)            │
-│  shoki.node (N-API)    │  ← Zig compiled to .node addon
+│  ogmios (TS)           │
+│  ogmios.node (N-API)   │  ← Zig compiled to .node addon
 └────────────┬───────────┘
-             │ XPC (libShokiXPCClient.dylib)
+             │ XPC (libOgmiosXPCClient.dylib)
 ┌────────────▼───────────┐
-│  ShokiRunner.app       │  ← Zig-compiled, signed helper
-│  ShokiSetup.app        │  ← Zig-compiled GUI — triggers first-run TCC prompts
+│  OgmiosRunner.app      │  ← Zig-compiled, signed helper
+│  OgmiosSetup.app       │  ← Zig-compiled GUI — triggers first-run TCC prompts
 └────────────┬───────────┘
              │ AppleScript + AX notifications
 ┌────────────▼───────────┐
@@ -21,9 +21,9 @@ This document captures the load-bearing design decisions for Dicta. Before chang
 └────────────────────────┘
 ```
 
-- **SDK layer** (`dicta`, TypeScript) — public API. `voiceOver.listen()`, `dicta` CLI, matcher functions at `dicta/matchers`, event types.
-- **Core layer** (`shoki.node`, Zig via napi-zig) — in-process N-API addon. Owns the 50ms VO poll loop, the ring buffer, the wire format. Never spawns a subprocess for hot-path reads. Links `libShokiXPCClient.dylib` (also Zig-compiled) as the XPC client surface.
-- **Helper layer** (`ShokiRunner.app`, Zig) — signed helper app that holds the **stable TCC trust anchor**. When the Zig core needs to call into TCC-protected VO APIs, it routes via XPC through the helper. Shipped alongside `ShokiSetup.app` — a minimal Zig-compiled GUI whose sole purpose is to trigger the Accessibility + Automation TCC prompts cleanly on first run (replaces the multi-step System Settings walkthrough). Note: helper bundle files retain their "Shoki" naming through v0.1; full rebrand follows in v0.2.
+- **SDK layer** (`ogmios`, TypeScript) — public API. `voiceOver.listen()`, `ogmios` CLI, matcher functions at `ogmios/matchers`, event types.
+- **Core layer** (`ogmios.node`, Zig via napi-zig) — in-process N-API addon. Owns the 50ms VO poll loop, the ring buffer, the wire format. Never spawns a subprocess for hot-path reads. Links `libOgmiosXPCClient.dylib` (also Zig-compiled) as the XPC client surface.
+- **Helper layer** (`OgmiosRunner.app`, Zig) — signed helper app that holds the **stable TCC trust anchor**. When the Zig core needs to call into TCC-protected VO APIs, it routes via XPC through the helper. Shipped alongside `OgmiosSetup.app` — a minimal Zig-compiled GUI whose sole purpose is to trigger the Accessibility + Automation TCC prompts cleanly on first run (replaces the multi-step System Settings walkthrough).
 
 ### Why N-API in-process, not a daemon or spawned CLI
 
@@ -42,12 +42,12 @@ macOS's TCC (Transparency, Consent, Control) framework gates Accessibility and A
 - Users must re-approve permissions after every npm/Node upgrade.
 - `tccutil reset` doesn't cleanly remove stale entries.
 
-**Chosen solution:** grant TCC to a small, stable, Developer ID-signed helper app (`ShokiRunner.app`) that lives inside the `@shoki/binding-<os>-<arch>` npm package. The Zig core talks to the helper via XPC; TCC sees the helper's stable bundle identity, not `node`'s or the addon's.
+**Chosen solution:** grant TCC to a small, stable, Developer ID-signed helper app (`OgmiosRunner.app`) that lives inside the `@ogmios/binding-<os>-<arch>` npm package. The Zig core talks to the helper via XPC; TCC sees the helper's stable bundle identity, not `node`'s or the addon's.
 
 Consequences:
 
-- Every release requires Apple Developer ID signing + notarization of **both** helper bundles (`ShokiRunner.app` and `ShokiSetup.app`). Documented in [Release setup](./release-setup.md).
-- The helper is **tiny** — Zig-compiled, one build target per bundle, one XPC protocol, one service implementation. Single-language helper means no Swift toolchain is required to build dicta from source.
+- Every release requires Apple Developer ID signing + notarization of **both** helper bundles (`OgmiosRunner.app` and `OgmiosSetup.app`). Documented in [Release setup](./release-setup.md).
+- The helper is **tiny** — Zig-compiled, one build target per bundle, one XPC protocol, one service implementation. Single-language helper means no Swift toolchain is required to build ogmios from source.
 - The `.node` addon itself is NOT independently signed; it inherits trust from Node.
 - Local dev without Dev ID works — the helper script noops signing when `APPLE_DEVELOPER_ID_APP` is unset. You'll just re-prompt for permissions more often.
 
@@ -83,7 +83,7 @@ Source of truth is `zig/src/core/wire.zig`. TS decoder at `packages/sdk/src/wire
 
 Adding a new screen reader is three files + one registry entry:
 
-1. `zig/src/drivers/<name>/driver.zig` — implements the `ShokiDriver` vtable (`init, start, stop, drain, reset, deinit, name, platform`)
+1. `zig/src/drivers/<name>/driver.zig` — implements the `OgmiosDriver` vtable (`init, start, stop, drain, reset, deinit, name, platform`)
 2. `zig/src/core/registry.zig` — add one line to the comptime array
 3. `packages/binding-<new-os>-<new-arch>/` — new platform package
 4. `packages/sdk/src/<name>.ts` — a factory function returning a `ScreenReaderHandle`
@@ -94,7 +94,7 @@ See [Adding a screen-reader driver](./adding-a-driver.md) for a walkthrough.
 
 ## Platform risk
 
-Dicta depends on VoiceOver's AppleScript surface. Apple has been tightening this:
+Ogmios depends on VoiceOver's AppleScript surface. Apple has been tightening this:
 
 - **macOS 26.2 / CVE-2025-43530** — new entitlement required for VO AppleScript access; third parties cannot request it.
 
@@ -104,8 +104,8 @@ Users see this disclosure on the [Platform risk](./platform-risk.md) page.
 
 ## Things that are NOT in this architecture
 
-- **No test runner** — Dicta never runs tests; users bring Vitest/Playwright/XCUITest.
-- **No app driver** — Dicta never clicks, types, or navigates; users drive the app themselves.
+- **No test runner** — Ogmios never runs tests; users bring Vitest/Playwright/XCUITest.
+- **No app driver** — Ogmios never clicks, types, or navigates; users drive the app themselves.
 - **No SR simulation** — always the real VoiceOver/NVDA/etc.
 - **No daemon** — in-process only for the hot path.
 - **No out-of-tree driver ABI** — adding a driver requires forking/contributing. Post-v1 if demand exists.

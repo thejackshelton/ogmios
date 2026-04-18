@@ -1,6 +1,6 @@
 # Cirrus Runners
 
-[Cirrus Runners](https://cirrus-runners.app/) is the recommended managed macOS CI option. It's built by the same team as [tart](https://tart.run/) and uses tart under the hood, so it reuses the exact same pre-baked Shoki image as the self-hosted path — zero per-provider drift.
+[Cirrus Runners](https://cirrus-runners.app/) is the recommended managed macOS CI option. It's built by the same team as [tart](https://tart.run/) and uses tart under the hood, so it reuses the exact same pre-baked Ogmios image as the self-hosted path — zero per-provider drift.
 
 ## When to pick this
 
@@ -42,14 +42,14 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      - uses: shoki/setup-action@v1
+      - uses: thejackshelton/ogmios-setup-action@v1
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
-      - run: SHOKI_INTEGRATION=1 pnpm test
+      - run: OGMIOS_INTEGRATION=1 pnpm test
 ```
 
-See the full reference at [`.github/workflows/examples/shoki-cirrus-runners.yml`](https://github.com/shoki/shoki/blob/main/.github/workflows/examples/shoki-cirrus-runners.yml).
+See the full reference at [`.github/workflows/examples/ogmios-cirrus-runners.yml`](https://github.com/thejackshelton/ogmios/blob/main/.github/workflows/examples/ogmios-cirrus-runners.yml).
 
 ## Setup (one time)
 
@@ -58,9 +58,9 @@ See the full reference at [`.github/workflows/examples/shoki-cirrus-runners.yml`
 3. In your `runs-on:`, use the Cirrus-provided image identifier (they document the exact string).
 4. No secrets required; billing happens in Cirrus, not via GH.
 
-## Why Cirrus for Shoki
+## Why Cirrus for Ogmios
 
-- **Same tart image lineage** — Cirrus builds the base macOS images Shoki's pre-baked image extends. There's no version skew risk.
+- **Same tart image lineage** — Cirrus builds the base macOS images Ogmios's pre-baked image extends. There's no version skew risk.
 - **M4 Pro hardware** — faster than any GH-hosted option.
 - **No warm-start cost** — tart clones are fast; cold-boot to `npm install` is usually < 60s.
 - **Serializes VO cleanly** — exclusive VM per job matches VoiceOver's singleton lifecycle.
@@ -68,7 +68,7 @@ See the full reference at [`.github/workflows/examples/shoki-cirrus-runners.yml`
 ## Known issues
 
 - **Image availability lag** — a newly-released macOS version (e.g. Tahoe on day 1) may not be available on Cirrus until cirruslabs publishes the base image. Workaround: pin to the previous version for a few weeks.
-- **Post-CVE entitlement** — for macOS 26 you need a Shoki image with the post-CVE-2025-43530 entitlement. The Cirrus flow layers this on top of the cirruslabs base; make sure you're pointing at a recent Shoki tag.
+- **Post-CVE entitlement** — for macOS 26 you need an Ogmios image with the post-CVE-2025-43530 entitlement. The Cirrus flow layers this on top of the cirruslabs base; make sure you're pointing at a recent Ogmios tag.
 
 ## When to pick a different topology
 

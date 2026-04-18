@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-04-18
+
+### Renamed
+
+- The library is now called **Ogmios** (previously published briefly as
+  `dicta`; earlier attempts under `shoki`, `@shoki/core`, and `munadi` were
+  blocked by npm's anti-typosquatting filter or scope denials). Final name.
+  After four attempts landed on npm's similarity filter (vs `shiki`,
+  `shika`, `minami`) or outright scope denial, **Ogmios** — the Gaulish god
+  of eloquence whom Lucian of Samosata described as an elder binding his
+  listeners with chains of gold from his tongue to their ears — is
+  mythologically grounded, distinctive, and unambiguous.
+- `npm install ogmios` (unscoped) + `@ogmios/binding-darwin-arm64` /
+  `@ogmios/binding-darwin-x64` (platform bindings).
+- CLI bin is `ogmios`. Users run `ogmios doctor`, `npx ogmios setup`,
+  `ogmios info`, `ogmios restore-vo-settings`.
+- Helper apps renamed: `Shoki.app` / `Shoki Setup.app` →
+  `OgmiosRunner.app` / `OgmiosSetup.app`. Bundle identifiers
+  `app.shoki.setup` → `org.ogmios.setup`; `com.shoki.ShokiRunner` →
+  `org.ogmios.runner`.
+- State directory `~/.shoki/` / `~/.dicta/` → `~/.ogmios/`. On first run
+  `ogmios doctor` detects any of the legacy state dirs and prints a
+  one-line notice with a safe `rm -rf ~/.shoki ~/.dicta ~/.munadi` command.
+- Plist snapshot magic key `_shoki_snapshot_version` →
+  `_ogmios_snapshot_version`.
+- **Breaking — error classes:** every `ShokiX` / `DictaX` / `MunadiX`
+  exported error class is now `OgmiosX`. Factory `shokiVitest()` →
+  `ogmiosVitest()`. Plugin detection needle `shoki/vitest/browser` →
+  `ogmios/vitest/browser`.
+- **Breaking — env vars:** `SHOKI_*` / `DICTA_*` / `MUNADI_*` →
+  `OGMIOS_*` (`OGMIOS_INTEGRATION`, `OGMIOS_AX_TARGET_PID`,
+  `OGMIOS_HELPER_PATH`, `OGMIOS_SNAPSHOT_PATH`, `OGMIOS_NATIVE_BUILT`).
+- **Breaking — imports:** `from 'dicta'` → `from 'ogmios'`;
+  `from 'dicta/vitest'` → `from 'ogmios/vitest'` (and `/setup`, `/browser`);
+  `from 'dicta/matchers'` → `from 'ogmios/matchers'`;
+  `from 'dicta/cli'` → `from 'ogmios/cli'`.
+- Native artifacts: `libshoki.dylib` / `libmunadi.dylib` →
+  `libogmios.dylib`; `shoki.node` / `munadi.node` → `ogmios.node`.
+- Helper-app release artifacts: `shoki-darwin-arm64.zip` →
+  `ogmios-darwin-arm64.zip` (and `-x64`).
+
+### Deprecated on npm
+
+- `dicta@0.1.0` — renamed to `ogmios`. Install: `npm install ogmios`.
+- `@shoki/binding-darwin-arm64@*` / `@shoki/binding-darwin-x64@*` —
+  renamed to `@ogmios/binding-darwin-arm64` / `@ogmios/binding-darwin-x64`.
+- `munadi` was never successfully published (blocked by the similarity
+  filter vs `minami` before first publish) so no deprecation is needed.
+
+### Why the pivot
+
+The naming saga:
+1. `shoki` (unscoped) — blocked by npm's E403 anti-typosquatting filter vs
+   [`shiki`](https://www.npmjs.com/package/shiki).
+2. `@shoki/core` (scoped) — `@shoki` npm org creation was denied (likely
+   the same policy applied to scopes).
+3. `dicta` (Latin: "things said") — successfully published as v0.1.0, but
+   doesn't carry the mythological weight we wanted for a library about
+   capturing and binding speech.
+4. `munadi` — blocked before first publish by the similarity filter vs
+   [`minami`](https://www.npmjs.com/package/minami).
+5. **`ogmios`** — lands. Lucian's Gaulish chain-of-gold imagery is the
+   perfect metaphor for what the library does: capture the speech
+   traveling from the screen reader (the tongue) to the test (the ear).
+
 ## [0.1.0] - 2026-04-18
 
 First public release.

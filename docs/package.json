@@ -1,8 +1,8 @@
 {
-  "name": "@shoki/docs",
+  "name": "@ogmios/docs",
   "version": "0.0.0",
   "private": true,
-  "description": "Shoki documentation site (VitePress)",
+  "description": "Ogmios documentation site (VitePress)",
   "type": "module",
   "scripts": {
     "dev": "vitepress dev",

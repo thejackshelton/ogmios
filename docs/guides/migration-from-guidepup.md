@@ -1,22 +1,22 @@
 # Migration from Guidepup
 
-If you're here, you've used [Guidepup](https://github.com/guidepup/guidepup) — the pioneering OSS library for VoiceOver automation — and want to know when and why to switch to Dicta.
+If you're here, you've used [Guidepup](https://github.com/guidepup/guidepup) — the pioneering OSS library for VoiceOver automation — and want to know when and why to switch to Ogmios.
 
-**Short answer:** Dicta is observe-only by design. If you need to _drive_ VoiceOver's rotor, navigate headings, or interact with the VO cursor, stay on Guidepup. If you want to **capture** what VoiceOver says while your existing framework (Vitest, Playwright, XCUITest) drives the app, Dicta is a better fit — with first-class CI support, structured events instead of `string[]`, and a stable TCC trust anchor that doesn't re-prompt every Node upgrade.
+**Short answer:** Ogmios is observe-only by design. If you need to _drive_ VoiceOver's rotor, navigate headings, or interact with the VO cursor, stay on Guidepup. If you want to **capture** what VoiceOver says while your existing framework (Vitest, Playwright, XCUITest) drives the app, Ogmios is a better fit — with first-class CI support, structured events instead of `string[]`, and a stable TCC trust anchor that doesn't re-prompt every Node upgrade.
 
 ## Positioning
 
-| Concern | Guidepup | Dicta |
-|---------|----------|-------|
+| Concern | Guidepup | Ogmios |
+|---------|----------|--------|
 | **API surface** | VO driver (keyPress, rotor nav, interact) + capture | Capture only |
-| **Data shape** | `string[]` of phrases | `ShokiEvent[]` — `{ phrase, ts, source, role?, name?, interrupt? }` |
+| **Data shape** | `string[]` of phrases | `OgmiosEvent[]` — `{ phrase, ts, source, role?, name?, interrupt? }` |
 | **Test framework** | Playwright-first | Vitest-first (Playwright and XCUITest composable) |
 | **Trust anchor** | Grants TCC to Node (re-prompts on every upgrade) | Grants TCC to a signed Zig-compiled helper (stable) |
 | **CI story** | Rolled-your-own per provider | Four reference topologies + reusable action |
 | **Matchers** | None — users build their own | Semantic matchers shipped with the library |
 | **Platform risk stance** | Implicit | Explicit disclosure of CVE-2025-43530 and AX-notifications hedge |
 
-Dicta's thesis: **observing is 90% of what accessibility tests need, and making that bit excellent wins more than trying to match Guidepup feature-for-feature.** For the remaining 10% (driving VO), your framework's keyboard API dispatches Dicta's exported 226-gesture catalog — see [CAP-16](https://github.com/shoki/shoki/blob/main/.planning/REQUIREMENTS.md).
+Ogmios's thesis: **observing is 90% of what accessibility tests need, and making that bit excellent wins more than trying to match Guidepup feature-for-feature.** For the remaining 10% (driving VO), your framework's keyboard API dispatches Ogmios's exported 226-gesture catalog — see [CAP-16](https://github.com/thejackshelton/ogmios/blob/main/.planning/REQUIREMENTS.md).
 
 ## Side-by-side: boot + capture a button click
 
@@ -43,10 +43,10 @@ test("Submit announces", async ({ page }) => {
 });
 ```
 
-### Dicta
+### Ogmios
 
 ```tsx
-import { voiceOver } from "dicta/vitest/browser";
+import { voiceOver } from "ogmios/vitest/browser";
 import { page } from "@vitest/browser/context";
 import { render } from "vitest-browser-qwik";
 import { expect, test } from "vitest";
@@ -68,14 +68,14 @@ test("Submit announces", async () => {
 
 **Notable differences:**
 
-- **`start({ mute: true })`** — Dicta mutes VO by default in tests; Guidepup inherits your system settings.
+- **`start({ mute: true })`** — Ogmios mutes VO by default in tests; Guidepup inherits your system settings.
 - **Structured matcher** — `toHaveAnnounced({ role, name })` asserts on the `role` + `name` of a structured event, not a substring match of a joined string.
 - **`awaitStable`** — explicit quiet-window wait replaces Guidepup's per-phrase `waitForPhrase`. Tends to be less flaky because it doesn't care about the exact phrase shape.
 
 ## API map
 
-| Guidepup | Dicta equivalent |
-|----------|------------------|
+| Guidepup | Ogmios equivalent |
+|----------|-------------------|
 | `voiceOver.start()` | `voiceOver.start({ mute?, speechRate?, takeOverExisting? })` |
 | `voiceOver.stop()` | `session.stop()` |
 | `voiceOver.spokenPhraseLog()` | `session.phraseLog()` (convenience — returns `string[]`) |
@@ -94,7 +94,7 @@ test("Submit announces", async () => {
 - You're happy with Playwright as your only runner.
 - Your CI is a single-provider setup and re-granting TCC on Node upgrades isn't a recurring pain.
 
-### Switch to Dicta if
+### Switch to Ogmios if
 
 - You're observe-only (the majority of a11y tests are).
 - You use Vitest or want structured events you can assert on semantically.
@@ -103,13 +103,13 @@ test("Submit announces", async () => {
 
 ### Use both
 
-Nothing stops you. Guidepup's navigation helpers can drive VO while Dicta captures — just make sure only one library boots VO.
+Nothing stops you. Guidepup's navigation helpers can drive VO while Ogmios captures — just make sure only one library boots VO.
 
 ## Limits to be honest about
 
-- **Dicta is macOS-only in v1.** Guidepup ships NVDA support already. If you need NVDA today, Guidepup is your only choice. Dicta's v1.1 roadmap adds NVDA to validate the driver abstraction (see [EXT-01](/background/architecture#driver-extensibility)).
-- **Dicta doesn't drive VO.** If your test asserts on post-`next()` rotor state, Guidepup is the right tool.
+- **Ogmios is macOS-only in v1.** Guidepup ships NVDA support already. If you need NVDA today, Guidepup is your only choice. Ogmios's v1.1 roadmap adds NVDA to validate the driver abstraction (see [EXT-01](/background/architecture#driver-extensibility)).
+- **Ogmios doesn't drive VO.** If your test asserts on post-`next()` rotor state, Guidepup is the right tool.
 
 ## Want to migrate?
 
-Open an issue on the [shoki repo](https://github.com/shoki/shoki) with the specific Guidepup APIs your suite uses and we'll map them to dicta equivalents (or explicitly file them as out of scope). The [API reference](/api/sdk) is the source of truth for the full surface.
+Open an issue on the [ogmios repo](https://github.com/thejackshelton/ogmios) with the specific Guidepup APIs your suite uses and we'll map them to ogmios equivalents (or explicitly file them as out of scope). The [API reference](/api/sdk) is the source of truth for the full surface.

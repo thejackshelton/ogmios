@@ -1,31 +1,31 @@
 # Vitest quickstart
 
-The fastest way to get a real VoiceOver-backed test running. Five minutes end to end if `dicta doctor` already passes.
+The fastest way to get a real VoiceOver-backed test running. Five minutes end to end if `ogmios doctor` already passes.
 
 ## Prerequisites
 
-- `dicta doctor` exits 0 — see [Install](./install) and [Permission setup](./permission-setup).
+- `ogmios doctor` exits 0 — see [Install](./install) and [Permission setup](./permission-setup).
 - A project with Vitest (3.x or 4.x) installed.
 - Playwright's Chromium available for Vitest browser mode.
 
-The canonical example uses **Qwik** because its `renderSSR()` helper lets you assert on the **server-rendered accessibility tree before JavaScript runs** — a capability other Vitest browser-mode integrations don't offer. Dicta is framework-agnostic; anything you see below works with React, Solid, Svelte, or vanilla DOM too.
+The canonical example uses **Qwik** because its `renderSSR()` helper lets you assert on the **server-rendered accessibility tree before JavaScript runs** — a capability other Vitest browser-mode integrations don't offer. Ogmios is framework-agnostic; anything you see below works with React, Solid, Svelte, or vanilla DOM too.
 
 ## 1. Install the packages
 
 Local install in your test project — this is the canonical path (see [Install → Why local install](./install#why-local-install)):
 
 ```bash
-npm install -D dicta vitest @vitest/browser playwright vitest-browser-qwik
+npm install -D ogmios vitest @vitest/browser playwright vitest-browser-qwik
 ```
 
 Or the pnpm equivalent used throughout these docs:
 
 ```bash
-pnpm add -D dicta vitest @vitest/browser playwright @qwik.dev/core vitest-browser-qwik
+pnpm add -D ogmios vitest @vitest/browser playwright @qwik.dev/core vitest-browser-qwik
 pnpm exec playwright install chromium
 ```
 
-The `@shoki/binding-darwin-arm64` (or `-x64`) native package is installed automatically as an `optionalDependency` of `dicta`.
+The `@ogmios/binding-darwin-arm64` (or `-x64`) native package is installed automatically as an `optionalDependency` of `ogmios`.
 
 ## 2. Configure Vitest
 
@@ -33,14 +33,14 @@ The `@shoki/binding-darwin-arm64` (or `-x64`) native package is installed automa
 
 ```ts
 import { defineConfig } from "vitest/config";
-import { shokiVitest } from "dicta/vitest";
+import { ogmiosVitest } from "ogmios/vitest";
 import { qwikVite } from "@qwik.dev/core/optimizer";
 import { testSSR } from "vitest-browser-qwik/ssr-plugin";
 
 export default defineConfig({
-  plugins: [testSSR(), qwikVite(), shokiVitest()],
+  plugins: [testSSR(), qwikVite(), ogmiosVitest()],
   test: {
-    setupFiles: ["dicta/vitest/setup"],
+    setupFiles: ["ogmios/vitest/setup"],
     browser: {
       enabled: true,
       provider: "playwright",
@@ -52,13 +52,13 @@ export default defineConfig({
 
 The `testSSR()` plugin is what unlocks Qwik's `renderSSR()` helper — it's optional if you only need CSR tests.
 
-`dicta/vitest/setup` runs `expect.extend(...)` for Dicta's four matchers (`toHaveAnnounced`, `toHaveAnnouncedText`, `toHaveNoAnnouncement`, `toHaveStableLog`) — the matcher implementations themselves are pure functions at `dicta/matchers` and the setup file is the framework-specific wiring.
+`ogmios/vitest/setup` runs `expect.extend(...)` for Ogmios's four matchers (`toHaveAnnounced`, `toHaveAnnouncedText`, `toHaveNoAnnouncement`, `toHaveStableLog`) — the matcher implementations themselves are pure functions at `ogmios/matchers` and the setup file is the framework-specific wiring.
 
-The `shokiVitest()` plugin:
+The `ogmiosVitest()` plugin:
 
 - Registers 10 `BrowserCommand`s so browser-side tests can talk to the Node-side SDK over Vitest's tinyRPC.
-- Auto-sets `poolOptions.threads.singleThread = true` when it sees `dicta/vitest/browser` imports — VoiceOver is a system singleton, so parallel tests would collide.
-- Throws `ShokiConcurrentTestError` at the first `test.concurrent` in a VO-scoped file, pointing you at the exact fix.
+- Auto-sets `poolOptions.threads.singleThread = true` when it sees `ogmios/vitest/browser` imports — VoiceOver is a system singleton, so parallel tests would collide.
+- Throws `OgmiosConcurrentTestError` at the first `test.concurrent` in a VO-scoped file, pointing you at the exact fix.
 
 ## 3. Define a Qwik component
 
@@ -90,11 +90,11 @@ export const SubmitButton = component$(() => {
 ```tsx
 import { render } from "vitest-browser-qwik";
 import { page } from "@vitest/browser/context";
-import { voiceOver, type ShokiBrowserSession } from "dicta/vitest/browser";
+import { voiceOver, type OgmiosBrowserSession } from "ogmios/vitest/browser";
 import { expect, test, beforeAll, afterAll, beforeEach } from "vitest";
 import { SubmitButton } from "../src/SubmitButton";
 
-let session: ShokiBrowserSession;
+let session: OgmiosBrowserSession;
 
 beforeAll(async () => {
   session = await voiceOver.start({ mute: true });
@@ -144,7 +144,7 @@ What's happening in the CSR test:
 
 1. **`beforeAll` → `voiceOver.start({ mute: true })`** — browser-side call dispatches over tinyRPC to the Node-side `SessionStore`, which boots VoiceOver muted. Returns a session handle. One VoiceOver session per test file is the default; the SessionStore refcounts if multiple test files in the same worker share a session.
 2. **`beforeEach` → `session.reset()`** — cheap per-test cleanup. No osascript respawn, no VO restart — only clears the ring buffer and resets the VO cursor.
-3. **`render(...)` + Playwright `.click()`** — standard Vitest browser-mode. Dicta never drives the page.
+3. **`render(...)` + Playwright `.click()`** — standard Vitest browser-mode. Ogmios never drives the page.
 4. **`awaitStable({ quietMs: 500 })`** — polls until VO has been silent for 500ms, then returns the accumulated event log.
 5. **`toHaveAnnounced({ role, name })`** — iterates the log looking for an event whose `role` and `name` match.
 6. **`afterAll` → `session.end()`** — tears VoiceOver down and restores the pre-test plist keys. `end()` is the preferred name in v1+; `stop()` remains available for back-compat.
@@ -160,7 +160,7 @@ pnpm vitest run
 Full integration (SSR + CSR + real VoiceOver):
 
 ```bash
-SHOKI_INTEGRATION=1 pnpm vitest run
+OGMIOS_INTEGRATION=1 pnpm vitest run
 ```
 
 Expected output:
@@ -174,17 +174,17 @@ Expected output:
 Tests  2 passed (2)
 ```
 
-Without `SHOKI_INTEGRATION=1`, SSR tests still run (they don't need a screen reader) and the VO-dependent CSR test is skipped — this is how you can still run CI on non-darwin hosts without the test suite exploding.
+Without `OGMIOS_INTEGRATION=1`, SSR tests still run (they don't need a screen reader) and the VO-dependent CSR test is skipped — this is how you can still run CI on non-darwin hosts without the test suite exploding.
 
 ## Why the gate?
 
-`SHOKI_INTEGRATION=1` is an explicit opt-in to the real-VO path. Reasons:
+`OGMIOS_INTEGRATION=1` is an explicit opt-in to the real-VO path. Reasons:
 
 - **Non-darwin CI jobs** (lint, typecheck on Ubuntu) don't have VO available.
 - **Darwin CI jobs without proper grants** would fail cryptically otherwise; the gate makes it loud when the real test is actually running.
 - **Local dev without setup** still gets the SSR + render-only smoke tests passing green.
 
-The canonical [`examples/vitest-browser-qwik`](https://github.com/shoki/shoki/tree/main/examples/vitest-browser-qwik) repo uses this pattern. Copy its `vitest.config.ts` and `tests/` verbatim if you want a known-good starting point.
+The canonical [`examples/vitest-browser-qwik`](https://github.com/thejackshelton/ogmios/tree/main/examples/vitest-browser-qwik) repo uses this pattern. Copy its `vitest.config.ts` and `tests/` verbatim if you want a known-good starting point.
 
 ## What's next
 
@@ -194,9 +194,9 @@ The canonical [`examples/vitest-browser-qwik`](https://github.com/shoki/shoki/tr
 
 ## Troubleshooting
 
-- **`ShokiConcurrentTestError`** — you used `test.concurrent` somewhere in the file. Remove it; VoiceOver is a singleton.
-- **Empty log + `toHaveAnnounced` fails** — run `dicta doctor`. Missing Automation grant is the #1 cause.
+- **`OgmiosConcurrentTestError`** — you used `test.concurrent` somewhere in the file. Remove it; VoiceOver is a singleton.
+- **Empty log + `toHaveAnnounced` fails** — run `ogmios doctor`. Missing Automation grant is the #1 cause.
 - **Timeout on `awaitStable`** — bump `quietMs` or `timeoutMs`. On a slow machine 500ms is tight.
-- **"VoiceOver driver is macOS-only"** — you're on Linux/Windows; drop `SHOKI_INTEGRATION=1`.
+- **"VoiceOver driver is macOS-only"** — you're on Linux/Windows; drop `OGMIOS_INTEGRATION=1`.
 
 For the full troubleshooting index see [Troubleshooting](/guides/troubleshooting).

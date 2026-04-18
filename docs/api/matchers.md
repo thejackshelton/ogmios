@@ -1,11 +1,11 @@
-# Matchers (`dicta/matchers` + `dicta/vitest/setup`)
+# Matchers (`ogmios/matchers` + `ogmios/vitest/setup`)
 
-Four Vitest `expect` matchers over `ShokiEvent[]` (or `WireShokiEvent[]`) logs.
+Four Vitest `expect` matchers over `OgmiosEvent[]` (or `WireOgmiosEvent[]`) logs.
 
 The package layout separates pure assertion logic from framework wiring:
 
-- **`dicta/matchers`** — framework-agnostic matcher functions (Jest-compatible `{ pass, message }` shape). Safe to import from anywhere.
-- **`dicta/vitest/setup`** — the `expect.extend(...)` setup file. This is what you point Vitest's `setupFiles` at.
+- **`ogmios/matchers`** — framework-agnostic matcher functions (Jest-compatible `{ pass, message }` shape). Safe to import from anywhere.
+- **`ogmios/vitest/setup`** — the `expect.extend(...)` setup file. This is what you point Vitest's `setupFiles` at.
 
 For a narrative introduction with full examples, see the [Matchers guide](/guides/matchers). This page is the type reference.
 
@@ -14,17 +14,17 @@ For a narrative introduction with full examples, see the [Matchers guide](/guide
 ```ts
 // vitest.config.ts
 export default defineConfig({
-  test: { setupFiles: ["dicta/vitest/setup"] },
+  test: { setupFiles: ["ogmios/vitest/setup"] },
 });
 ```
 
-This registers the four matchers globally and augments Vitest's `expect` type to know about them. The matcher implementations themselves come from `dicta/matchers`.
+This registers the four matchers globally and augments Vitest's `expect` type to know about them. The matcher implementations themselves come from `ogmios/matchers`.
 
 ## Shared types
 
 ```ts
 /** Node-side event. */
-interface ShokiEvent {
+interface OgmiosEvent {
   phrase: string;
   tsNanos: bigint;
   source: "applescript" | "ax";
@@ -34,7 +34,7 @@ interface ShokiEvent {
 }
 
 /** Browser-side / RPC-safe variant. `tsMs: number` instead of `tsNanos: bigint`. */
-interface WireShokiEvent {
+interface WireOgmiosEvent {
   phrase: string;
   tsMs: number;
   source: "applescript" | "ax";
@@ -43,7 +43,7 @@ interface WireShokiEvent {
   name?: string;
 }
 
-type AnyLog = ShokiEvent[] | WireShokiEvent[];
+type AnyLog = OgmiosEvent[] | WireOgmiosEvent[];
 
 /** String-or-RegExp matcher for role/name. */
 type StringMatcher = string | RegExp;
@@ -136,7 +136,7 @@ await expect(log: AnyLog).toHaveStableLog({
 }): Promise<void>;
 ```
 
-The matcher observes the same array reference you pass in — so you need a **live** reference, not a snapshot. With `dicta/vitest`, `session.log` is the live reference.
+The matcher observes the same array reference you pass in — so you need a **live** reference, not a snapshot. With `ogmios/vitest`, `session.log` is the live reference.
 
 ### Example
 
@@ -150,7 +150,7 @@ Most tests will prefer `session.awaitStable({ quietMs })` which returns a stable
 
 ## Type augmentation
 
-`dicta/vitest/setup` adds this to Vitest's `expect`:
+`ogmios/vitest/setup` adds this to Vitest's `expect`:
 
 ```ts
 declare module "vitest" {
@@ -178,4 +178,4 @@ No separate type imports required if you're using `"moduleResolution": "bundler"
 ## See also
 
 - [Matchers guide](/guides/matchers) for worked examples.
-- [`dicta`](/api/sdk) for the event shape and capture APIs.
+- [`ogmios`](/api/sdk) for the event shape and capture APIs.

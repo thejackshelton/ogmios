@@ -1,13 +1,13 @@
 # Troubleshooting
 
-Known failure modes and their fixes. If you hit something not listed here, [open an issue](https://github.com/shoki/shoki/issues) — adding it to this page is part of the triage workflow.
+Known failure modes and their fixes. If you hit something not listed here, [open an issue](https://github.com/thejackshelton/ogmios/issues) — adding it to this page is part of the triage workflow.
 
 ## Quick diagnosis
 
-Always run `dicta doctor` first. 90% of the issues on this page are diagnosed by it in one shot.
+Always run `ogmios doctor` first. 90% of the issues on this page are diagnosed by it in one shot.
 
 ```bash
-npx dicta doctor
+npx ogmios doctor
 ```
 
 Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
@@ -16,8 +16,8 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 
 ### `AXError -25204` / "cannot observe announcements"
 
-- **Cause:** The ShokiRunner helper lacks the Accessibility TCC grant (or the grant is stale after a binding upgrade).
-- **Fix:** Run `dicta doctor`. If it reports missing Accessibility, follow the deep link to System Settings → Privacy & Security → Accessibility and toggle ShokiRunner.app on. If the grant is present but mismatched, run `tccutil reset Accessibility com.shoki.ShokiRunner` and re-grant.
+- **Cause:** The OgmiosRunner helper lacks the Accessibility TCC grant (or the grant is stale after a binding upgrade).
+- **Fix:** Run `ogmios doctor`. If it reports missing Accessibility, follow the deep link to System Settings → Privacy & Security → Accessibility and toggle OgmiosRunner.app on. If the grant is present but mismatched, run `tccutil reset Accessibility org.ogmios.runner` and re-grant.
 
 ### Ghost VoiceOver process after tests
 
@@ -28,7 +28,7 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
   ```bash
   sudo pkill -9 VoiceOver
   ```
-- **Prevention:** Make sure your test runner lets Shoki's exit handlers finish. Don't use `kill -9` on `vitest`. `ctrl+C` is fine (SIGINT is handled).
+- **Prevention:** Make sure your test runner lets Ogmios's exit handlers finish. Don't use `kill -9` on `vitest`. `ctrl+C` is fine (SIGINT is handled).
 
 ### Announcements drop during rapid UI updates
 
@@ -47,35 +47,35 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 ### Tests pass locally, fail in CI
 
 - **Cause:** The CI runner lacks TCC grants or VO-AppleScript-enabled.
-- **Fix:** Use the [pre-baked tart image](/guides/ci/tart-selfhosted) (`ghcr.io/shoki/macos-vo-ready:<macos>`) or make sure your workflow includes `uses: shoki/setup-action@v1` before the test step. See [CI quickstart](/getting-started/ci-quickstart).
+- **Fix:** Use the [pre-baked tart image](/guides/ci/tart-selfhosted) (`ghcr.io/thejackshelton/ogmios-macos-vo-ready:<macos>`) or make sure your workflow includes `uses: thejackshelton/ogmios-setup-action@v1` before the test step. See [CI quickstart](/getting-started/ci-quickstart).
 
-### `ShokiConcurrentTestError` from the Vitest plugin
+### `OgmiosConcurrentTestError` from the Vitest plugin
 
-- **Cause:** You used `test.concurrent(...)` inside a file that imports `dicta/vitest/browser`. VO is a system singleton; concurrent tests would pollute each other's capture logs.
-- **Fix:** Remove the `.concurrent`. Vitest will run the tests serially in a single thread. Dicta refcount semantics handle cross-file VO sharing.
+- **Cause:** You used `test.concurrent(...)` inside a file that imports `ogmios/vitest/browser`. VO is a system singleton; concurrent tests would pollute each other's capture logs.
+- **Fix:** Remove the `.concurrent`. Vitest will run the tests serially in a single thread. Ogmios refcount semantics handle cross-file VO sharing.
 
-### `ShokiPlatformUnsupportedError`
+### `OgmiosPlatformUnsupportedError`
 
 - **Cause:** You tried to boot VoiceOver on non-darwin (Linux, Windows).
-- **Fix:** Drop `SHOKI_INTEGRATION=1` on these hosts; the render-only test path works cross-platform.
+- **Fix:** Drop `OGMIOS_INTEGRATION=1` on these hosts; the render-only test path works cross-platform.
 
-### `ShokiBindingNotAvailableError`
+### `OgmiosBindingNotAvailableError`
 
 - **Cause:** The platform-specific native binding didn't resolve at install time.
 - **Fix:**
   1. `pnpm install --force`
-  2. Check `node_modules/@shoki/` for a `binding-darwin-arm64` or `binding-darwin-x64` subdirectory.
+  2. Check `node_modules/@ogmios/` for a `binding-darwin-arm64` or `binding-darwin-x64` subdirectory.
   3. If it's missing, your registry might be blocking optional deps — set `optional=true` in `.npmrc` or pin the platform binding manually.
 
-### `dicta doctor` says "Full Disk Access needed"
+### `ogmios doctor` says "Full Disk Access needed"
 
-- **Cause:** `dicta doctor` reads the system TCC.db, which is SIP-protected on macOS 14+.
+- **Cause:** `ogmios doctor` reads the system TCC.db, which is SIP-protected on macOS 14+.
 - **Fix:** Grant FDA to your terminal in System Settings → Privacy & Security → Full Disk Access, OR run with `--skip-system-tcc` (user-scope check only).
 
 ### Empty log + `toHaveAnnounced` fails
 
-- **Cause:** Almost always a missing Automation grant specifically (Accessibility alone is not sufficient). VoiceOver has to show up as a child entry of ShokiRunner.app under Automation.
-- **Fix:** Run `dicta doctor` — it diagnoses Automation specifically. Re-grant if needed, re-run.
+- **Cause:** Almost always a missing Automation grant specifically (Accessibility alone is not sufficient). VoiceOver has to show up as a child entry of OgmiosRunner.app under Automation.
+- **Fix:** Run `ogmios doctor` — it diagnoses Automation specifically. Re-grant if needed, re-run.
 
 ### `awaitStable` times out
 
@@ -86,45 +86,45 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 
 ### VO starts but never announces anything
 
-- **Cause 1:** VO is running but muted at the system level in a way Dicta doesn't override (`voiceOver.start({ mute: true })` uses our own plist key, not the system mute).
-- **Fix 1:** Don't worry about system mute; Dicta controls capture independently of speaker output. If `phraseLog()` still returns `[]` something deeper is broken.
+- **Cause 1:** VO is running but muted at the system level in a way Ogmios doesn't override (`voiceOver.start({ mute: true })` uses our own plist key, not the system mute).
+- **Fix 1:** Don't worry about system mute; Ogmios controls capture independently of speaker output. If `phraseLog()` still returns `[]` something deeper is broken.
 - **Cause 2:** Your app isn't actually announcing (bad `aria-live`, role mismatch, etc.).
-- **Fix 2:** Test against [`examples/vitest-browser-qwik`](https://github.com/shoki/shoki/tree/main/examples/vitest-browser-qwik) first — if the canonical example works, the problem is in your app's semantics.
+- **Fix 2:** Test against [`examples/vitest-browser-qwik`](https://github.com/thejackshelton/ogmios/tree/main/examples/vitest-browser-qwik) first — if the canonical example works, the problem is in your app's semantics.
 
-### `dicta doctor` exits 9 (HELPER_UNSIGNED)
+### `ogmios doctor` exits 9 (HELPER_UNSIGNED)
 
 - **Cause:** You're running against a dev build of the helper, not a signed release.
 - **Fix:**
   - For local dev, this is fine — just expect to re-grant permissions every time the helper changes.
-  - For CI or production, install a signed release from npm: `pnpm add -D dicta@latest`.
+  - For CI or production, install a signed release from npm: `pnpm add -D ogmios@latest`.
 
-### `dicta setup` fails with ENOENT on `~/Applications/`
+### `ogmios setup` fails with ENOENT on `~/Applications/`
 
-- **Cause:** Fresh macOS installs sometimes don't have `~/Applications/`. `dicta setup` auto-creates it, but on some sandboxed shells (e.g. restricted dev containers) the `mkdir -p` itself fails.
+- **Cause:** Fresh macOS installs sometimes don't have `~/Applications/`. `ogmios setup` auto-creates it, but on some sandboxed shells (e.g. restricted dev containers) the `mkdir -p` itself fails.
 - **Fix:**
   ```bash
   mkdir -p ~/Applications/
-  npx dicta setup
+  npx ogmios setup
   ```
   Or use `--install-dir <path>` to route installs somewhere you control.
 
-### "Cannot verify developer" when opening `Shoki.app`
+### "Cannot verify developer" when opening `OgmiosRunner.app`
 
-- **Cause:** macOS Gatekeeper quarantine wasn't stripped. `dicta setup` normally runs `xattr -dr com.apple.quarantine` on the installed bundles automatically.
-- **Fix:** Re-run `npx dicta setup --force`, or strip manually:
+- **Cause:** macOS Gatekeeper quarantine wasn't stripped. `ogmios setup` normally runs `xattr -dr com.apple.quarantine` on the installed bundles automatically.
+- **Fix:** Re-run `npx ogmios setup --force`, or strip manually:
   ```bash
-  xattr -dr com.apple.quarantine ~/Applications/Shoki.app ~/Applications/Shoki\ Setup.app
+  xattr -dr com.apple.quarantine ~/Applications/OgmiosRunner.app ~/Applications/OgmiosSetup.app
   ```
-  Or right-click `Shoki Setup.app` in Finder → Open → confirm. This is a one-time System Settings override.
+  Or right-click `OgmiosSetup.app` in Finder → Open → confirm. This is a one-time System Settings override.
 
-### `dicta setup` exits with "checksum mismatch"
+### `ogmios setup` exits with "checksum mismatch"
 
-- **Cause:** The downloaded `shoki-darwin-<arch>.zip` failed SHA256 verification against the published `.sha256` sidecar. Possible causes: interrupted download, corrupted cache, network MITM.
+- **Cause:** The downloaded `ogmios-darwin-<arch>.zip` failed SHA256 verification against the published `.sha256` sidecar. Possible causes: interrupted download, corrupted cache, network MITM.
 - **Fix:** Re-run with `--force` to redownload cleanly. If the failure repeats, open an issue with the URL printed by `--dry-run` and the hash output by `shasum -a 256 <cached-zip-path>`.
 
-### `dicta setup --no-download` fails in CI
+### `ogmios setup --no-download` fails in CI
 
-- **Cause:** Your CI image doesn't have `~/Applications/Shoki.app` pre-baked, but `--no-download` forbids fetching.
+- **Cause:** Your CI image doesn't have `~/Applications/OgmiosRunner.app` pre-baked, but `--no-download` forbids fetching.
 - **Fix:** Either drop `--no-download` (let setup fetch on first run) or bake the apps into your image. The [pre-baked tart image](/guides/ci/tart-selfhosted) already includes them.
 
 ## CI-specific
@@ -132,7 +132,7 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 ### Background apps leak announcements into captures
 
 - **Cause:** Slack, Discord, Teams, Mail, Calendar, system notifications, etc. announce over the foreground app.
-- **Fix:** `dicta/setup-action` runs `kill-background-apps.sh` as a pre-job step. If you're not using the action, copy the script from [`.github/actions/setup/`](https://github.com/shoki/shoki/tree/main/.github/actions/setup) and run it yourself.
+- **Fix:** `ogmios/setup-action` runs `kill-background-apps.sh` as a pre-job step. If you're not using the action, copy the script from [`.github/actions/setup/`](https://github.com/thejackshelton/ogmios/tree/main/.github/actions/setup) and run it yourself.
 
 ### GH-hosted `macos-latest` is erratic
 
@@ -142,9 +142,9 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 ### macOS 26 (Tahoe) tests fail with a different error than on 14/15
 
 - **Cause:** CVE-2025-43530 tightened VO AppleScript access — an entitlement is now required.
-- **Fix:** Update to a tart image with the post-CVE entitlement baked in (`ghcr.io/shoki/macos-vo-ready:tahoe` at or after 2026-03). If your tooling can't provide the entitlement, Dicta falls back to the AX-notifications capture path — see [Platform risk](/background/platform-risk).
+- **Fix:** Update to a tart image with the post-CVE entitlement baked in (`ghcr.io/thejackshelton/ogmios-macos-vo-ready:tahoe` at or after 2026-03). If your tooling can't provide the entitlement, Ogmios falls back to the AX-notifications capture path — see [Platform risk](/background/platform-risk).
 
 ## Still stuck?
 
-1. Run `dicta info` — it prints a diagnostic blob suitable for pasting into a bug report.
-2. Open an issue on [the repo](https://github.com/shoki/shoki/issues) with: macOS version, Node version, pnpm version, the output of `dicta doctor`, and the output of `dicta info`.
+1. Run `ogmios info` — it prints a diagnostic blob suitable for pasting into a bug report.
+2. Open an issue on [the repo](https://github.com/thejackshelton/ogmios/issues) with: macOS version, Node version, pnpm version, the output of `ogmios doctor`, and the output of `ogmios info`.

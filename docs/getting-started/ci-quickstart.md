@@ -1,6 +1,6 @@
 # CI quickstart
 
-Shoki runs on four CI topologies. Pick the one that fits your budget and constraints, copy the reference workflow, point it at your repo.
+Ogmios runs on four CI topologies. Pick the one that fits your budget and constraints, copy the reference workflow, point it at your repo.
 
 ## Pick a topology
 
@@ -11,7 +11,7 @@ Shoki runs on four CI topologies. Pick the one that fits your budget and constra
 | [GetMac](/guides/ci/getmac) | Variable (plan-based, ~40% cheaper than GH-hosted) | Fast (M4 Mac minis) | You want a drop-in `runs-on` replacement without setup. |
 | [GitHub-hosted `macos-latest`](/guides/ci/gh-hosted) | 10× Linux minute multiplier | Slow (cold boot each run) | Occasional CI. Don't use for heavy matrices. |
 
-All four share a single reusable action — [`shoki/setup-action`](https://github.com/shoki/shoki/tree/main/.github/actions/setup) — that auto-detects the topology and applies the right setup.
+All four share a single reusable action — [`ogmios/setup-action`](https://github.com/thejackshelton/ogmios/tree/main/.github/actions/setup) — that auto-detects the topology and applies the right setup.
 
 ## Minimum viable workflow
 
@@ -46,24 +46,24 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      - uses: shoki/setup-action@v1
+      - uses: thejackshelton/ogmios-setup-action@v1
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
 
-      - name: Run shoki tests
-        run: SHOKI_INTEGRATION=1 pnpm test
+      - name: Run ogmios tests
+        run: OGMIOS_INTEGRATION=1 pnpm test
 ```
 
-## What `shoki/setup-action` does
+## What `ogmios/setup-action` does
 
 The composite action auto-detects your runner and applies the right setup:
 
 - **Self-hosted tart** — no-op; the image is already baked with VO-AppleScript-enabled + TCC grants.
 - **Cirrus Runners** — no-op; same tart image under the hood.
-- **GetMac / GH-hosted** — runs `dicta doctor --fix` to enable VO AppleScript, kills background announcement-emitting apps (Slack, Discord, Mail, Calendar), and verifies Accessibility grants.
+- **GetMac / GH-hosted** — runs `ogmios doctor --fix` to enable VO AppleScript, kills background announcement-emitting apps (Slack, Discord, Mail, Calendar), and verifies Accessibility grants.
 
-See [CI-03 / CI-05 in the roadmap](https://github.com/shoki/shoki/blob/main/.planning/ROADMAP.md) for the full matrix of what gets set up where.
+See [CI-03 / CI-05 in the roadmap](https://github.com/thejackshelton/ogmios/blob/main/.planning/ROADMAP.md) for the full matrix of what gets set up where.
 
 ## Per-topology details
 
@@ -83,8 +83,8 @@ Pick one:
 
 ## Troubleshooting CI
 
-- **Tests pass locally, fail in CI** — almost always a missing TCC grant. Use the pre-baked tart image or make sure `shoki/setup-action` ran.
-- **Background apps announcing over the test** — ensure `kill-background-apps.sh` is in your workflow (it's bundled with `shoki/setup-action`).
+- **Tests pass locally, fail in CI** — almost always a missing TCC grant. Use the pre-baked tart image or make sure `ogmios/setup-action` ran.
+- **Background apps announcing over the test** — ensure `kill-background-apps.sh` is in your workflow (it's bundled with `ogmios/setup-action`).
 - **macOS 26 specifics** — CVE-2025-43530 tightened VO AppleScript. Your tart image needs to be at least `macos-vo-ready:tahoe-<2026-03>` for the entitlement to land.
 
 For CI-specific pitfalls see [Troubleshooting](/guides/troubleshooting#ci-specific).

@@ -1,10 +1,10 @@
 # Platform risk
 
-Shoki's v1 depends on macOS APIs that Apple controls and periodically restricts. This page is an open, honest discussion of those risks — what we depend on, where Apple has tightened access, how we hedge, and what we commit to.
+Ogmios's v1 depends on macOS APIs that Apple controls and periodically restricts. This page is an open, honest discussion of those risks — what we depend on, where Apple has tightened access, how we hedge, and what we commit to.
 
-## What shoki depends on
+## What ogmios depends on
 
-Two APIs carry the vast majority of shoki's functionality:
+Two APIs carry the vast majority of ogmios's functionality:
 
 ### 1. VoiceOver AppleScript surface
 
@@ -12,11 +12,11 @@ Two APIs carry the vast majority of shoki's functionality:
 tell application "VoiceOver" to get content of last phrase
 ```
 
-This is how Shoki retrieves what VoiceOver just spoke. Called every 50ms from the Zig core over a long-lived `osascript` shell.
+This is how Ogmios retrieves what VoiceOver just spoke. Called every 50ms from the Zig core over a long-lived `osascript` shell.
 
 **Dependencies:**
 
-- VoiceOver must be running (shoki boots it).
+- VoiceOver must be running (ogmios boots it).
 - The `SCREnableAppleScriptEnabled` key in `com.apple.VoiceOver4.local.plist` must be `true`. This is **off by default** since macOS 26.
 - On macOS 26+ a new entitlement is required to access VO AppleScript (see below).
 - The process running `osascript` needs Automation TCC grant for VoiceOver.
@@ -27,7 +27,7 @@ This is how Shoki retrieves what VoiceOver just spoke. Called every 50ms from th
 AXObserverAddNotification(observer, element, kAXAnnouncementRequestedNotification, ...)
 ```
 
-This is the parallel capture path added in Phase 3 as a macOS-26 hedge. The signed ShokiRunner helper subscribes to `AXAnnouncementRequested` and forwards events back to the Zig core over XPC.
+This is the parallel capture path added in Phase 3 as a macOS-26 hedge. The signed OgmiosRunner helper subscribes to `AXAnnouncementRequested` and forwards events back to the Zig core over XPC.
 
 **Dependencies:**
 
@@ -42,23 +42,23 @@ On **macOS 26.2** Apple fixed [CVE-2025-43530](https://support.apple.com/en-us/H
 **What changed:**
 
 - VoiceOver AppleScript access now requires an Apple-granted entitlement on macOS 26.2+.
-- Third parties (like Shoki) **cannot request** this entitlement through the standard Developer ID program.
+- Third parties (like Ogmios) **cannot request** this entitlement through the standard Developer ID program.
 - Without the entitlement, `osascript` calls against VoiceOver return an error.
 
 **Who is affected:**
 
-- All third-party tooling that relies on VoiceOver AppleScript: Guidepup, Shoki, Voiceover.js, any hand-rolled automation.
+- All third-party tooling that relies on VoiceOver AppleScript: Guidepup, Ogmios, Voiceover.js, any hand-rolled automation.
 - Apple's own tooling (VO itself, Accessibility Inspector) continues to work — they ship with the entitlement.
 
 **Our current position on 26.2+:**
 
-- Pre-baked tart images (`ghcr.io/shoki/macos-vo-ready:tahoe`) ship with SIP off and with the entitlement granted via image bake. This is the reliable path for CI.
+- Pre-baked tart images (`ghcr.io/thejackshelton/ogmios-macos-vo-ready:tahoe`) ship with SIP off and with the entitlement granted via image bake. This is the reliable path for CI.
 - Local dev on unmodified macOS 26.2 cannot use the AppleScript path — the AX-notifications fallback is the only option.
 - GH-hosted `macos-26` runners have SIP off and the entitlement workaround lands per-runner.
 
 ## Our hedge: AX-notifications parallel capture path
 
-Before macOS 26 shipped we already knew the AppleScript surface was fragile (older pitfalls: polling latency, lifecycle coupling to VoiceOver itself, the `SCREnableAppleScriptEnabled` dance). Phase 3 of Shoki implements a **parallel** capture path using AX notifications — we run both paths simultaneously and merge their results into a single event stream tagged with `source: "applescript" | "ax"`.
+Before macOS 26 shipped we already knew the AppleScript surface was fragile (older pitfalls: polling latency, lifecycle coupling to VoiceOver itself, the `SCREnableAppleScriptEnabled` dance). Phase 3 of Ogmios implements a **parallel** capture path using AX notifications — we run both paths simultaneously and merge their results into a single event stream tagged with `source: "applescript" | "ax"`.
 
 Properties of the AX-notifications path:
 
@@ -69,7 +69,7 @@ Properties of the AX-notifications path:
 
 When both paths are running, the structured event stream merges them; consumers can filter on `source` if they care.
 
-**Consequence:** even if Apple closes the AppleScript path entirely in a future macOS, Shoki keeps working via AX notifications, with a documented fidelity trade-off.
+**Consequence:** even if Apple closes the AppleScript path entirely in a future macOS, Ogmios keeps working via AX notifications, with a documented fidelity trade-off.
 
 ## Apple's trajectory
 
@@ -89,7 +89,7 @@ This is the **direction of travel**. We should not expect the AppleScript path t
 
 Scenario: a future macOS refuses to run `osascript` against VoiceOver for any third-party process, regardless of entitlement or TCC grants.
 
-**Shoki's fallback:**
+**Ogmios's fallback:**
 
 - AX-notifications path continues working — Apple has been clear that AX notifications are the supported public API for assistive technologies.
 - The wire format is source-tagged, so consumers don't need to change.
@@ -102,14 +102,14 @@ If **AX notifications also close**, we're in a different world. The contingency:
 3. Consider audio-capture + speech-to-text as a last-resort.
 4. Potentially deprecate the macOS surface and pivot to NVDA on Windows as the canonical target.
 
-We commit to **not** shipping workarounds built on genuinely private frameworks (`AXSpeechSynthesizer`, undocumented TCC-bypass paths, etc.). Those would poison shoki's reputation with the very users we're serving.
+We commit to **not** shipping workarounds built on genuinely private frameworks (`AXSpeechSynthesizer`, undocumented TCC-bypass paths, etc.). Those would poison ogmios's reputation with the very users we're serving.
 
 ## Our commitment to users
 
 - We will **always** disclose platform-level limits on this page before they affect a release.
-- We will **always** publish workarounds (image bake steps, entitlement flows, fallback paths) before or alongside platform changes that affect shoki.
+- We will **always** publish workarounds (image bake steps, entitlement flows, fallback paths) before or alongside platform changes that affect ogmios.
 - We will **not** ship private-framework surfaces that could break Mac App Store policy or Gatekeeper expectations.
-- When Apple's direction of travel forces a breaking change to the public API of shoki, we will version bump and document the migration, not silently ship behavior drift.
+- When Apple's direction of travel forces a breaking change to the public API of ogmios, we will version bump and document the migration, not silently ship behavior drift.
 
 ## Related reading
 
@@ -120,7 +120,7 @@ We commit to **not** shipping workarounds built on genuinely private frameworks 
 ## Status
 
 - macOS 14 (Sonoma): AppleScript path fully operational.
-- macOS 15 (Sequoia): AppleScript path fully operational. Plist path moved to `Group Containers`; shoki handles both.
+- macOS 15 (Sequoia): AppleScript path fully operational. Plist path moved to `Group Containers`; ogmios handles both.
 - macOS 26 (Tahoe): AppleScript path requires entitlement from tart image bake; AX-notifications path always available as fallback.
 
 We update this section per macOS release.

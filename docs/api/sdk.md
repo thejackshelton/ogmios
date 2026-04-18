@@ -1,16 +1,16 @@
-# `dicta`
+# `ogmios`
 
-Core TypeScript SDK. Public API surface for booting a screen reader, reading structured events, and running the `dicta` CLI. Ships three entry points:
+Core TypeScript SDK. Public API surface for booting a screen reader, reading structured events, and running the `ogmios` CLI. Ships three entry points:
 
 | Entry | Import | Purpose |
 |-------|--------|---------|
-| **Root** | `dicta` | `voiceOver()` factory, `ScreenReaderHandle`, event types. |
-| **Matchers** | `dicta/matchers` | Framework-agnostic matcher functions (pure assertion logic). See [Matchers API](/api/matchers). |
-| **CLI library** | `dicta/cli` | Library exports for `dicta` CLI internals (`runDoctor`, `applyFixActions`, report types). See [CLI API](/api/cli). |
-| **Binary** | `bin: dicta` | CLI entry (`./dist/cli/main.js`). Installed on PATH via `npx dicta …`. |
+| **Root** | `ogmios` | `voiceOver()` factory, `ScreenReaderHandle`, event types. |
+| **Matchers** | `ogmios/matchers` | Framework-agnostic matcher functions (pure assertion logic). See [Matchers API](/api/matchers). |
+| **CLI library** | `ogmios/cli` | Library exports for `ogmios` CLI internals (`runDoctor`, `applyFixActions`, report types). See [CLI API](/api/cli). |
+| **Binary** | `bin: ogmios` | CLI entry (`./dist/cli/main.js`). Installed on PATH via `npx ogmios …`. |
 
 ```ts
-import { voiceOver } from "dicta";
+import { voiceOver } from "ogmios";
 ```
 
 The `voiceOver` factory returns a [`ScreenReaderHandle`](#screenreaderhandle) — the uniform interface implemented by every driver (VoiceOver in v1; NVDA, Orca planned). Because it's a driver factory pattern, swapping screen readers in the future is a one-line change at the import site.
@@ -30,7 +30,7 @@ function voiceOver(options?: ScreenReaderOptions): ScreenReaderHandle;
 Use these when you want ONE VoiceOver session scoped to a test file (the most common shape). They manage a refcounted process-singleton internally — you don't thread a handle through `beforeAll`/`afterAll` yourself.
 
 ```ts
-import { voiceOver } from "dicta";
+import { voiceOver } from "ogmios";
 import { beforeAll, afterAll, beforeEach } from "vitest";
 
 beforeAll(async () => {
@@ -91,11 +91,11 @@ interface ScreenReaderHandle {
   reset(): Promise<void>;
   clear(): Promise<void>;
 
-  listen(): AsyncIterator<ShokiEvent>;
-  drain(): Promise<ShokiEvent[]>;
+  listen(): AsyncIterator<OgmiosEvent>;
+  drain(): Promise<OgmiosEvent[]>;
   phraseLog(): string[];
   lastPhrase(): string | null;
-  awaitStableLog(options: { quietMs: number; timeoutMs?: number }): Promise<ShokiEvent[]>;
+  awaitStableLog(options: { quietMs: number; timeoutMs?: number }): Promise<OgmiosEvent[]>;
 
   readonly running: boolean;
   readonly droppedCount: number;
@@ -136,7 +136,7 @@ Empties the log without any other side effects.
 
 ### `listen()`
 
-Returns an async iterator of structured [`ShokiEvent`](#shokievent) objects streamed from the ring buffer as they arrive.
+Returns an async iterator of structured [`OgmiosEvent`](#ogmiosevent) objects streamed from the ring buffer as they arrive.
 
 ```ts
 for await (const event of handle.listen()) {
@@ -147,7 +147,7 @@ for await (const event of handle.listen()) {
 
 ### `drain()`
 
-Returns all currently-buffered events as `ShokiEvent[]` and clears the buffer. Useful when you want a snapshot rather than a stream.
+Returns all currently-buffered events as `OgmiosEvent[]` and clears the buffer. Useful when you want a snapshot rather than a stream.
 
 ### `phraseLog()`
 
@@ -159,7 +159,7 @@ Returns the most recent phrase, or `null` if the log is empty.
 
 ### `awaitStableLog({ quietMs, timeoutMs? })`
 
-Resolves with the accumulated `ShokiEvent[]` when no new events have arrived for `quietMs` ms. Useful for waiting out a burst of VO activity before asserting.
+Resolves with the accumulated `OgmiosEvent[]` when no new events have arrived for `quietMs` ms. Useful for waiting out a burst of VO activity before asserting.
 
 - Throws if `timeoutMs` (default: 30_000) elapses before stability.
 
@@ -167,10 +167,10 @@ Resolves with the accumulated `ShokiEvent[]` when no new events have arrived for
 
 Number of events the ring buffer dropped due to overflow. If this is non-zero, increase `logBufferSize` in `start()` options or drain more frequently.
 
-## `ShokiEvent`
+## `OgmiosEvent`
 
 ```ts
-interface ShokiEvent {
+interface OgmiosEvent {
   /** The announced phrase (UTF-8). */
   phrase: string;
 
@@ -191,14 +191,14 @@ interface ShokiEvent {
 }
 ```
 
-The browser-side variant (used by `dicta/vitest`'s RPC payloads) uses `tsMs: number` instead of `tsNanos: bigint` — all matchers work against both shapes.
+The browser-side variant (used by `ogmios/vitest`'s RPC payloads) uses `tsMs: number` instead of `tsNanos: bigint` — all matchers work against both shapes.
 
 ## Keyboard command catalog
 
-Dicta is observe-only by design, but exports a complete catalog of VoiceOver gestures so users can drive VO via their own framework's keyboard driver. 226 VO commands + 129 Commander commands, exported as typed constants.
+Ogmios is observe-only by design, but exports a complete catalog of VoiceOver gestures so users can drive VO via their own framework's keyboard driver. 226 VO commands + 129 Commander commands, exported as typed constants.
 
 ```ts
-import { VoiceOverCommands } from "dicta";
+import { VoiceOverCommands } from "ogmios";
 
 // Example — dispatching "next" via Playwright:
 await page.keyboard.press(VoiceOverCommands.next.shortcut);
@@ -218,25 +218,25 @@ interface VoiceOverCommand {
 
 ## Errors
 
-All dicta errors extend `ShokiError`.
+All ogmios errors extend `OgmiosError`.
 
 | Error | Thrown when |
 |-------|-------------|
-| `ShokiPlatformUnsupportedError` | Called on non-darwin host in v1. |
-| `ShokiBindingNotAvailableError` | Platform-specific native binding failed to load. |
-| `ShokiVoiceOverUnavailableError` | VO binary not found (should never happen on stock macOS). |
-| `ShokiTimeoutError` | `.start()`, `.awaitStableLog()` exceeded their timeout. |
-| `ShokiCapturePathFailedError` | Both capture paths failed to initialize (check `dicta doctor`). |
+| `OgmiosPlatformUnsupportedError` | Called on non-darwin host in v1. |
+| `OgmiosBindingNotAvailableError` | Platform-specific native binding failed to load. |
+| `OgmiosVoiceOverUnavailableError` | VO binary not found (should never happen on stock macOS). |
+| `OgmiosTimeoutError` | `.start()`, `.awaitStableLog()` exceeded their timeout. |
+| `OgmiosCapturePathFailedError` | Both capture paths failed to initialize (check `ogmios doctor`). |
 
 ## Caveats
 
 - **VoiceOver is a system singleton.** Running multiple handles simultaneously is unsupported; refcount handles sharing across tests.
-- **bigint timestamps** — `tsNanos` is a `bigint`, which does not structured-clone cleanly across all browser/RPC boundaries. `dicta/vitest` converts to `tsMs: number` at the boundary.
+- **bigint timestamps** — `tsNanos` is a `bigint`, which does not structured-clone cleanly across all browser/RPC boundaries. `ogmios/vitest` converts to `tsMs: number` at the boundary.
 - **`role`/`name` may be empty** — the AppleScript capture path doesn't expose these; only the AX-notifications path does. If you're matching on them, prefer `source: "ax"` events.
 
 ## See also
 
-- [Matchers API](/api/matchers) — `expect` matchers at `dicta/matchers` (pure fns) + `dicta/vitest/setup` (wiring).
-- [`dicta/vitest`](/api/vitest) — Vitest browser-mode integration.
-- [`dicta` CLI](/api/cli) — doctor / setup / info / restore-vo-settings subcommands.
+- [Matchers API](/api/matchers) — `expect` matchers at `ogmios/matchers` (pure fns) + `ogmios/vitest/setup` (wiring).
+- [`ogmios/vitest`](/api/vitest) — Vitest browser-mode integration.
+- [`ogmios` CLI](/api/cli) — doctor / setup / info / restore-vo-settings subcommands.
 - [Adding a screen reader driver](/background/adding-a-driver) — the same `ScreenReaderHandle` interface is reused.

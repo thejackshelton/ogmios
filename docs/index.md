@@ -2,19 +2,19 @@
 layout: home
 
 hero:
-  name: Dicta
+  name: Ogmios
   text: Real screen readers in your tests.
-  tagline: Run VoiceOver (and later NVDA, Orca) from any test framework. Capture announcements as structured events. Assert semantically. Locally and in CI.
+  tagline: Ogmios — the Gaulish god of eloquence, who bound his listeners with chains of gold from his tongue to their ears. Run VoiceOver (and later NVDA, Orca) from any test framework. Capture announcements as structured events. Assert semantically. Locally and in CI.
   image:
     src: /ear.png
-    alt: Dicta — a dotwork illustration of a human ear in coral on deep navy
+    alt: Ogmios — a dotwork illustration of a human ear in coral on deep navy
   actions:
     - theme: brand
       text: Get started
       link: /getting-started/install
     - theme: alt
       text: View on GitHub
-      link: https://github.com/shoki/shoki
+      link: https://github.com/thejackshelton/ogmios
 
 features:
   - icon: 🦻
@@ -22,10 +22,10 @@ features:
     details: Boot actual VoiceOver from your Vitest test, capture what it would have spoken, assert against it. No audio-capture hacks, no static checkers.
   - icon: 🧪
     title: Observe-only by design
-    details: Shoki never clicks, types, or navigates. Your Playwright / XCUITest / framework drives the app; Shoki captures what the screen reader says about it.
+    details: Ogmios never clicks, types, or navigates. Your Playwright / XCUITest / framework drives the app; Ogmios captures what the screen reader says about it.
   - icon: 🔒
     title: Stable TCC trust anchor
-    details: Signed Zig-compiled helper app holds the Accessibility + Automation grants. TCC doesn't break every time Node updates. One-click GUI setup (ShokiSetup.app) triggers first-run prompts.
+    details: Signed Zig-compiled helper app holds the Accessibility + Automation grants. TCC doesn't break every time Node updates. One-click GUI setup (OgmiosSetup.app) triggers first-run prompts.
   - icon: 🏗️
     title: CI-first
     details: Four reference topologies — self-hosted tart, Cirrus Runners, GetMac, stock macos-latest. Pre-baked tart images with VoiceOver-AppleScript-enabled and permissions granted.
@@ -40,19 +40,28 @@ features:
 ## Quick install
 
 ```bash
-pnpm add -D dicta
-npx dicta doctor
+pnpm add -D ogmios
+npx ogmios doctor
 # If TCC is missing, one-click setup via the bundled GUI:
-npx dicta setup
+npx ogmios setup
 ```
 
 Then follow the [Vitest quickstart](/getting-started/vitest-quickstart) — a complete working test in under 5 minutes.
 
-> **Note:** v0.1 ships with the helper application retaining its original "Shoki" file names (`Shoki.app`, `Shoki Setup.app`). When you run `npx dicta setup`, a window labeled "Shoki Setup" will launch — this is expected. Full helper rebrand in v0.2.
+## What is Ogmios?
 
-## What is Dicta?
+**Ogmios** — the Gaulish god of eloquence.
 
-Dicta is a Zig-core + TypeScript-SDK library that lets any test framework start a **real** screen reader, capture its announcements as structured events, and assert on them — locally on a developer's Mac and in CI on multiple macOS runner topologies.
+The Greek satirist Lucian of Samosata described a statue of Ogmios in 2nd-century
+Gaul: an old man with chains of gold and amber running from his tongue to the ears
+of his followers, who trailed behind him willingly, pulled by his words. Lucian's
+Gaulish host explained that in Celtic tradition, wisdom and persuasion are greater
+in age than in youth — so the god of speech is painted as an elder.
+
+The library is that chain. It captures the speech traveling from the screen reader
+— the tongue — to the test — the ear — so you can assert on every word.
+
+Ogmios is a Zig-core + TypeScript-SDK library that lets any test framework start a **real** screen reader, capture its announcements as structured events, and assert on them — locally on a developer's Mac and in CI on multiple macOS runner topologies.
 
 **Core value:** A test author can start a real screen reader from their existing test framework, capture what it announces, and assert on it — locally and in CI — without becoming a sysadmin.
 
@@ -67,7 +76,7 @@ Most accessibility tests today use static rule checkers (axe-core, ESLint-jsx-a1
 - macOS CI runners are expensive and fiddly.
 - NVDA is Windows-only.
 
-Dicta solves those piece by piece — one signed helper, one dual-path capture, one set of CI workflows.
+Ogmios solves those piece by piece — one signed helper, one dual-path capture, one set of CI workflows.
 
 ## Status
 
@@ -77,4 +86,4 @@ See the [architecture](/background/architecture) page for the full load-bearing 
 
 ## License
 
-[MIT](https://github.com/shoki/shoki/blob/main/LICENSE)
+[MIT](https://github.com/thejackshelton/ogmios/blob/main/LICENSE)
