@@ -19,7 +19,6 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@shoki/matchers": "workspace:*",
     "@shoki/vitest": "workspace:*",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",

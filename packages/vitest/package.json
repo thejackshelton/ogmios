@@ -1,7 +1,7 @@
 {
   "name": "@shoki/vitest",
   "version": "0.0.0",
-  "description": "Vitest browser-mode plugin for Shoki — registers BrowserCommands that bridge browser tests to @shoki/sdk over tinyRPC",
+  "description": "Vitest browser-mode plugin for Shoki — BrowserCommands bridge + expect.extend wiring for @shoki/sdk/matchers",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -19,6 +19,10 @@
     "./browser": {
       "types": "./dist/browser.d.ts",
       "import": "./dist/browser.js"
+    },
+    "./setup": {
+      "types": "./dist/setup.d.ts",
+      "import": "./dist/setup.js"
     }
   },
   "files": [
@@ -55,6 +59,7 @@
     "shoki",
     "vitest",
     "browser-mode",
+    "matchers",
     "screen-reader",
     "voiceover",
     "accessibility"

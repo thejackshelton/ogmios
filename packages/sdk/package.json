@@ -1,7 +1,7 @@
 {
   "name": "@shoki/sdk",
   "version": "0.0.0",
-  "description": "Screen-reader test automation SDK — TypeScript surface for Shoki's Zig native core",
+  "description": "Screen-reader test automation SDK — TypeScript surface + CLI + matchers for Shoki's Zig native core",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -11,10 +11,21 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "shoki": "./dist/cli/main.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli/index.d.ts",
+      "import": "./dist/cli/index.js"
+    },
+    "./matchers": {
+      "types": "./dist/matchers/index.d.ts",
+      "import": "./dist/matchers/index.js"
     }
   },
   "files": [
@@ -24,6 +35,12 @@
     "README.md",
     "LICENSE"
   ],
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "commander": "^12.0.0",
+    "execa": "^9.0.0",
+    "picocolors": "^1.0.0"
+  },
   "optionalDependencies": {
     "@shoki/binding-darwin-arm64": "workspace:*",
     "@shoki/binding-darwin-x64": "workspace:*"
@@ -35,9 +52,19 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^24.0.0",
+    "tsx": "^4.19.0",
     "typescript": "^6.0.0",
     "vitest": "^3.0.0"
+  },
+  "peerDependencies": {
+    "vitest": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=24.0.0"
@@ -47,7 +74,10 @@
     "voiceover",
     "accessibility",
     "testing",
-    "vitest"
+    "vitest",
+    "doctor",
+    "cli",
+    "tcc"
   ],
   "publishConfig": {
     "access": "public",

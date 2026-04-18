@@ -1,4 +1,3 @@
-import '@shoki/matchers'; // side-effect: augments Vitest's Assertion with toHaveAnnounced etc.
 import { type ShokiBrowserSession, voiceOver } from '@shoki/vitest/browser';
 import { page } from '@vitest/browser/context';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';

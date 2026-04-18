@@ -1,2 +1,2 @@
-// Extend Vitest's `expect` with @shoki/matchers.
-import '@shoki/matchers/setup';
+// Extend Vitest's `expect` with @shoki/sdk/matchers via @shoki/vitest's setup shim.
+import '@shoki/vitest/setup';
