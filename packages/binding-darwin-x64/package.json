@@ -11,6 +11,8 @@
   "main": "shoki.node",
   "files": [
     "shoki.node",
+    "helper/ShokiRunner.app/**",
+    "helper/ShokiSetup.app/**",
     "README.md",
     "LICENSE"
   ],
