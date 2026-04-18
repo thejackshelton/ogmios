@@ -9,9 +9,9 @@
     "url": "git+https://github.com/thejackshelton/munadi.git",
     "directory": "packages/binding-darwin-x64"
   },
-  "main": "shoki.node",
+  "main": "munadi.node",
   "files": [
-    "shoki.node",
+    "munadi.node",
     "README.md",
     "LICENSE"
   ],
