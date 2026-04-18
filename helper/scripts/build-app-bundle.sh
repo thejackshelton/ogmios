@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
-# Build ShokiRunner.app from the Zig helper.
+# Build ShokiRunner.app AND ShokiSetup.app from the Zig helper.
 #
 # Usage: ./scripts/build-app-bundle.sh [--configuration release|debug]
 #
-# Runs from the helper/ directory. Produces ./.build/ShokiRunner.app/.
-# Phase 08 Plan 02 replaced `swift build` with `zig build` — the bundle
-# staging lives inside helper/build.zig (addInstallFileWithDir chain for
-# Contents/Info.plist + Contents/MacOS/ShokiRunner), so this script is a
-# thin driver: invoke zig build, verify the bundle landed, exit.
+# Runs from the helper/ directory. Produces:
+#   - helper/.build/ShokiRunner.app/
+#   - helper/.build/ShokiSetup.app/
+#   - helper/.build/libShokiXPCClient.dylib
+#
+# Phase 08 Plan 04 extended this script to verify BOTH bundles + the dylib
+# in a single `zig build` invocation (helper/build.zig stages both .app
+# contents via addInstallFileWithDir chains for each exe's Info.plist +
+# Contents/MacOS/<exe>).
+#
+# On failure the script exits non-zero at the first missing artifact so CI's
+# `set -euo pipefail` surfaces the precise cause.
 
 set -euo pipefail
 
@@ -31,18 +38,25 @@ fi
 echo "[build-app-bundle] Building Zig helper (configuration=$CONFIG)"
 zig build "$OPT_FLAG"
 
-BUNDLE="$HELPER_DIR/.build/ShokiRunner.app"
-if [[ ! -x "$BUNDLE/Contents/MacOS/ShokiRunner" ]]; then
-    echo "error: bundle exe missing at $BUNDLE/Contents/MacOS/ShokiRunner" >&2
-    exit 1
-fi
-if [[ ! -f "$BUNDLE/Contents/Info.plist" ]]; then
-    echo "error: Info.plist missing at $BUNDLE/Contents/Info.plist" >&2
-    exit 1
-fi
-if [[ ! -f "$HELPER_DIR/.build/libShokiXPCClient.dylib" ]]; then
-    echo "error: libShokiXPCClient.dylib missing at $HELPER_DIR/.build/" >&2
-    exit 1
-fi
+RUNNER="$HELPER_DIR/.build/ShokiRunner.app"
+SETUP="$HELPER_DIR/.build/ShokiSetup.app"
+DYLIB="$HELPER_DIR/.build/libShokiXPCClient.dylib"
 
-echo "[build-app-bundle] Bundle ready at $BUNDLE"
+# Verify every artifact that downstream CI (sign + notarize + copy into
+# binding package) depends on. A missing file here means `zig build` silently
+# dropped a target — fail loud rather than ship a broken bundle.
+for f in "$RUNNER/Contents/MacOS/ShokiRunner" \
+         "$RUNNER/Contents/Info.plist" \
+         "$SETUP/Contents/MacOS/ShokiSetup" \
+         "$SETUP/Contents/Info.plist" \
+         "$DYLIB"; do
+    if [[ ! -e "$f" ]]; then
+        echo "error: missing artifact $f" >&2
+        exit 1
+    fi
+done
+
+echo "[build-app-bundle] Bundles ready:"
+echo "  - $RUNNER"
+echo "  - $SETUP"
+echo "  - $DYLIB"
