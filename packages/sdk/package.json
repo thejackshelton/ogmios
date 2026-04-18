@@ -1,6 +1,7 @@
 {
   "name": "shoki",
   "version": "0.0.0",
+  "compatibleAppVersion": "0.1.0",
   "description": "Screen-reader test automation SDK — TypeScript surface + CLI + matchers + Vitest plugin for Shoki's Zig native core",
   "license": "MIT",
   "repository": {
