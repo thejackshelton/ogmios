@@ -6,24 +6,50 @@
 // protected API. ShokiSetup.app replaces "follow these 4 System Settings
 // steps" with "double-click this once."
 //
+// ## Sequencing (why this file is opinionated)
+//
+// The original Plan 08-03 flow fired Accessibility + VoiceOver-launch +
+// Automation back-to-back with fixed sleeps. On real hardware the result
+// was cascading dialogs: the Accessibility prompt appeared at the same
+// moment VoiceOver boot started announcing itself over the top of the
+// prompt, and the Automation prompt landed ~3s later before the user
+// had time to click Allow on the first one.
+//
+// This file implements the FIX: each stage blocks until macOS actually
+// reports the prior grant, and each stage is fronted by an NSAlert so
+// the user knows what's about to happen.
+//
 // Flow (interactive mode, no flags):
 //
 //   1. NSApplication.sharedApplication + setActivationPolicy(.regular) + activate
-//   2. AXIsProcessTrustedWithOptions({ kAXTrustedCheckOptionPrompt: YES })
-//      -> macOS shows the Accessibility TCC dialog if not yet granted
-//   3. NSAppleScript `tell application "VoiceOver" to launch` -> VO boots
-//   4. NSAppleScript `tell application "VoiceOver" to get bounds of vo cursor`
-//      -> triggers the Automation-of-VoiceOver TCC dialog (QA-REPORT.md
-//      Unblockers Step 1 Option A)
-//   5. NSAlert "Shoki is ready" modal
-//   6. NSAppleScript `tell application "VoiceOver" to quit` (courtesy cleanup)
-//   7. [NSApp terminate:nil]
+//   2. Welcome NSAlert — single Continue button.
+//   3. Probe AXIsProcessTrusted(); skip step 4 if already granted.
+//   4. AXIsProcessTrustedWithOptions({ kAXTrustedCheckOptionPrompt: YES })
+//      -> macOS shows the Accessibility TCC dialog.
+//   5. Poll AXIsProcessTrusted() every 500ms for up to 120s until granted.
+//      Timeout -> "open System Settings" NSAlert + exit 4.
+//   6. Mid-flow NSAlert: "Accessibility granted, now requesting Automation."
+//   7. NSAppleScript `tell application "VoiceOver" to launch` -> VO boots.
+//   8. 3-second settle.
+//   9. NSAppleScript `tell application "VoiceOver" to get bounds of vo cursor`
+//      in a retry loop — the first hit fires the Automation TCC prompt;
+//      subsequent hits succeed once the user clicks Allow. Polls every
+//      500ms for up to 60s.
+//  10. Success NSAlert: "Shoki is ready".
+//  11. NSAppleScript `tell application "VoiceOver" to quit` (courtesy cleanup).
+//  12. [NSApp terminate:nil].
 //
 // Flags:
-//   --version   -> print "ShokiSetup <ver> (zig-compiled)"; exit 0
-//   --self-test -> exercise linkage (objc_getClass for NSApplication +
-//                  NSAppleScript); skip UI; exit 0 — for CI smoke tests
-//   (no flag)   -> interactive run described above
+//   --version               -> print "ShokiSetup <ver> (zig-compiled)"; exit 0
+//   --self-test             -> exercise linkage (objc_getClass for
+//                              NSApplication + NSAppleScript); skip UI;
+//                              exit 0 — for CI smoke tests
+//   --self-test-sequencing  -> dry-run the sequenced flow WITHOUT triggering
+//                              TCC prompts or launching VoiceOver. Exercises
+//                              the probe + polling timing code so CI can
+//                              catch regressions without a human at the
+//                              keyboard. Exit 0 within ~5s.
+//   (no flag)               -> interactive run described above
 
 const std = @import("std");
 const ak = @import("appkit_bindings.zig");
@@ -31,7 +57,7 @@ const ak = @import("appkit_bindings.zig");
 pub const version = "0.1.0";
 
 /// Mode of the ShokiSetup run, derived from argv.
-pub const CmdMode = enum { interactive, version, self_test };
+pub const CmdMode = enum { interactive, version, self_test, self_test_sequencing };
 
 /// Parse errors — only one shape: unknown flag -> hard fail w/ exit 2.
 pub const ParseError = error{UnknownFlag};
@@ -45,6 +71,7 @@ pub fn parseArgs(arg: []const u8) ParseError!CmdMode {
     if (arg.len == 0) return .interactive;
     if (std.mem.eql(u8, arg, "--version")) return .version;
     if (std.mem.eql(u8, arg, "--self-test")) return .self_test;
+    if (std.mem.eql(u8, arg, "--self-test-sequencing")) return .self_test_sequencing;
     return ParseError.UnknownFlag;
 }
 
@@ -67,6 +94,13 @@ extern "c" fn usleep(usec: u32) c_int;
 /// Sleep for `seconds` whole seconds. Uses libc `usleep` under the hood.
 fn sleepSeconds(seconds: u32) void {
     _ = usleep(seconds * 1_000_000);
+}
+
+/// Sleep for `ms` milliseconds. Used by the polling loops in
+/// runInteractive + self-test-sequencing. 500ms is the typical cadence;
+/// 100ms is used by self-test-sequencing to stay fast.
+fn sleepMilliseconds(ms: u32) void {
+    _ = usleep(ms * 1_000);
 }
 
 // ---------------------------------------------------------------------------
@@ -125,6 +159,43 @@ pub fn main(init: std.process.Init.Minimal) !void {
             };
             return;
         },
+        .self_test_sequencing => {
+            // Dry-run of the sequenced flow — no TCC prompts, no VO
+            // launch. We exercise the pieces of the new logic that CAN
+            // run without user interaction:
+            //
+            //   * AXIsProcessTrusted() — the no-prompt probe binding
+            //     must resolve at link time and return a valid bool.
+            //   * pollAccessibility() with a short timeout — verifies
+            //     the polling loop terminates cleanly whether or not
+            //     the calling user has granted Accessibility.
+            //   * sleepMilliseconds() — verifies libc usleep shim.
+            //
+            // Designed to exit within ~5s on any hardware.
+            const trusted_probe: bool = ak.AXIsProcessTrusted();
+            if (trusted_probe) {
+                _ = write(1, "self-test-sequencing: AXIsProcessTrusted=true\n", 46);
+            } else {
+                _ = write(1, "self-test-sequencing: AXIsProcessTrusted=false\n", 47);
+            }
+
+            // Verify the sleep shim works.
+            sleepMilliseconds(100);
+            _ = write(1, "self-test-sequencing: sleepMilliseconds(100) ok\n", 48);
+
+            // Verify the polling loop terminates. Cap at 1 second (2
+            // iterations at 500ms) so we exit quickly regardless of
+            // current Accessibility state.
+            const polled = pollAccessibility(1);
+            if (polled) {
+                _ = write(1, "self-test-sequencing: poll result=granted\n", 42);
+            } else {
+                _ = write(1, "self-test-sequencing: poll result=not-granted (expected on ungranted hosts)\n", 76);
+            }
+
+            _ = write(1, "self-test-sequencing: ok\n", 25);
+            return;
+        },
         .interactive => try runInteractive(),
     }
 }
@@ -157,15 +228,65 @@ fn runInteractive() !void {
     _ = ak.objc_msgSend_bool_bool(ns_app, sel_activate, true);
 
     // -----------------------------------------------------------------
-    // 2. Probe Accessibility via AXIsProcessTrustedWithOptions(prompt=YES)
-    //    -> fires the macOS Accessibility TCC dialog if not already granted.
+    // 2. Welcome alert — user clicks Continue before anything else.
+    //    This gives them a chance to read BEFORE the first TCC dialog.
     // -----------------------------------------------------------------
-    const options = buildPromptOptions() orelse return error.CfDictionaryCreateFailed;
-    defer ak.CFRelease(options);
-    _ = ak.AXIsProcessTrustedWithOptions(options);
+    showAlert(
+        "Welcome to Shoki Setup",
+        "Click Continue to grant the 2 permissions shoki needs " ++
+            "(Accessibility + Automation of VoiceOver).\n\n" ++
+            "After you click Continue, macOS will show its own system " ++
+            "dialog. Follow the on-screen instructions to grant " ++
+            "Accessibility access.",
+        "Continue",
+    );
 
     // -----------------------------------------------------------------
-    // 3. Launch VoiceOver via NSAppleScript.
+    // 3. Probe Accessibility via the no-prompt variant first. If the
+    //    user already granted it on a prior run we skip the prompt +
+    //    polling entirely.
+    // -----------------------------------------------------------------
+    if (!ak.AXIsProcessTrusted()) {
+        // Fire the Accessibility TCC dialog.
+        const options = buildPromptOptions() orelse return error.CfDictionaryCreateFailed;
+        defer ak.CFRelease(options);
+        _ = ak.AXIsProcessTrustedWithOptions(options);
+
+        // -----------------------------------------------------------------
+        // 4. BLOCK on the user's grant. Poll every 500ms for up to 120s.
+        //    Without this loop the old flow raced ahead and fired the
+        //    Automation dialog over the top of the Accessibility dialog.
+        // -----------------------------------------------------------------
+        const granted = pollAccessibility(120);
+        if (!granted) {
+            showAlert(
+                "Accessibility access is required",
+                "Shoki could not detect an Accessibility grant within 120 " ++
+                    "seconds.\n\nOpen System Settings \xe2\x86\x92 Privacy & Security " ++
+                    "\xe2\x86\x92 Accessibility, enable ShokiSetup, and re-run this " ++
+                    "app.",
+                "Close",
+            );
+            exit(4);
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // 5. Mid-flow alert — tell the user Accessibility is done and
+    //    what's about to happen next.
+    // -----------------------------------------------------------------
+    showAlert(
+        "Accessibility granted",
+        "Next, Shoki needs permission to control VoiceOver via " ++
+            "AppleScript (Automation).\n\n" ++
+            "When you click Continue, VoiceOver will briefly start, and " ++
+            "macOS will show a second system dialog asking for Automation " ++
+            "permission. Click OK on that dialog.",
+        "Continue",
+    );
+
+    // -----------------------------------------------------------------
+    // 6. Launch VoiceOver via NSAppleScript.
     // -----------------------------------------------------------------
     _ = runAppleScript("tell application \"VoiceOver\" to launch");
 
@@ -173,29 +294,82 @@ fn runInteractive() !void {
     sleepSeconds(3);
 
     // -----------------------------------------------------------------
-    // 4. Send a real VO AppleEvent -> triggers Automation TCC prompt.
-    //    Per QA-REPORT.md Unblockers Step 1 Option A.
+    // 7. Send a real VO AppleEvent -> triggers Automation TCC prompt.
+    //    Retry every 500ms for up to 60s: the first call fires the
+    //    prompt and returns an error; subsequent calls succeed once the
+    //    user clicks OK on the system dialog.
+    //
+    //    Unlike Accessibility there's no public `AXIsAutomationTrusted`
+    //    probe, so we treat "AppleScript call succeeded" as the signal.
+    //    That's pragmatic: if we can actually drive VO we're done.
     // -----------------------------------------------------------------
-    _ = runAppleScript("tell application \"VoiceOver\" to get bounds of vo cursor");
-
-    // Give the system a moment to present the Automation prompt.
-    sleepSeconds(2);
-
-    // -----------------------------------------------------------------
-    // 5. Success modal: NSAlert.
-    // -----------------------------------------------------------------
-    showSuccessAlert();
+    const automation_granted = pollAutomation(60);
 
     // -----------------------------------------------------------------
-    // 6. Cleanup: tell VO to quit so we don't leave it running.
+    // 8. Show success or warning alert.
+    // -----------------------------------------------------------------
+    if (automation_granted) {
+        showAlert(
+            "\xe2\x9c\x85 Shoki is ready",
+            "Both permissions have been granted. You can now close this " ++
+                "window and run your shoki tests.",
+            "Close",
+        );
+    } else {
+        showAlert(
+            "\xe2\x9a\xa0 Automation not granted",
+            "Shoki could not detect Automation access within 60 seconds.\n\n" ++
+                "Open System Settings \xe2\x86\x92 Privacy & Security \xe2\x86\x92 Automation, " ++
+                "enable ShokiSetup's control of VoiceOver, and re-run this app.",
+            "Close",
+        );
+    }
+
+    // -----------------------------------------------------------------
+    // 9. Cleanup: tell VO to quit so we don't leave it running.
     // -----------------------------------------------------------------
     _ = runAppleScript("tell application \"VoiceOver\" to quit");
 
     // -----------------------------------------------------------------
-    // 7. [NSApp terminate:nil]
+    // 10. [NSApp terminate:nil]
     // -----------------------------------------------------------------
     const sel_terminate = ak.sel_registerName("terminate:") orelse return error.SelectorMissing;
     ak.objc_msgSend_void_id(ns_app, sel_terminate, null);
+}
+
+/// Poll `AXIsProcessTrusted()` every 500ms up to `timeout_seconds`.
+/// Returns true as soon as macOS reports the grant, false on timeout.
+///
+/// The 500ms cadence matches Apple's own TCC daemon internal poll rate;
+/// faster polling doesn't yield a quicker positive result.
+fn pollAccessibility(timeout_seconds: u32) bool {
+    const max_iterations: u32 = timeout_seconds * 2; // 500ms per iteration
+    var i: u32 = 0;
+    while (i < max_iterations) : (i += 1) {
+        if (ak.AXIsProcessTrusted()) return true;
+        sleepMilliseconds(500);
+    }
+    // One last probe after the final sleep.
+    return ak.AXIsProcessTrusted();
+}
+
+/// Poll VoiceOver automation every 500ms up to `timeout_seconds`. We
+/// detect "granted" by invoking a harmless VO AppleScript call; if it
+/// returns a non-null result object, the Automation TCC grant is active.
+///
+/// The FIRST call will fire the system dialog (and typically return null
+/// via the out-error path). Subsequent calls succeed once the user
+/// clicks OK. Worst case at timeout we exit the loop with false.
+fn pollAutomation(timeout_seconds: u32) bool {
+    const max_iterations: u32 = timeout_seconds * 2; // 500ms per iteration
+    var i: u32 = 0;
+    while (i < max_iterations) : (i += 1) {
+        if (runAppleScriptOk("tell application \"VoiceOver\" to get bounds of vo cursor")) {
+            return true;
+        }
+        sleepMilliseconds(500);
+    }
+    return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -244,20 +418,36 @@ fn nsString(cstr: [*:0]const u8) ?*anyopaque {
 /// the side effect (triggering TCC prompts / launching VO). We pass null
 /// for the out-error dict to keep the surface minimal.
 fn runAppleScript(source: [*:0]const u8) void {
-    const ns_apple_script_cls = ak.objc_getClass("NSAppleScript") orelse return;
-    const sel_alloc = ak.sel_registerName("alloc") orelse return;
-    const sel_init_with_source = ak.sel_registerName("initWithSource:") orelse return;
-    const sel_execute = ak.sel_registerName("executeAndReturnError:") orelse return;
-
-    const allocated = ak.objc_msgSend_id(ns_apple_script_cls, sel_alloc) orelse return;
-    const src = nsString(source) orelse return;
-    const script = ak.objc_msgSend_id_id(allocated, sel_init_with_source, src) orelse return;
-
-    _ = ak.objc_msgSend_id_idp(script, sel_execute, null);
+    _ = runAppleScriptOk(source);
 }
 
-/// Show the "Shoki is ready" NSAlert. Blocks until user clicks Close.
-fn showSuccessAlert() void {
+/// Run an AppleScript source and return true iff it succeeded (i.e.
+/// returned a non-null result descriptor). Used by `pollAutomation` to
+/// detect whether the Automation TCC grant is active yet — if the user
+/// hasn't clicked OK on the system dialog, `executeAndReturnError:`
+/// returns nil and we keep polling.
+fn runAppleScriptOk(source: [*:0]const u8) bool {
+    const ns_apple_script_cls = ak.objc_getClass("NSAppleScript") orelse return false;
+    const sel_alloc = ak.sel_registerName("alloc") orelse return false;
+    const sel_init_with_source = ak.sel_registerName("initWithSource:") orelse return false;
+    const sel_execute = ak.sel_registerName("executeAndReturnError:") orelse return false;
+
+    const allocated = ak.objc_msgSend_id(ns_apple_script_cls, sel_alloc) orelse return false;
+    const src = nsString(source) orelse return false;
+    const script = ak.objc_msgSend_id_id(allocated, sel_init_with_source, src) orelse return false;
+
+    const result = ak.objc_msgSend_id_idp(script, sel_execute, null);
+    return result != null;
+}
+
+/// Show a modal NSAlert with one button. Blocks on the Obj-C runloop
+/// until the user clicks, which is exactly the semantic we want at every
+/// stage of the sequenced flow: we never advance past an alert until the
+/// user has acknowledged it.
+///
+/// `title` is set via setMessageText:; `body` via setInformativeText:;
+/// `button_label` is the single action button.
+fn showAlert(title: [*:0]const u8, body: [*:0]const u8, button_label: [*:0]const u8) void {
     const ns_alert_cls = ak.objc_getClass("NSAlert") orelse return;
     const sel_alloc = ak.sel_registerName("alloc") orelse return;
     const sel_init = ak.sel_registerName("init") orelse return;
@@ -269,15 +459,13 @@ fn showSuccessAlert() void {
     const allocated = ak.objc_msgSend_id(ns_alert_cls, sel_alloc) orelse return;
     const alert = ak.objc_msgSend_id(allocated, sel_init) orelse return;
 
-    const msg = nsString("Shoki is ready") orelse return;
+    const msg = nsString(title) orelse return;
     ak.objc_msgSend_void_id(alert, sel_set_message, msg);
 
-    const info = nsString(
-        "VoiceOver permissions have been requested. You can now close this window and run your shoki tests.",
-    ) orelse return;
+    const info = nsString(body) orelse return;
     ak.objc_msgSend_void_id(alert, sel_set_informative, info);
 
-    const button = nsString("Close") orelse return;
+    const button = nsString(button_label) orelse return;
     _ = ak.objc_msgSend_id_id(alert, sel_add_button, button);
 
     _ = ak.objc_msgSend_i64(alert, sel_run_modal);
