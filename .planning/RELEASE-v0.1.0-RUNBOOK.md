@@ -1,13 +1,19 @@
 # v0.1.0 Release Runbook
 
-Human steps to publish `@shoki/core` v0.1.0 + Shoki.app v0.1.0.
+Human steps to publish `dicta` v0.1.0 + Shoki.app v0.1.0.
 
-> **Why `@shoki/core` and not `shoki`?** The unscoped `shoki` slot is blocked
-> by npm's anti-typosquatting check (too similar to
-> [`shiki`](https://www.npmjs.com/package/shiki), which gets `E403`). The
-> `@shoki` org scope is exempt from that filter, so the published name is
-> `@shoki/core`. The CLI bin name stays `shoki` — users still run
-> `npx shoki setup` / `npx shoki doctor` as before.
+> **The naming saga:** v0.1 went through three names before landing on `dicta`:
+> 1. Originally `shoki` (unscoped) — blocked by npm's E403 anti-typosquatting
+>    filter vs. [`shiki`](https://www.npmjs.com/package/shiki).
+> 2. Pivoted to `@shoki/core` (scoped) — but the `@shoki` npm org creation was
+>    subsequently denied (likely the same anti-typosquatting policy).
+> 3. Pivoted again to **`dicta`** (Latin: "things said") — unscoped,
+>    distinctive, unrelated to any existing npm package. This ships.
+>
+> The CLI bin command is also `dicta` now — users run `npx dicta setup` /
+> `npx dicta doctor`. Helper-app file names (`Shoki.app`, `Shoki Setup.app`)
+> and the binding packages (`@shoki/binding-darwin-*`) retain their "Shoki"
+> naming through v0.1 — full rebrand follows in v0.2.
 
 ## Prerequisites
 
@@ -15,7 +21,7 @@ Human steps to publish `@shoki/core` v0.1.0 + Shoki.app v0.1.0.
 - [ ] Node 24 LTS + pnpm 10 installed
 - [ ] Zig 0.16.0 installed (`brew install zig@0.16` or direct download)
 - [ ] GitHub account with repo creation rights
-- [ ] npmjs.com account — the one that will own the `@shoki` scope
+- [ ] npmjs.com account — the one that will publish `dicta`
 
 ## Step 1: Get the repo on GitHub
 
@@ -36,23 +42,11 @@ grep -r 'github.com/<org>\|github.com/shoki/shoki' --include='*.md' --include='*
 
 Commit the URL fixes before publishing.
 
-## Step 2: Claim the @shoki npm scope
+## Step 2: Bootstrap publish (first time only)
 
-```bash
-npm login
-# → log in as the account that will own shoki
-
-npm org create shoki
-# → creates the @shoki org scope; you are its default owner
-```
-
-Confirm:
-```bash
-npm profile get
-npm org ls shoki
-```
-
-## Step 3: Bootstrap publish (first time only)
+`dicta` is unscoped so no org-creation step is needed. The binding packages
+stay under the existing `@shoki` scope (already published via quick task
+260418-f0a during the `@shoki/core` attempt; they kept their names).
 
 ```bash
 pnpm install --frozen-lockfile=false
@@ -69,16 +63,16 @@ pnpm publish -r --access public --no-git-checks
 pnpm publishes all 3 workspace packages in dependency order:
 1. `@shoki/binding-darwin-arm64@0.1.0`
 2. `@shoki/binding-darwin-x64@0.1.0`
-3. `@shoki/core@0.1.0`
+3. `dicta@0.1.0`
 
 Verify:
 ```bash
-npm view @shoki/core@0.1.0
+npm view dicta@0.1.0
 npm view @shoki/binding-darwin-arm64@0.1.0
 npm view @shoki/binding-darwin-x64@0.1.0
 ```
 
-## Step 4: Set up OIDC trusted publishing (one-time, enables future CI releases)
+## Step 3: Set up OIDC trusted publishing (one-time, enables future CI releases)
 
 For each of the 3 packages, log into npmjs.com and:
 
@@ -93,7 +87,7 @@ For each of the 3 packages, log into npmjs.com and:
 
 After OIDC is enrolled, all future SDK publishes happen via `git tag v<version> && git push --tags` — no manual `pnpm publish` needed.
 
-## Step 5: Cut the Shoki.app release
+## Step 4: Cut the Shoki.app release
 
 The helper app release is decoupled from the SDK release.
 
@@ -110,20 +104,27 @@ This triggers `.github/workflows/app-release.yml`, which:
 
 Verify the release at `https://github.com/<YOUR_ORG>/shoki/releases/tag/app-v0.1.0`.
 
-## Step 6: Smoke test from a fresh project
+> **Note (v0.1):** The helper bundles retain their "Shoki" file names
+> (`Shoki.app`, `Shoki Setup.app`, bundle ID `app.shoki.setup`). End users who
+> run `npx dicta setup` will see a window labeled "Shoki Setup" briefly — this
+> is expected for v0.1 and is called out in the CHANGELOG. v0.2 will ship the
+> rebranded helper bundles once the signed-bundle regen + CSREQ trust-anchor
+> refresh work is done.
+
+## Step 5: Smoke test from a fresh project
 
 ```bash
-mkdir /tmp/shoki-smoke && cd /tmp/shoki-smoke
+mkdir /tmp/dicta-smoke && cd /tmp/dicta-smoke
 npm init -y
-npm install @shoki/core
-npx shoki setup
+npm install dicta
+npx dicta setup
 # click through the 2 TCC dialogs — should work end-to-end
-npx shoki doctor --json | jq
+npx dicta doctor --json | jq
 ```
 
-If `shoki doctor` reports all green, v0.1.0 is live and consumable.
+If `dicta doctor` reports all green, v0.1.0 is live and consumable.
 
-## Step 7: Announce
+## Step 6: Announce
 
 - GitHub Release notes for `v0.1.0` (SDK) and `app-v0.1.0` (helper)
 - Optional: post on X, Bluesky, relevant Discords

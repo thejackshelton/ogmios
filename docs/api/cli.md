@@ -1,21 +1,21 @@
-# `shoki` CLI
+# `dicta` CLI
 
-Shipped as the `bin` entry of **`@shoki/core`** (`bin: { "shoki": "./dist/cli/main.js" }`). Installing `@shoki/core` puts `shoki` on your PATH via `npx`. Four subcommands today: `doctor`, `setup`, `info`, and `restore-vo-settings`.
+Shipped as the `bin` entry of **`dicta`** (`bin: { "dicta": "./dist/cli/main.js" }`). Installing `dicta` puts `dicta` on your PATH via `npx`. Four subcommands today: `doctor`, `setup`, `info`, and `restore-vo-settings`.
 
 ```bash
-npx shoki doctor
-npx shoki setup
-npx shoki info
+npx dicta doctor
+npx dicta setup
+npx dicta info
 ```
 
-## `shoki doctor`
+## `dicta doctor`
 
 Diagnose VoiceOver + TCC + helper state on the current macOS host.
 
 ### Usage
 
 ```bash
-shoki doctor [options]
+dicta doctor [options]
 ```
 
 ### Options
@@ -27,7 +27,7 @@ shoki doctor [options]
 | `--quiet` | Suppress all stdout except the final exit code. Useful in piped scripts. |
 | `--skip-system-tcc` | Skip the system TCC.db check (avoids Full Disk Access requirement). |
 | `--no-color` | Disable ANSI colors. Auto-detected when stdout is not a TTY. |
-| `--version` | Print `shoki` version and exit. |
+| `--version` | Print `dicta` version and exit. |
 | `--help` | Print help. |
 
 ### Exit codes
@@ -36,7 +36,7 @@ Full table — match against these in CI scripts to branch on the cause of failu
 
 | Code | Name | Meaning |
 |------|------|---------|
-| 0 | `OK` | Ready to run shoki. |
+| 0 | `OK` | Ready to run dicta. |
 | 1 | `UNKNOWN_ERROR` | Catch-all — an exception we didn't map to a specific code. File a bug. |
 | 2 | `OS_UNSUPPORTED` | macOS version < 14 or > 26 (current support window). |
 | 3 | `VO_APPLESCRIPT_DISABLED` | `SCREnableAppleScriptEnabled` plist key is not `true`. Run with `--fix`. |
@@ -50,7 +50,7 @@ Full table — match against these in CI scripts to branch on the cause of failu
 ### Human output example
 
 ```
-shoki doctor (0.1.0)
+dicta doctor (0.1.0)
 
 ✓ macOS 14.6 (Sonoma) — supported
 ✓ VoiceOver AppleScript control enabled
@@ -59,18 +59,18 @@ shoki doctor (0.1.0)
 ✓ Accessibility grant present for ShokiRunner.app
 ✓ Automation grant present for ShokiRunner.app → VoiceOver
 
-ready to run shoki · exit 0
+ready to run dicta · exit 0
 ```
 
 On failure:
 
 ```
-shoki doctor (0.1.0)
+dicta doctor (0.1.0)
 
 ✓ macOS 14.6 (Sonoma) — supported
 ✗ VoiceOver AppleScript control disabled
   Fix: sudo defaults write /Library/Preferences/com.apple.VoiceOver4.local SCREnableAppleScriptEnabled -bool true
-  Or:  shoki doctor --fix
+  Or:  dicta doctor --fix
 ✗ Automation grant missing for ShokiRunner.app → VoiceOver
   Grant at: System Settings → Privacy & Security → Automation
   Open: open "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation"
@@ -81,7 +81,7 @@ not ready · exit 3
 ### JSON output example
 
 ```bash
-shoki doctor --json --quiet
+dicta doctor --json --quiet
 ```
 
 ```json
@@ -100,17 +100,17 @@ shoki doctor --json --quiet
 
 The JSON shape is part of the public contract; the `exit_name` field is the canonical stable identifier.
 
-## `shoki info`
+## `dicta info`
 
 Print diagnostic context. Use when filing a bug report.
 
 ```bash
-shoki info
+dicta info
 ```
 
 Dumps (to stdout):
 
-- `@shoki/core` package versions (sdk, vitest).
+- `dicta` package versions (sdk, vitest).
 - macOS version + codename.
 - Node version + arch.
 - pnpm version (if present in PATH).
@@ -126,12 +126,14 @@ Paste the output into your GitHub issue and we can skip half the back-and-forth.
 | `--json` | Machine-readable output. |
 | `--help` | Print help. |
 
-## `shoki setup`
+## `dicta setup`
 
 Download + install `Shoki.app` + `Shoki Setup.app` from GitHub Releases, then launch **Shoki Setup.app** — a minimal Zig-compiled macOS GUI that triggers the Accessibility + Automation TCC prompts cleanly on first run. Replaces the multi-step System Settings walkthrough.
 
+> **Note (v0.1):** The helper app bundles retain their "Shoki" file names for v0.1 (`Shoki.app`, `Shoki Setup.app`, bundle ID `app.shoki.setup`). Full helper rebrand ships in v0.2.
+
 ```bash
-shoki setup [options]
+dicta setup [options]
 ```
 
 ### Flow
@@ -173,7 +175,7 @@ interface SetupResult {
 Example:
 
 ```bash
-$ shoki setup --json
+$ dicta setup --json
 {
   "action": "downloaded",
   "installDir": "/Users/you/Applications",
@@ -206,15 +208,15 @@ Where `<platform>` is `darwin-arm64` or `darwin-x64`, and `<version>` is `compat
 
 The release cadence is **independent** from the SDK's `v*` tag cadence. SDK tags (`v*`) publish the npm package; app tags (`app-v*`) publish the helper bundles. `compatibleAppVersion` in `packages/sdk/package.json` couples the two.
 
-### Relation to `shoki doctor --fix`
+### Relation to `dicta doctor --fix`
 
-`shoki doctor` emits a `launch-setup-app` fix action ahead of the legacy `open-system-settings` deep link when `TCC_MISSING_ACCESSIBILITY` or `TCC_MISSING_AUTOMATION` fires. `--fix` picks the GUI path automatically; manual users can still copy the deep-link URL from the JSON report.
+`dicta doctor` emits a `launch-setup-app` fix action ahead of the legacy `open-system-settings` deep link when `TCC_MISSING_ACCESSIBILITY` or `TCC_MISSING_AUTOMATION` fires. `--fix` picks the GUI path automatically; manual users can still copy the deep-link URL from the JSON report.
 
 ## Planned subcommands (v1.1+)
 
 | Command | Purpose | Status |
 |---------|---------|--------|
-| `shoki capture` | Standalone capture loop — boot VO, print events to stdout until SIGINT. Useful for ad-hoc debugging without a test framework. | Deferred to v1.1 |
+| `dicta capture` | Standalone capture loop — boot VO, print events to stdout until SIGINT. Useful for ad-hoc debugging without a test framework. | Deferred to v1.1 |
 
 ## Exit code semantics
 
@@ -224,6 +226,6 @@ The release cadence is **independent** from the SDK's `v*` tag cadence. SDK tags
 
 ## Troubleshooting
 
-- **`shoki: command not found`** — you invoked without `npx`. Use `npx shoki ...` or add `./node_modules/.bin` to your PATH.
+- **`dicta: command not found`** — you invoked without `npx`. Use `npx dicta ...` or add `./node_modules/.bin` to your PATH.
 - **Exits 7 (NEEDS_FULL_DISK_ACCESS)** — grant FDA to your terminal, or use `--skip-system-tcc`.
-- **Doctor says all green but tests still fail** — likely a per-process TCC issue in your test runner. Try running the test harness from the same terminal where `shoki doctor` passed.
+- **Doctor says all green but tests still fail** — likely a per-process TCC issue in your test runner. Try running the test harness from the same terminal where `dicta doctor` passed.

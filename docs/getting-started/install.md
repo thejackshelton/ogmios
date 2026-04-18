@@ -1,10 +1,10 @@
 # Install
 
-Shoki's v1 target is **macOS + VoiceOver + Vitest browser mode**. If you're on Windows or Linux you can still install and run TypeScript-only unit tests, but the VoiceOver-dependent tests are gated behind `SHOKI_INTEGRATION=1` and only run on darwin hosts.
+Dicta's v1 target is **macOS + VoiceOver + Vitest browser mode**. If you're on Windows or Linux you can still install and run TypeScript-only unit tests, but the VoiceOver-dependent tests are gated behind `SHOKI_INTEGRATION=1` and only run on darwin hosts.
 
 ## Platform support (v0.1.0)
 
-Shoki v0.1.0 supports:
+Dicta v0.1.0 supports:
 
 - macOS 14 (Sonoma), 15 (Sequoia), 26 (Tahoe)
 - **Apple Silicon (arm64) only** — Intel Mac (x64) support is planned for v0.2
@@ -19,7 +19,7 @@ Most active Mac dev machines are Apple Silicon. If you're on an Intel Mac:
 - pnpm 10
 - **Playwright's Chromium** if you're using Vitest browser mode: `pnpm exec playwright install chromium`.
 
-See the [Platform risk](/background/platform-risk) page for an honest discussion of the macOS-specific risks Shoki depends on before you commit to this library.
+See the [Platform risk](/background/platform-risk) page for an honest discussion of the macOS-specific risks Dicta depends on before you commit to this library.
 
 ## Install
 
@@ -29,61 +29,73 @@ One package. One setup command. Done.
 
 ```bash
 # Install (one command, one package)
-npm install @shoki/core
+npm install dicta
 
 # First-run setup: downloads Shoki.app from GitHub Releases, installs to
 # ~/Applications/, strips quarantine, opens the macOS TCC permission flow.
-npx shoki setup
+npx dicta setup
 
 # Verify everything is wired
-npx shoki doctor
+npx dicta doctor
 ```
 
-That's it. `npm install @shoki/core` (or `pnpm add -D @shoki/core`, or `yarn add -D @shoki/core`) drops the `shoki` CLI on your PATH via `npx`, and `shoki setup` does the first-run download + install + permission dance once per machine.
+That's it. `npm install dicta` (or `pnpm add -D dicta`, or `yarn add -D dicta`) drops the `dicta` CLI on your PATH via `npx`, and `dicta setup` does the first-run download + install + permission dance once per machine.
+
+> **Note (v0.1):** The helper application retains its original "Shoki" file names (`Shoki.app`, `Shoki Setup.app`) for v0.1. `npx dicta setup` will briefly launch a window labeled "Shoki Setup" — expected behavior. Full helper rebrand in v0.2.
 
 ### Why local install
 
-Shoki is both a library and a CLI, but the canonical path is a **local install** inside your test project. Your test files will do `import { voiceOver } from '@shoki/core'`, which only resolves when `@shoki/core` lives in your project's `package.json` and `node_modules/`. The `shoki` binary is available via `npx shoki …` from that same local install — no global install needed to run `setup` or `doctor`.
+Dicta is both a library and a CLI, but the canonical path is a **local install** inside your test project. Your test files will do `import { voiceOver } from 'dicta'`, which only resolves when `dicta` lives in your project's `package.json` and `node_modules/`. The `dicta` binary is available via `npx dicta …` from that same local install — no global install needed to run `setup` or `doctor`.
 
-This mirrors how Vitest and Playwright distribute: they're libraries your tests import, plus CLIs you invoke via `npx` / `pnpm exec`. Don't global-install them; don't global-install `@shoki/core` as the default.
+This mirrors how Vitest and Playwright distribute: they're libraries your tests import, plus CLIs you invoke via `npx` / `pnpm exec`. Don't global-install them; don't global-install `dicta` as the default.
 
 ### When global install makes sense
 
 A **global install** works for setup-only use cases where you're not writing test code yet:
 
 ```bash
-npm install -g @shoki/core
-shoki setup
+npm install -g dicta
+dicta setup
 ```
 
 Reasonable reasons to global install:
 
-- **Evaluating shoki** — you want to run `shoki setup` + `shoki doctor` on your Mac to see what the permission flow looks like before committing to a project.
+- **Evaluating dicta** — you want to run `dicta setup` + `dicta doctor` on your Mac to see what the permission flow looks like before committing to a project.
 - **Pre-provisioning a dev box or CI image** — grant TCC once at the machine level so later project installs skip the prompt.
 - **Shared multi-project machines** — one TCC grant anchored on `~/Applications/Shoki.app` covers every project on that machine regardless of which `node_modules/` they use.
 
-You'll still need a local install (`npm install @shoki/core` inside the project) to `import` shoki in test code. Global install does not give your test files access to the library.
+You'll still need a local install (`npm install dicta` inside the project) to `import` dicta in test code. Global install does not give your test files access to the library.
 
-Precedent: tools like `pnpm` and `nvm` are global-by-default because they manage your environment. Shoki is closer to Vitest and Playwright — a library consumed by your tests — which is why local is the default.
+Precedent: tools like `pnpm` and `nvm` are global-by-default because they manage your environment. Dicta is closer to Vitest and Playwright — a library consumed by your tests — which is why local is the default.
 
 | Package | Purpose |
 |---------|---------|
-| `@shoki/core` | Everything user-facing: core TS API (`voiceOver()`, `ScreenReaderHandle`, events), the `shoki` CLI (bin entry), matcher functions at `@shoki/core/matchers`, and the Vitest plugin at `@shoki/core/vitest` / `@shoki/core/vitest/setup` / `@shoki/core/vitest/browser`. |
+| `dicta` | Everything user-facing: core TS API (`voiceOver()`, `ScreenReaderHandle`, events), the `dicta` CLI (bin entry), matcher functions at `dicta/matchers`, and the Vitest plugin at `dicta/vitest` / `dicta/vitest/setup` / `dicta/vitest/browser`. |
 
-The platform-specific binding (`@shoki/binding-darwin-arm64` or `@shoki/binding-darwin-x64`) is an **optional** dependency of `@shoki/core` — pnpm/npm picks the right one for your OS + CPU at install time. Never installed by hand. No postinstall scripts, no `node-gyp`.
+The platform-specific binding (`@shoki/binding-darwin-arm64` or `@shoki/binding-darwin-x64`) is an **optional** dependency of `dicta` — pnpm/npm picks the right one for your OS + CPU at install time. Never installed by hand. No postinstall scripts, no `node-gyp`.
 
-> **Heads up (v0.1.0):** prior versions shipped `@shoki/doctor`, `@shoki/matchers`, `@shoki/sdk`, and `@shoki/vitest` as separate packages. In v0.1.0 they all consolidated into the scoped **`@shoki/core`** package:
-> - `@shoki/sdk` → `@shoki/core`
-> - `@shoki/vitest` → `@shoki/core/vitest` (subpath export)
-> - `@shoki/vitest/setup` → `@shoki/core/vitest/setup`
-> - `@shoki/vitest/browser` → `@shoki/core/vitest/browser`
-> - `@shoki/sdk/matchers` → `@shoki/core/matchers`
+> **Heads up (v0.1.0 — naming saga):** this library has had a few name changes en route to v0.1 GA.
+> - Previously shipped as `@shoki/doctor` + `@shoki/matchers` + `@shoki/sdk` + `@shoki/vitest` (Phase 8 consolidated them).
+> - Phase 10 Plan 01 renamed `@shoki/sdk` → unscoped `shoki`.
+> - A v0.1.0 attempt under the unscoped name hit npm's E403 anti-typosquatting filter vs. `shiki`.
+> - Quick task 260418-f0a re-scoped to `@shoki/core`, but the `@shoki` npm org creation was subsequently denied (likely the same anti-typosquatting policy).
+> - **v0.1.0 GA ships as `dicta`** — unscoped, distinctive (Latin: "things said"), no npm name saga. The CLI bin command also changes to `dicta`.
+>
+> Import + CLI migration for v0.1.0 GA:
+> - `@shoki/sdk` → `dicta`
+> - `shoki` (unscoped) → `dicta`
+> - `@shoki/core` → `dicta`
+> - `@shoki/vitest` → `dicta/vitest` (subpath export)
+> - `@shoki/vitest/setup` → `dicta/vitest/setup`
+> - `@shoki/vitest/browser` → `dicta/vitest/browser`
+> - `@shoki/sdk/matchers` / `@shoki/core/matchers` → `dicta/matchers`
+> - CLI: `npx shoki …` → `npx dicta …`
 >
 > See [CHANGELOG](https://github.com/shoki/shoki/blob/main/CHANGELOG.md) for the migration.
 
-## First-run flow (`shoki setup`)
+## First-run flow (`dicta setup`)
 
-`npx shoki setup` is the one-and-done install. On first run it:
+`npx dicta setup` is the one-and-done install. On first run it:
 
 1. Checks `~/Applications/Shoki.app` and `~/Applications/Shoki Setup.app`. If present and current, skips ahead to step 5.
 2. Downloads `shoki-darwin-<arch>.zip` (~10MB) from the [`app-v<version>` GitHub Release](https://github.com/shoki/shoki/releases) — no new runtime dependencies; uses Node 24's native `fetch`.
@@ -94,7 +106,7 @@ The platform-specific binding (`@shoki/binding-darwin-arm64` or `@shoki/binding-
 ### Flags
 
 ```bash
-npx shoki setup [options]
+npx dicta setup [options]
 ```
 
 | Flag | Purpose |
@@ -107,12 +119,12 @@ npx shoki setup [options]
 | `--version <ver>` | Override `compatibleAppVersion` from `packages/sdk/package.json`. For pinning. |
 | `--dry-run` | Print the resolved download URL + install dir without touching network or disk. |
 
-Full flag reference: [CLI API → `shoki setup`](/api/cli#shoki-setup).
+Full flag reference: [CLI API → `dicta setup`](/api/cli#dicta-setup).
 
 ## Verify the install
 
 ```bash
-npx shoki doctor --json
+npx dicta doctor --json
 ```
 
 What doctor checks:
@@ -128,7 +140,7 @@ Exit code 0 means you're ready to write a test. Non-zero exit identifies which c
 A minimal sanity check without VoiceOver:
 
 ```bash
-node -e "const { voiceOver } = require('@shoki/core'); console.log(typeof voiceOver);"
+node -e "const { voiceOver } = require('dicta'); console.log(typeof voiceOver);"
 # expected: "function"
 ```
 
@@ -136,18 +148,18 @@ On a fresh macOS arm64 machine this also loads the native binding into memory; a
 
 ## Why one package?
 
-Previously Shoki shipped 4 user-facing packages (`@shoki/sdk`, `@shoki/vitest`, plus the two bindings). We collapsed to 1 user-facing package:
+Previously Dicta shipped 4 user-facing packages (`@shoki/sdk`, `@shoki/vitest`, plus the two bindings). We collapsed to 1 user-facing package:
 
-- **`@shoki/core`** — core API, CLI, matchers, Vitest plugin, browser-safe entry points — all behind subpath exports.
-- **`@shoki/binding-darwin-arm64` + `@shoki/binding-darwin-x64`** — auto-installed via `optionalDependencies`. Never seen by end users. The napi platform-package pattern requires them to stay scoped.
+- **`dicta`** — core API, CLI, matchers, Vitest plugin, browser-safe entry points — all behind subpath exports.
+- **`@shoki/binding-darwin-arm64` + `@shoki/binding-darwin-x64`** — auto-installed via `optionalDependencies`. Never seen by end users. The napi platform-package pattern requires them to stay scoped; the bindings keep their `@shoki` scope for v0.1.
 
-Vitest and `@vitest/browser` are **optional peer deps** of `@shoki/core` — install them only if you use the Vitest plugin.
+Vitest and `@vitest/browser` are **optional peer deps** of `dicta` — install them only if you use the Vitest plugin.
 
-If you only need the capture core without Vitest ergonomics, `npm install @shoki/core` is still the whole install. Matcher functions at `@shoki/core/matchers` are framework-agnostic and usable from Playwright Test, XCUITest, or a plain Node script.
+If you only need the capture core without Vitest ergonomics, `npm install dicta` is still the whole install. Matcher functions at `dicta/matchers` are framework-agnostic and usable from Playwright Test, XCUITest, or a plain Node script.
 
 ## What's next
 
-- [Permission setup](./permission-setup) — fix whatever `shoki doctor` flagged.
+- [Permission setup](./permission-setup) — fix whatever `dicta doctor` flagged.
 - [Vitest quickstart](./vitest-quickstart) — write your first test in under 5 minutes.
 - [CI quickstart](./ci-quickstart) — pick a runner topology and copy a workflow.
-- [Troubleshooting](/guides/troubleshooting) — `shoki setup` download errors, ENOENT, quarantine issues.
+- [Troubleshooting](/guides/troubleshooting) — `dicta setup` download errors, ENOENT, quarantine issues.

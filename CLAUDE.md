@@ -1,7 +1,7 @@
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**Shoki**
+**Shoki** _(npm package: `dicta`, CLI: `dicta`; helper app retains "Shoki" branding for v0.1)_
 
 Shoki lets you run **real** screen readers — VoiceOver, NVDA, and more to come — inside any CI environment and any test framework. It's not a test runner and not a static checker: you start a screen reader from your existing tests, capture everything it would have announced, and assert on that. Think of it as a more ambitious Guidepup with first-class CI support and dramatically better DX.
 
@@ -88,7 +88,7 @@ If everything else fails, this must work: `voiceOver.listen()` in a Vitest brows
 ## Stack Patterns by Variant
 ### If the user is on Vitest browser mode (v1 canonical target):
 - Use Shoki from a Vitest `globalSetup` file (start VO once, stop on teardown).
-- In individual tests, `import { voiceOver } from "@shoki/core"` and call `voiceOver.listen()`.
+- In individual tests, `import { voiceOver } from "dicta"` and call `voiceOver.listen()`.
 - Assertions against `voiceOver.phraseLog()` run on the Node side (the test file context, not the browser context).
 - Because Shoki is observe-only, the user's Playwright provider drives the page and Shoki captures what VO says about it.
 ### If the user is on Playwright Test:
@@ -97,8 +97,8 @@ If everything else fails, this must work: `voiceOver.listen()` in a Vitest brows
 ### If the user is on Jest:
 - Identical pattern via `globalSetup` / `globalTeardown`.
 ### If the user is running locally on their own Mac:
-- `npx shoki doctor` detects missing VO-AppleScript-enabled flag, missing Accessibility permissions for their terminal/IDE, etc.
-- Where possible, `shoki doctor` fixes in-place without requiring SIP-off (e.g., opening the VoiceOver Utility pref pane programmatically). Where impossible, it clearly explains what SIP-off + TCC modification the user needs to perform manually — or it recommends the VM path.
+- `npx dicta doctor` detects missing VO-AppleScript-enabled flag, missing Accessibility permissions for their terminal/IDE, etc.
+- Where possible, `dicta doctor` fixes in-place without requiring SIP-off (e.g., opening the VoiceOver Utility pref pane programmatically). Where impossible, it clearly explains what SIP-off + TCC modification the user needs to perform manually — or it recommends the VM path.
 ### If the user is running in CI:
 - **Preferred:** `docker://ghcr.io/shoki/macos-vo-vm:latest` (our pre-baked tart image, VO-enabled, SIP-off), orchestrated by a `shoki-action` GitHub Action wrapper around `cirruslabs/tart-action`.
 - **Alternative A (Cirrus Runners):** single-line swap `runs-on: ghcr.io/cirruslabs/macos-sequoia-xcode:latest` (or our `shoki` variant), uses our image template.
@@ -120,9 +120,9 @@ If everything else fails, this must work: `voiceOver.listen()` in a Vitest brows
 | Zig 0.16.0 | Yuku (for reference only) | Yuku's `build.zig.zon` also pins 0.16.0-dev.2535. So napi-zig + Yuku move together. |
 | Node 24 LTS | napi-zig latest | napi-zig README's publish.yml uses `node-version: 24`. N-API is ABI-stable, so 20/22 should also work, but test on 24 as baseline. |
 | Vitest 3.x | Playwright provider, Node 24 | Recommended provider as of 2026. WebdriverIO works but is heavier setup. |
-| tart 2.x | macOS 13+ host (Apple Silicon), guest macOS 13-15 (Sonoma, Sequoia, Tahoe all have public cirruslabs base images). | Guest must be ≥ macOS version where VoiceOver-AppleScript control works. macOS 14+ changed TCC prompt UX — handle both branches in `shoki doctor`. |
+| tart 2.x | macOS 13+ host (Apple Silicon), guest macOS 13-15 (Sonoma, Sequoia, Tahoe all have public cirruslabs base images). | Guest must be ≥ macOS version where VoiceOver-AppleScript control works. macOS 14+ changed TCC prompt UX — handle both branches in `dicta doctor`. |
 | macOS 14+ SIP | VO-AppleScript-enabled file modification | Requires SIP-off to write `.VoiceOverAppleScriptEnabled`. Bake in tart image; never ask users to disable SIP on their host. |
-| npm package name | `@shoki/core` + `@shoki/binding-*` | Requires owning the `@shoki` npm scope. Reserve now. The unscoped `shoki` slot is blocked by npm's similarity filter vs. `shiki`. |
+| npm package name | `dicta` + `@shoki/binding-*` | Unscoped, distinctive Latin name. Prior attempts (`shoki`, `@shoki/core`) were blocked by npm's anti-typosquatting policy vs. `shiki`. |
 ## Sources
 - **napi-zig README** — https://raw.githubusercontent.com/yuku-toolchain/napi-zig/main/README.md (full API, CLI reference, type conversion tables) — **HIGH confidence**, direct from source
 - **napi-zig build.zig.zon** — https://github.com/yuku-toolchain/napi-zig — Zig version minimum — **HIGH**

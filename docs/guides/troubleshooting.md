@@ -4,10 +4,10 @@ Known failure modes and their fixes. If you hit something not listed here, [open
 
 ## Quick diagnosis
 
-Always run `shoki doctor` first. 90% of the issues on this page are diagnosed by it in one shot.
+Always run `dicta doctor` first. 90% of the issues on this page are diagnosed by it in one shot.
 
 ```bash
-npx shoki doctor
+npx dicta doctor
 ```
 
 Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
@@ -17,7 +17,7 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 ### `AXError -25204` / "cannot observe announcements"
 
 - **Cause:** The ShokiRunner helper lacks the Accessibility TCC grant (or the grant is stale after a binding upgrade).
-- **Fix:** Run `shoki doctor`. If it reports missing Accessibility, follow the deep link to System Settings → Privacy & Security → Accessibility and toggle ShokiRunner.app on. If the grant is present but mismatched, run `tccutil reset Accessibility com.shoki.ShokiRunner` and re-grant.
+- **Fix:** Run `dicta doctor`. If it reports missing Accessibility, follow the deep link to System Settings → Privacy & Security → Accessibility and toggle ShokiRunner.app on. If the grant is present but mismatched, run `tccutil reset Accessibility com.shoki.ShokiRunner` and re-grant.
 
 ### Ghost VoiceOver process after tests
 
@@ -51,8 +51,8 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 
 ### `ShokiConcurrentTestError` from the Vitest plugin
 
-- **Cause:** You used `test.concurrent(...)` inside a file that imports `@shoki/core/vitest/browser`. VO is a system singleton; concurrent tests would pollute each other's capture logs.
-- **Fix:** Remove the `.concurrent`. Vitest will run the tests serially in a single thread. Shoki refcount semantics handle cross-file VO sharing.
+- **Cause:** You used `test.concurrent(...)` inside a file that imports `dicta/vitest/browser`. VO is a system singleton; concurrent tests would pollute each other's capture logs.
+- **Fix:** Remove the `.concurrent`. Vitest will run the tests serially in a single thread. Dicta refcount semantics handle cross-file VO sharing.
 
 ### `ShokiPlatformUnsupportedError`
 
@@ -67,15 +67,15 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
   2. Check `node_modules/@shoki/` for a `binding-darwin-arm64` or `binding-darwin-x64` subdirectory.
   3. If it's missing, your registry might be blocking optional deps — set `optional=true` in `.npmrc` or pin the platform binding manually.
 
-### `shoki doctor` says "Full Disk Access needed"
+### `dicta doctor` says "Full Disk Access needed"
 
-- **Cause:** `shoki doctor` reads the system TCC.db, which is SIP-protected on macOS 14+.
+- **Cause:** `dicta doctor` reads the system TCC.db, which is SIP-protected on macOS 14+.
 - **Fix:** Grant FDA to your terminal in System Settings → Privacy & Security → Full Disk Access, OR run with `--skip-system-tcc` (user-scope check only).
 
 ### Empty log + `toHaveAnnounced` fails
 
 - **Cause:** Almost always a missing Automation grant specifically (Accessibility alone is not sufficient). VoiceOver has to show up as a child entry of ShokiRunner.app under Automation.
-- **Fix:** Run `shoki doctor` — it diagnoses Automation specifically. Re-grant if needed, re-run.
+- **Fix:** Run `dicta doctor` — it diagnoses Automation specifically. Re-grant if needed, re-run.
 
 ### `awaitStable` times out
 
@@ -86,43 +86,43 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 
 ### VO starts but never announces anything
 
-- **Cause 1:** VO is running but muted at the system level in a way Shoki doesn't override (`shoki.start({ mute: true })` uses our own plist key, not the system mute).
-- **Fix 1:** Don't worry about system mute; Shoki controls capture independently of speaker output. If `phraseLog()` still returns `[]` something deeper is broken.
+- **Cause 1:** VO is running but muted at the system level in a way Dicta doesn't override (`voiceOver.start({ mute: true })` uses our own plist key, not the system mute).
+- **Fix 1:** Don't worry about system mute; Dicta controls capture independently of speaker output. If `phraseLog()` still returns `[]` something deeper is broken.
 - **Cause 2:** Your app isn't actually announcing (bad `aria-live`, role mismatch, etc.).
 - **Fix 2:** Test against [`examples/vitest-browser-qwik`](https://github.com/shoki/shoki/tree/main/examples/vitest-browser-qwik) first — if the canonical example works, the problem is in your app's semantics.
 
-### `shoki doctor` exits 9 (HELPER_UNSIGNED)
+### `dicta doctor` exits 9 (HELPER_UNSIGNED)
 
 - **Cause:** You're running against a dev build of the helper, not a signed release.
 - **Fix:**
   - For local dev, this is fine — just expect to re-grant permissions every time the helper changes.
-  - For CI or production, install a signed release from npm: `pnpm add -D shoki@latest`.
+  - For CI or production, install a signed release from npm: `pnpm add -D dicta@latest`.
 
-### `shoki setup` fails with ENOENT on `~/Applications/`
+### `dicta setup` fails with ENOENT on `~/Applications/`
 
-- **Cause:** Fresh macOS installs sometimes don't have `~/Applications/`. `shoki setup` auto-creates it, but on some sandboxed shells (e.g. restricted dev containers) the `mkdir -p` itself fails.
+- **Cause:** Fresh macOS installs sometimes don't have `~/Applications/`. `dicta setup` auto-creates it, but on some sandboxed shells (e.g. restricted dev containers) the `mkdir -p` itself fails.
 - **Fix:**
   ```bash
   mkdir -p ~/Applications/
-  npx shoki setup
+  npx dicta setup
   ```
   Or use `--install-dir <path>` to route installs somewhere you control.
 
 ### "Cannot verify developer" when opening `Shoki.app`
 
-- **Cause:** macOS Gatekeeper quarantine wasn't stripped. `shoki setup` normally runs `xattr -dr com.apple.quarantine` on the installed bundles automatically.
-- **Fix:** Re-run `npx shoki setup --force`, or strip manually:
+- **Cause:** macOS Gatekeeper quarantine wasn't stripped. `dicta setup` normally runs `xattr -dr com.apple.quarantine` on the installed bundles automatically.
+- **Fix:** Re-run `npx dicta setup --force`, or strip manually:
   ```bash
   xattr -dr com.apple.quarantine ~/Applications/Shoki.app ~/Applications/Shoki\ Setup.app
   ```
   Or right-click `Shoki Setup.app` in Finder → Open → confirm. This is a one-time System Settings override.
 
-### `shoki setup` exits with "checksum mismatch"
+### `dicta setup` exits with "checksum mismatch"
 
 - **Cause:** The downloaded `shoki-darwin-<arch>.zip` failed SHA256 verification against the published `.sha256` sidecar. Possible causes: interrupted download, corrupted cache, network MITM.
 - **Fix:** Re-run with `--force` to redownload cleanly. If the failure repeats, open an issue with the URL printed by `--dry-run` and the hash output by `shasum -a 256 <cached-zip-path>`.
 
-### `shoki setup --no-download` fails in CI
+### `dicta setup --no-download` fails in CI
 
 - **Cause:** Your CI image doesn't have `~/Applications/Shoki.app` pre-baked, but `--no-download` forbids fetching.
 - **Fix:** Either drop `--no-download` (let setup fetch on first run) or bake the apps into your image. The [pre-baked tart image](/guides/ci/tart-selfhosted) already includes them.
@@ -132,7 +132,7 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 ### Background apps leak announcements into captures
 
 - **Cause:** Slack, Discord, Teams, Mail, Calendar, system notifications, etc. announce over the foreground app.
-- **Fix:** `shoki/setup-action` runs `kill-background-apps.sh` as a pre-job step. If you're not using the action, copy the script from [`.github/actions/setup/`](https://github.com/shoki/shoki/tree/main/.github/actions/setup) and run it yourself.
+- **Fix:** `dicta/setup-action` runs `kill-background-apps.sh` as a pre-job step. If you're not using the action, copy the script from [`.github/actions/setup/`](https://github.com/shoki/shoki/tree/main/.github/actions/setup) and run it yourself.
 
 ### GH-hosted `macos-latest` is erratic
 
@@ -142,9 +142,9 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 ### macOS 26 (Tahoe) tests fail with a different error than on 14/15
 
 - **Cause:** CVE-2025-43530 tightened VO AppleScript access — an entitlement is now required.
-- **Fix:** Update to a tart image with the post-CVE entitlement baked in (`ghcr.io/shoki/macos-vo-ready:tahoe` at or after 2026-03). If your tooling can't provide the entitlement, Shoki falls back to the AX-notifications capture path — see [Platform risk](/background/platform-risk).
+- **Fix:** Update to a tart image with the post-CVE entitlement baked in (`ghcr.io/shoki/macos-vo-ready:tahoe` at or after 2026-03). If your tooling can't provide the entitlement, Dicta falls back to the AX-notifications capture path — see [Platform risk](/background/platform-risk).
 
 ## Still stuck?
 
-1. Run `shoki info` — it prints a diagnostic blob suitable for pasting into a bug report.
-2. Open an issue on [the repo](https://github.com/shoki/shoki/issues) with: macOS version, Node version, pnpm version, the output of `shoki doctor`, and the output of `shoki info`.
+1. Run `dicta info` — it prints a diagnostic blob suitable for pasting into a bug report.
+2. Open an issue on [the repo](https://github.com/shoki/shoki/issues) with: macOS version, Node version, pnpm version, the output of `dicta doctor`, and the output of `dicta info`.

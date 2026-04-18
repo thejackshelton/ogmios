@@ -1,6 +1,6 @@
 # Matchers — semantic assertions
 
-Shoki ships four Vitest `expect` matchers over `ShokiEvent[]` logs. The pure matcher functions live at **`@shoki/core/matchers`** (framework-agnostic); Vitest wiring (`expect.extend`) lives at **`@shoki/core/vitest/setup`**. All four work against both Node-side events (`tsNanos: bigint`) and browser-side RPC payloads (`tsMs: number`). Negation is supported via `.not.*` on every matcher.
+Dicta ships four Vitest `expect` matchers over `ShokiEvent[]` logs. The pure matcher functions live at **`dicta/matchers`** (framework-agnostic); Vitest wiring (`expect.extend`) lives at **`dicta/vitest/setup`**. All four work against both Node-side events (`tsNanos: bigint`) and browser-side RPC payloads (`tsMs: number`). Negation is supported via `.not.*` on every matcher.
 
 ## Setup
 
@@ -10,7 +10,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    setupFiles: ["@shoki/core/vitest/setup"],
+    setupFiles: ["dicta/vitest/setup"],
   },
 });
 ```
@@ -26,7 +26,7 @@ Asserts that the log contains at least one event matching the given **semantic s
 **Runnable example — button click:**
 
 ```tsx
-import { voiceOver } from "@shoki/core/vitest/browser";
+import { voiceOver } from "dicta/vitest/browser";
 import { page } from "@vitest/browser/context";
 import { render } from "vitest-browser-qwik";
 import { expect, test } from "vitest";
@@ -160,11 +160,11 @@ Most tests will prefer `session.awaitStable({ quietMs })` which returns the stab
 
 ## Working against raw event logs
 
-If you're not using `@shoki/core/vitest`, you can pull the pure matcher functions from `@shoki/core/matchers` and either wire them into your framework's own `expect.extend` or call them directly:
+If you're not using `dicta/vitest`, you can pull the pure matcher functions from `dicta/matchers` and either wire them into your framework's own `expect.extend` or call them directly:
 
 ```ts
-import { voiceOver } from "@shoki/core";
-import { toHaveAnnounced } from "@shoki/core/matchers";
+import { voiceOver } from "dicta";
+import { toHaveAnnounced } from "dicta/matchers";
 
 const handle = voiceOver();
 await handle.start({ mute: true });
@@ -179,7 +179,7 @@ if (!result.pass) throw new Error(result.message());
 await handle.stop();
 ```
 
-When using `@shoki/core/vitest/setup` the same matcher functions are registered on Vitest's `expect` — you write `expect(events).toHaveAnnounced(...)` and the setup file handles `expect.extend`.
+When using `dicta/vitest/setup` the same matcher functions are registered on Vitest's `expect` — you write `expect(events).toHaveAnnounced(...)` and the setup file handles `expect.extend`.
 
 ## Chrome noise: how to avoid capturing URL-bar text
 
@@ -189,19 +189,19 @@ autofill. If your assertion naively checks that a specific string was
 announced, you may get a false positive from chrome text that VO read from
 the browser UI, not from the DOM your test actually rendered.
 
-Shoki's canonical test
+Dicta's canonical test
 [`examples/vitest-browser-qwik/tests/dom-vs-chrome-url.test.tsx`](https://github.com/shoki/shoki/blob/main/examples/vitest-browser-qwik/tests/dom-vs-chrome-url.test.tsx)
 pins this invariant with a paired positive/negative test. The filter works
 on three layers:
 
 ### 1. Scope AX capture to the renderer process
 
-Shoki honors the `SHOKI_AX_TARGET_PID` environment variable as the pid its
+Dicta honors the `SHOKI_AX_TARGET_PID` environment variable as the pid its
 AX observer binds to (via `AXUIElementCreateApplication(pid)` on the helper
 side). When set, AX notifications from the parent Chromium process — which
 owns the URL bar, tab bar, and window chrome — are excluded from capture.
 
-Under `@shoki/core/vitest`, the plugin resolves the renderer pid automatically
+Under `dicta/vitest`, the plugin resolves the renderer pid automatically
 just before booting VoiceOver. You can set it yourself for custom flows:
 
 ```ts
@@ -259,8 +259,8 @@ If that assertion ever fails, one of the three layers above has regressed
 - **RegExp flags matter** — `/submit/i` matches "Submit" and "SUBMIT"; `/submit/` does not.
 - **`source`** is `"applescript"` or `"ax"` — distinguishing the capture path matters only for debugging, not for application correctness.
 - **`interrupt`** is only set by the AppleScript capture path; the AX-notifications path doesn't carry it.
-- **Empty logs are a red flag** unless you explicitly assert them via `toHaveNoAnnouncement` — if you're getting empty logs you didn't expect, your grants are almost certainly missing. Run `shoki doctor`.
+- **Empty logs are a red flag** unless you explicitly assert them via `toHaveNoAnnouncement` — if you're getting empty logs you didn't expect, your grants are almost certainly missing. Run `dicta doctor`.
 
 ## Full API reference
 
-See the [Matchers API reference](/api/matchers) for type signatures and all options. For the framework-wiring subpath see the [`@shoki/core/vitest` API reference](/api/vitest).
+See the [Matchers API reference](/api/matchers) for type signatures and all options. For the framework-wiring subpath see the [`dicta/vitest` API reference](/api/vitest).

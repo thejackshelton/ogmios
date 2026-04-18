@@ -23,26 +23,38 @@ First public release.
 
 ### Changed
 
-- **Final published name:** `@shoki/core` (scoped). The unscoped `shoki` slot
-  was blocked by npm's anti-typosquatting check against `shiki`, so this
-  release ships under the `@shoki` org scope. The CLI bin name stays
-  `shoki` — users still run `npx shoki setup`, `npx shoki doctor`, etc.
-- **BREAKING — package rename:** `@shoki/sdk` is now published as
-  `@shoki/core`. Update imports: `import { voiceOver } from '@shoki/core'`.
-  (Phase 10 Plan 01 renamed `@shoki/sdk` → unscoped `shoki`; this release
-  re-scopes to `@shoki/core` to bypass npm's similarity filter.)
-- **BREAKING — `@shoki/vitest` collapsed into `@shoki/core`:** the Vitest plugin
-  now lives at the subpaths `@shoki/core/vitest`, `@shoki/core/vitest/setup`, and
-  `@shoki/core/vitest/browser`. Update consumers:
-  - `import { shokiVitest } from '@shoki/vitest'` → `from '@shoki/core/vitest'`
-  - `import '@shoki/vitest/setup'` → `import '@shoki/core/vitest/setup'`
-  - `import { voiceOver } from '@shoki/vitest/browser'` → `from '@shoki/core/vitest/browser'`
-  - Drop `@shoki/vitest` from `devDependencies` — it's now a subpath of `@shoki/core`.
-  `vitest` and `@vitest/browser` are now OPTIONAL peer deps of `@shoki/core`. (Phase 10 Plan 01)
-- **3 packages total** (down from 4): `@shoki/core` + `@shoki/binding-darwin-arm64`
-  + `@shoki/binding-darwin-x64`. The platform bindings stay scoped — the
-  napi platform-package pattern requires it. (Phase 10 Plan 01)
-- **`shoki setup` now downloads `Shoki.app` from GitHub Releases on first run**
+- **Final published name:** `dicta` (Latin: "things said"). Unscoped,
+  distinctive, and semantically aligned with the library's purpose.
+  The unscoped `shoki` name was blocked by npm's anti-typosquatting
+  check against `shiki`; the `@shoki/core` workaround was tried next,
+  but the `@shoki` npm org creation was subsequently denied (likely the
+  same anti-typosquatting policy). `dicta` is unrelated to any existing
+  npm package so publish is friction-free. The CLI bin command is also
+  `dicta` now — users run `npx dicta setup`, `npx dicta doctor`, etc.
+- **v0.1 helper-app naming (temporary inconsistency):** The helper
+  application retains its original "Shoki" file names (`Shoki.app`,
+  `Shoki Setup.app`) and bundle identifier (`app.shoki.setup`) for v0.1
+  because regenerating the signed bundles + CSREQ trust anchors is its
+  own work item. v0.2 will complete the helper rebrand. Users who run
+  `npx dicta setup` will see a window labeled "Shoki Setup" briefly —
+  this is expected.
+- **BREAKING — package rename:** `@shoki/sdk` (later `shoki`, then
+  `@shoki/core`) is now published as `dicta`. Update imports:
+  `import { voiceOver } from 'dicta'`.
+- **BREAKING — `@shoki/vitest` collapsed into `dicta`:** the Vitest plugin
+  now lives at the subpaths `dicta/vitest`, `dicta/vitest/setup`, and
+  `dicta/vitest/browser`. Update consumers:
+  - `import { shokiVitest } from '@shoki/vitest'` → `from 'dicta/vitest'`
+  - `import '@shoki/vitest/setup'` → `import 'dicta/vitest/setup'`
+  - `import { voiceOver } from '@shoki/vitest/browser'` → `from 'dicta/vitest/browser'`
+  - Drop `@shoki/vitest` from `devDependencies` — it's now a subpath of `dicta`.
+  `vitest` and `@vitest/browser` are now OPTIONAL peer deps of `dicta`. (Phase 10 Plan 01)
+- **3 packages total** (down from 4): `dicta` + `@shoki/binding-darwin-arm64`
+  + `@shoki/binding-darwin-x64`. The platform bindings keep their `@shoki`
+  scope for v0.1 — regenerating their names touches the napi
+  platform-package resolution and is deferred with the helper rebrand.
+  (Phase 10 Plan 01)
+- **`dicta setup` now downloads `Shoki.app` from GitHub Releases on first run**
   (previously a path resolver inside npm tarballs). Installs to
   `~/Applications/`, strips `com.apple.quarantine`, and walks you through the
   Accessibility + Automation TCC prompts. One command per machine, ever.
@@ -53,7 +65,7 @@ First public release.
 
 ### Added
 
-- **`shoki setup` is now a real download flow.** Previously a path resolver,
+- **`dicta setup` is now a real download flow.** Previously a path resolver,
   it now: (1) detects `Shoki.app` + `Shoki Setup.app` in `~/Applications/`,
   (2) downloads `shoki-darwin-<arch>.zip` from GitHub Releases when missing
   or out-of-date, (3) verifies SHA256 against the published `.sha256`
@@ -63,9 +75,9 @@ First public release.
   `--install-dir <path>`, `--skip-launch`, `--json`, `--version <ver>`,
   `--dry-run`. No new runtime dependencies — uses Node 24 native `fetch` +
   `crypto.createHash('sha256')`. (Phase 10 Plan 02)
-- **`compatibleAppVersion` field in `@shoki/core`'s `package.json`** — couples the SDK
+- **`compatibleAppVersion` field in `dicta`'s `package.json`** — couples the SDK
   release cadence to the helper-app release cadence. The CLI uses it as the
-  default `--version` for `shoki setup`. (Phase 10 Plan 02)
+  default `--version` for `dicta setup`. (Phase 10 Plan 02)
 - **GitHub Releases workflow for helper bundles** (`.github/workflows/app-release.yml`)
   triggered by `app-v*` tags. Publishes `shoki-darwin-arm64.zip`,
   `shoki-darwin-x64.zip`, and matching `.sha256` files. SDK release cadence
@@ -79,21 +91,32 @@ First public release.
 ### Migration
 
 ```bash
-# Old (Phase 8/9):
-npm uninstall @shoki/sdk @shoki/vitest
-# New (v0.1.0):
-npm install @shoki/core
+# Old (Phase 8/9 / any v0.1.0-rc):
+npm uninstall @shoki/sdk @shoki/vitest @shoki/core shoki
+# New (v0.1.0 GA):
+npm install dicta
 ```
 
 Update imports:
 
-- `from '@shoki/sdk'` → `from '@shoki/core'`
-- `from '@shoki/vitest'` → `from '@shoki/core/vitest'`
-- `from '@shoki/vitest/setup'` → `from '@shoki/core/vitest/setup'`
-- `from '@shoki/vitest/browser'` → `from '@shoki/core/vitest/browser'`
-- `from '@shoki/sdk/matchers'` → `from '@shoki/core/matchers'`
+- `from '@shoki/sdk'` → `from 'dicta'`
+- `from 'shoki'` → `from 'dicta'`
+- `from '@shoki/core'` → `from 'dicta'`
+- `from '@shoki/vitest'` → `from 'dicta/vitest'`
+- `from '@shoki/vitest/setup'` → `from 'dicta/vitest/setup'`
+- `from '@shoki/vitest/browser'` → `from 'dicta/vitest/browser'`
+- `from '@shoki/sdk/matchers'` → `from 'dicta/matchers'`
+- `from '@shoki/core/matchers'` → `from 'dicta/matchers'`
+- `from '@shoki/core/vitest'` (and subpaths) → `from 'dicta/vitest'` (and subpaths)
 
-Then run `npx shoki setup --force` to grab the latest `Shoki.app` + `Shoki Setup.app` from GitHub Releases.
+CLI invocation also changes — the bin command is now `dicta`:
+
+- `npx shoki doctor` → `npx dicta doctor`
+- `npx shoki setup` → `npx dicta setup`
+- `npx shoki info` → `npx dicta info`
+- `npx shoki restore-vo-settings` → `npx dicta restore-vo-settings`
+
+Then run `npx dicta setup --force` to grab the latest `Shoki.app` + `Shoki Setup.app` from GitHub Releases.
 
 ## [Unreleased] — Phase 8 (v1.1 prep) + Phase 9
 

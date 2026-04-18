@@ -2,12 +2,12 @@
 layout: home
 
 hero:
-  name: Shoki
+  name: Dicta
   text: Real screen readers in your tests.
   tagline: Run VoiceOver (and later NVDA, Orca) from any test framework. Capture announcements as structured events. Assert semantically. Locally and in CI.
   image:
     src: /ear.png
-    alt: Shoki — a dotwork illustration of a human ear in coral on deep navy
+    alt: Dicta — a dotwork illustration of a human ear in coral on deep navy
   actions:
     - theme: brand
       text: Get started
@@ -40,17 +40,19 @@ features:
 ## Quick install
 
 ```bash
-pnpm add -D @shoki/core
-npx shoki doctor
+pnpm add -D dicta
+npx dicta doctor
 # If TCC is missing, one-click setup via the bundled GUI:
-npx shoki setup
+npx dicta setup
 ```
 
 Then follow the [Vitest quickstart](/getting-started/vitest-quickstart) — a complete working test in under 5 minutes.
 
-## What is Shoki?
+> **Note:** v0.1 ships with the helper application retaining its original "Shoki" file names (`Shoki.app`, `Shoki Setup.app`). When you run `npx dicta setup`, a window labeled "Shoki Setup" will launch — this is expected. Full helper rebrand in v0.2.
 
-Shoki is a Zig-core + TypeScript-SDK library that lets any test framework start a **real** screen reader, capture its announcements as structured events, and assert on them — locally on a developer's Mac and in CI on multiple macOS runner topologies.
+## What is Dicta?
+
+Dicta is a Zig-core + TypeScript-SDK library that lets any test framework start a **real** screen reader, capture its announcements as structured events, and assert on them — locally on a developer's Mac and in CI on multiple macOS runner topologies.
 
 **Core value:** A test author can start a real screen reader from their existing test framework, capture what it announces, and assert on it — locally and in CI — without becoming a sysadmin.
 
@@ -65,7 +67,7 @@ Most accessibility tests today use static rule checkers (axe-core, ESLint-jsx-a1
 - macOS CI runners are expensive and fiddly.
 - NVDA is Windows-only.
 
-Shoki solves those piece by piece — one signed helper, one dual-path capture, one set of CI workflows.
+Dicta solves those piece by piece — one signed helper, one dual-path capture, one set of CI workflows.
 
 ## Status
 

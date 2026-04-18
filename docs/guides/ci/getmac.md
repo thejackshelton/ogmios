@@ -44,7 +44,7 @@ jobs:
 
       - uses: shoki/setup-action@v1
         # GetMac is NOT pre-baked — setup-action does real work here:
-        # enables VO AppleScript, kills background apps, runs shoki doctor.
+        # enables VO AppleScript, kills background apps, runs dicta doctor.
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install chromium
@@ -64,7 +64,7 @@ See the full reference at [`.github/workflows/examples/shoki-getmac.yml`](https:
 
 - Writes `SCREnableAppleScriptEnabled=true` to the VO plist.
 - Kills background apps that announce (Slack, Discord, Mail, Calendar, system notifications).
-- Runs `shoki doctor --json` and fails the job if the environment isn't ready.
+- Runs `dicta doctor --json` and fails the job if the environment isn't ready.
 - Installs pnpm + Node if not already present (rare; most GetMac images ship both).
 
 The whole setup step is typically 20-40s. Compare to [self-hosted tart](./tart-selfhosted) where it's effectively zero.

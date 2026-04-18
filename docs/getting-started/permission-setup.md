@@ -5,14 +5,14 @@ macOS gates VoiceOver automation behind two permission layers:
 1. **VoiceOver AppleScript control** — a single plist key that enables scripting. Off by default since macOS 26.
 2. **TCC grants** (Transparency, Consent, Control) — per-executable Accessibility + Automation permissions, keyed by code signature.
 
-Shoki's job is to make these discoverable. Run `shoki doctor` and it tells you exactly which layer is missing and how to fix it.
+Shoki's job is to make these discoverable. Run `dicta doctor` and it tells you exactly which layer is missing and how to fix it.
 
-## First-run flow: `npx shoki setup`
+## First-run flow: `npx dicta setup`
 
 The recommended path is one command:
 
 ```bash
-npx shoki setup
+npx dicta setup
 ```
 
 What this does on first run (once per machine):
@@ -28,23 +28,23 @@ That replaces the old "System Settings → Privacy & Security → four-step danc
 ### To re-grant or reinstall
 
 ```bash
-npx shoki setup --force    # redownload + reinstall (e.g. after a compatibleAppVersion bump)
+npx dicta setup --force    # redownload + reinstall (e.g. after a compatibleAppVersion bump)
 ```
 
 ### If shoki's left your VoiceOver settings in a weird state
 
 ```bash
-shoki restore-vo-settings  # escape hatch — see below
+dicta restore-vo-settings  # escape hatch — see below
 ```
 
 ### Power users: manual fallback
 
-If you can't run `shoki setup` (offline CI, sandboxed shell, etc.), the manual fallback is to download `shoki-darwin-<arch>.zip` + `.sha256` from the [`app-v*` GitHub Release](https://github.com/shoki/shoki/releases), verify the hash yourself, unzip into `~/Applications/`, strip quarantine (`xattr -dr com.apple.quarantine ~/Applications/Shoki.app ~/Applications/Shoki\ Setup.app`), and launch `Shoki Setup.app` manually. Or pass `--install-dir <path>` + `--no-download` if your image is pre-seeded.
+If you can't run `dicta setup` (offline CI, sandboxed shell, etc.), the manual fallback is to download `shoki-darwin-<arch>.zip` + `.sha256` from the [`app-v*` GitHub Release](https://github.com/shoki/shoki/releases), verify the hash yourself, unzip into `~/Applications/`, strip quarantine (`xattr -dr com.apple.quarantine ~/Applications/Shoki.app ~/Applications/Shoki\ Setup.app`), and launch `Shoki Setup.app` manually. Or pass `--install-dir <path>` + `--no-download` if your image is pre-seeded.
 
 ## The happy path
 
 ```bash
-npx shoki doctor
+npx dicta doctor
 ```
 
 Expected output when everything is set up:
@@ -72,7 +72,7 @@ If every box is checked, skip to the [Vitest quickstart](./vitest-quickstart).
        SCREnableAppleScriptEnabled -bool true
 ```
 
-Shoki will offer `shoki doctor --fix` which attempts the write automatically when SIP permits. On systems where SIP blocks the write (most modern macOS installs), `--fix` falls back to printing the exact command and a deep link to the right System Settings pane.
+Shoki will offer `dicta doctor --fix` which attempts the write automatically when SIP permits. On systems where SIP blocks the write (most modern macOS installs), `--fix` falls back to printing the exact command and a deep link to the right System Settings pane.
 
 ### 4 · TCC_MISSING_ACCESSIBILITY
 
@@ -82,7 +82,7 @@ Shoki will offer `shoki doctor --fix` which attempts the write automatically whe
   Deep link: x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility
 ```
 
-`shoki doctor` emits `open <deep-link>` as a follow-up command. Once you grant it in the UI, re-run `shoki doctor` to verify.
+`dicta doctor` emits `open <deep-link>` as a follow-up command. Once you grant it in the UI, re-run `dicta doctor` to verify.
 
 ### 5 · TCC_MISSING_AUTOMATION
 
@@ -108,11 +108,11 @@ This happens when the helper binary is replaced (e.g. you reinstalled the bindin
 
 ```
 ✗ Cannot read system TCC.db (SIP-protected)
-  shoki doctor needs Full Disk Access to read this file.
+  dicta doctor needs Full Disk Access to read this file.
   Grant at: System Settings → Privacy & Security → Full Disk Access
 ```
 
-This is only needed by `shoki doctor` itself, not by the test runtime. If you don't want to grant FDA to your terminal, you can skip the system-TCC check with `shoki doctor --skip-system-tcc` — the user-scope TCC database is usually enough.
+This is only needed by `dicta doctor` itself, not by the test runtime. If you don't want to grant FDA to your terminal, you can skip the system-TCC check with `dicta doctor --skip-system-tcc` — the user-scope TCC database is usually enough.
 
 ### 8 · HELPER_MISSING
 
@@ -141,9 +141,9 @@ Not actually fatal for local work — it just means you'll re-grant permissions 
 
 ## Exit codes
 
-`shoki doctor` exits non-zero on any failure so CI scripts can branch on the cause. The full table is in the [CLI reference](/api/cli).
+`dicta doctor` exits non-zero on any failure so CI scripts can branch on the cause. The full table is in the [CLI reference](/api/cli).
 
-## Recovery: `shoki restore-vo-settings`
+## Recovery: `dicta restore-vo-settings`
 
 If shoki crashes hard (SIGKILL, power loss, OOM killer), its normal cleanup hooks may not run and your Mac can be left with altered VoiceOver settings — typically muted audio or an unusual speech rate. Zig's signal handlers trap SIGINT/SIGTERM/SIGHUP, but **SIGKILL is unhandleable by any user process**, so a separate recovery path is required.
 
@@ -152,7 +152,7 @@ Every time `voiceOver.start()` runs, shoki writes a snapshot of your original Vo
 Restore the saved settings at any time with:
 
 ```bash
-shoki restore-vo-settings
+dicta restore-vo-settings
 ```
 
 Output when it works:
@@ -187,8 +187,8 @@ The 9 VoiceOver keys shoki writes during `voiceOver.start()`, pulled from `com.a
 - `SCRCategories_SCRCategoryVoices_SCRSpeakChannel` (voice)
 - `SCRShouldAnnounceKeyCommands`
 
-If shoki starts up and finds a stale snapshot file, that's informational — no automatic restore happens (we can't know whether the user's state in the meantime is intentional). Run `shoki restore-vo-settings` explicitly if you want to roll back.
+If shoki starts up and finds a stale snapshot file, that's informational — no automatic restore happens (we can't know whether the user's state in the meantime is intentional). Run `dicta restore-vo-settings` explicitly if you want to roll back.
 
 ## Next step
 
-Once `shoki doctor` exits 0, head to the [Vitest quickstart](./vitest-quickstart) and run your first real test.
+Once `dicta doctor` exits 0, head to the [Vitest quickstart](./vitest-quickstart) and run your first real test.

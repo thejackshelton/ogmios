@@ -35,8 +35,8 @@ executes** via `renderSSR()`.
   verbatim from the React example to prove the pid filter is
   framework-agnostic.
 - `vitest.config.ts` — wires `testSSR()` + `qwikVite()` + `shokiVitest()`.
-- `src/vitest.setup.ts` — imports `@shoki/core/vitest/setup` to register the four
-  Shoki matchers on Vitest's `expect`.
+- `src/vitest.setup.ts` — imports `dicta/vitest/setup` to register the four
+  Dicta matchers on Vitest's `expect`.
 
 ## Why Qwik (and why SSR)
 
@@ -54,7 +54,7 @@ assertable from any Vitest test.
 - Node.js >= 24
 - pnpm >= 10
 - **macOS** with VoiceOver set up for AppleScript control (run
-  `npx shoki doctor`)
+  `npx dicta doctor`)
 - Playwright's Chromium browser
   (`pnpm exec playwright install chromium`)
 
@@ -139,7 +139,7 @@ Automation permissions. The `SHOKI_INTEGRATION=1` gate keeps:
   `SHOKI_INTEGRATION=1` to use SSR + render-only tests.
 - **SSR test fails with "JSX not valid"** — ensure `jsxImportSource` in
   `tsconfig.json` is `@qwik.dev/core`.
-- **`toHaveAnnounced` fails with an empty log** — run `npx shoki doctor`.
+- **`toHaveAnnounced` fails with an empty log** — run `npx dicta doctor`.
   #1 cause is a missing Automation grant.
 - **Test times out** — increase `quietMs` or `timeoutMs` on
   `session.awaitStable`. 500ms of silence is tight on slow machines.

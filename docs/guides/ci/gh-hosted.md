@@ -48,7 +48,7 @@ jobs:
         # On stock macos-latest the action does the full setup each run:
         # - sudo writes VO AppleScript plist
         # - kills background apps
-        # - runs shoki doctor --fix
+        # - runs dicta doctor --fix
         # Expect ~30-60s of overhead per job.
 
       - run: pnpm install --frozen-lockfile
@@ -64,7 +64,7 @@ See the full reference at [`.github/workflows/examples/shoki-github-hosted.yml`]
 - Writes VO AppleScript plist (cold VM; always needed).
 - Grants Accessibility + Automation TCC to the helper (via `tccutil` + SIP-off workarounds; see notes).
 - Kills background announcement daemons.
-- Runs `shoki doctor` and fails fast if anything didn't stick.
+- Runs `dicta doctor` and fails fast if anything didn't stick.
 
 ## Known issues
 

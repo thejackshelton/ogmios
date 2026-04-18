@@ -1,10 +1,10 @@
 # Release Setup
 
-One-time setup for the `shoki` release pipeline. Maintainers run through this before the first `v*` tag.
+One-time setup for the `dicta` release pipeline. Maintainers run through this before the first `v*` tag.
 
 ## 1. Apple Developer ID (signing + notarization)
 
-Shoki's `.node` binding does not need to be signed — npm-distributed `.node` files inherit trust from Node. But the **ShokiRunner.app helper** (the TCC trust anchor; see `docs/architecture.md`) MUST be Developer ID-signed + notarized so TCC grants persist across dev rebuilds.
+Dicta's `.node` binding does not need to be signed — npm-distributed `.node` files inherit trust from Node. But the **ShokiRunner.app helper** (the TCC trust anchor; see `docs/architecture.md`) MUST be Developer ID-signed + notarized so TCC grants persist across dev rebuilds.
 
 ### What you need
 
@@ -32,14 +32,14 @@ Running tests locally does not require Apple signing. Helper builds and signing 
 
 ## 2. npm OIDC Trusted Publishing
 
-Shoki publishes via npm's trusted-publishing flow — no `NPM_TOKEN` secret in CI.
+Dicta publishes via npm's trusted-publishing flow — no `NPM_TOKEN` secret in CI.
 
 > Note: Section 2 covers the **SDK / npm** release pipeline (`.github/workflows/release.yml`, triggered by `v*` tags). The separate **helper `.app` bundles** (Shoki.app + Shoki Setup.app) ship from a different pipeline on a different cadence — see § 7 below for the `app-v*` tag flow and the `compatibleAppVersion` coupling.
 
 ### One-time enrollment per package
 
 For each of:
-- `@shoki/core` (the SDK, formerly `@shoki/sdk`, briefly `shoki`)
+- `dicta` (the SDK, formerly `@shoki/sdk`, briefly `shoki`, briefly `@shoki/core`)
 - `@shoki/binding-darwin-arm64`
 - `@shoki/binding-darwin-x64`
 
@@ -74,12 +74,12 @@ Use `--dry-run` liberally. After the first successful publish per package, enabl
 After a tag push:
 
 1. Watch the `Release` workflow in GitHub Actions. All four jobs should be green.
-2. `npm view @shoki/core dist-tags` — should show the new `latest` version.
-3. `npm install @shoki/core@latest` on a fresh macOS machine:
+2. `npm view dicta dist-tags` — should show the new `latest` version.
+3. `npm install dicta@latest` on a fresh macOS machine:
    - `@shoki/binding-darwin-arm64` or `@shoki/binding-darwin-x64` should be selected via `optionalDependencies`
-   - `node -e "require('@shoki/core')"` should load without errors
+   - `node -e "require('dicta')"` should load without errors
    - `codesign -dvvv node_modules/@shoki/binding-*/helper/ShokiRunner.app` should show a valid Developer ID signature
-4. `npm view @shoki/core@<new-version> --json | jq .dist.attestations` — should show provenance attestation.
+4. `npm view dicta@<new-version> --json | jq .dist.attestations` — should show provenance attestation.
 
 ---
 
@@ -100,7 +100,7 @@ xcrun notarytool log <log-uuid> --key AuthKey_XXX.p8 --key-id XXX --issuer XXX
 
 npm allows unpublishing within 72 hours. If a broken release ships:
 ```bash
-npm unpublish @shoki/core@<broken-version>
+npm unpublish dicta@<broken-version>
 npm unpublish @shoki/binding-darwin-arm64@<broken-version>
 npm unpublish @shoki/binding-darwin-x64@<broken-version>
 ```
@@ -110,7 +110,7 @@ After 72 hours, unpublishing is restricted — instead publish a patched version
 
 ## 6. Tart image publish (Phase 5)
 
-The shoki VO-ready tart images (`ghcr.io/shoki/macos-vo-ready:<ver>`) are
+The dicta VO-ready tart images (`ghcr.io/shoki/macos-vo-ready:<ver>`) are
 published from `.github/workflows/tart-publish.yml`. This is a separate
 pipeline from the npm release because:
 
@@ -189,8 +189,8 @@ tart pull ghcr.io/shoki/macos-vo-ready:sonoma
 tart run shoki-vo-ready-sonoma --no-graphics &
 IP=$(tart ip shoki-vo-ready-sonoma)
 ssh -o StrictHostKeyChecking=no admin@$IP \
-    'cat /etc/shoki-image && shoki doctor --json --quiet'
-# expected: shoki doctor prints {"ok": true, ...} and exits 0
+    'cat /etc/shoki-image && dicta doctor --json --quiet'
+# expected: dicta doctor prints {"ok": true, ...} and exits 0
 ```
 
 ### If the publish fails
@@ -211,9 +211,11 @@ ssh -o StrictHostKeyChecking=no admin@$IP \
 
 ## 7. App release (helper `.app` bundles via GitHub Releases)
 
-Shoki ships two helper bundles — `Shoki.app` (the long-lived runner, formerly
+Dicta ships two helper bundles — `Shoki.app` (the long-lived runner, formerly
 `ShokiRunner.app`) and `Shoki Setup.app` (one-shot onboarding UX, formerly
 `ShokiSetup.app`). These are distributed via **GitHub Releases**, not npm.
+(The helper bundle file names retain their "Shoki" branding through v0.1;
+full rebrand follows in v0.2.)
 
 Phase 10 split the two release channels for a reason:
 - npm (`v*` tags, § 2) is cheap, frequent, and text-only — pure `shoki.node` +
@@ -254,7 +256,7 @@ This triggers `.github/workflows/app-release.yml`, which:
 
 The resulting URL scheme — e.g.
 `https://github.com/<owner>/shoki/releases/download/app-v0.1.0/shoki-darwin-arm64.zip`
-— is the wire contract with Plan 10-02's `shoki setup` downloader.
+— is the wire contract with Plan 10-02's `dicta setup` downloader.
 
 ### Required secrets
 
@@ -276,12 +278,12 @@ No npm secret is needed — the workflow doesn't touch the registry. The
 ### `compatibleAppVersion` coupling (critical)
 
 `packages/sdk/package.json` has a top-level `compatibleAppVersion` field. This
-is the version of `Shoki.app` the SDK knows how to talk to. `shoki setup`
+is the version of `Shoki.app` the SDK knows how to talk to. `dicta setup`
 fetches from `app-v<compatibleAppVersion>`.
 
 Rule: **after publishing an `app-v*` release, bump `compatibleAppVersion` in
 `packages/sdk/package.json` to match, then cut a `v*` SDK release.** Otherwise
-`shoki setup` on the next install still downloads the previous `.app` version.
+`dicta setup` on the next install still downloads the previous `.app` version.
 
 The reverse isn't required: SDK patch releases that don't need a new helper
 just keep the same `compatibleAppVersion` value. An `app-v*` tag can sit
@@ -303,7 +305,7 @@ coordinate with `setup-download.ts` if the layout needs to evolve.
 
 ### First-time bootstrap (before v1.0)
 
-Until `shoki setup` is shipping to real users, you can also publish
+Until `dicta setup` is shipping to real users, you can also publish
 manually from a maintainer's Mac:
 
 ```bash

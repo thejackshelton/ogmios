@@ -1,7 +1,7 @@
-# Shoki
+# Dicta
 
 [![CI](https://img.shields.io/github/actions/workflow/status/shoki/shoki/ci.yml?branch=main&label=CI)](https://github.com/shoki/shoki/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@shoki/core?color=CB3837&logo=npm)](https://www.npmjs.com/package/@shoki/core)
+[![npm](https://img.shields.io/npm/v/dicta?color=CB3837&logo=npm)](https://www.npmjs.com/package/dicta)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%2014%20%7C%2015%20%7C%2026-lightgrey?logo=apple)](docs/background/platform-risk.md)
 
@@ -9,43 +9,45 @@
 
 **Status:** 🚧 Early development. v1 targets macOS + VoiceOver + Vitest browser mode. Not ready for production use.
 
-## What is this?
+## What is Dicta?
 
-Shoki lets you start a **real** screen reader from your existing test framework, capture everything it would have announced, and assert on that log. No simulators, no static checkers — the actual VoiceOver (and later NVDA, Orca) speaking through a test.
+Dicta lets you start a **real** screen reader from your existing test framework, capture everything it would have announced, and assert on that log. No simulators, no static checkers — the actual VoiceOver (and later NVDA, Orca) speaking through a test.
 
 Think of it as a more ambitious [Guidepup](https://github.com/guidepup/guidepup) with first-class CI support and dramatically better DX.
 
+> **Note on the helper app:** v0.1 ships with the helper application retaining its original "Shoki" file names (`Shoki.app`, `Shoki Setup.app`, `app.shoki.setup` bundle ID). When you run `npx dicta setup`, a window labeled "Shoki Setup" will launch — this is expected. The full helper rebrand follows in v0.2 after signed-bundle regeneration + CSREQ refresh.
+
 ## Install
 
-Shoki is a library + CLI. The canonical path is **local install in your test project**:
+Dicta is a library + CLI. The canonical path is **local install in your test project**:
 
 > **v0.1.0 ships arm64 only** (Apple Silicon Macs). Intel Mac support arrives in v0.2. Most active Mac dev machines are Apple Silicon (Apple stopped selling Intel in 2023).
 
 ```bash
-npm install @shoki/core
-npx shoki setup
+npm install dicta
+npx dicta setup
 ```
 
-Why local: your test files will `import { voiceOver } from '@shoki/core'`, which only resolves when `@shoki/core` is in your project's `package.json`. The `shoki setup` CLI works via `npx` from a local install — no global install needed.
+Why local: your test files will `import { voiceOver } from 'dicta'`, which only resolves when `dicta` is in your project's `package.json`. The `dicta setup` CLI works via `npx` from a local install — no global install needed.
 
 For Vitest users:
 
 ```bash
-npm install -D @shoki/core vitest @vitest/browser playwright
+npm install -D dicta vitest @vitest/browser playwright
 ```
 
-`shoki setup` downloads `Shoki.app` from GitHub Releases to `~/Applications/`, strips the macOS quarantine attribute, and walks you through Accessibility + Automation permission prompts. It runs once per machine — TCC grants persist across projects because the trust anchor is `~/Applications/Shoki.app`, independent of your `node_modules/`.
+`dicta setup` downloads `Shoki.app` from GitHub Releases to `~/Applications/`, strips the macOS quarantine attribute, and walks you through Accessibility + Automation permission prompts. It runs once per machine — TCC grants persist across projects because the trust anchor is `~/Applications/Shoki.app`, independent of your `node_modules/`.
 
 ### Alternative: global install
 
-If you just want to grant TCC on your Mac without a project yet (evaluating shoki, pre-provisioning a dev box), global install works:
+If you just want to grant TCC on your Mac without a project yet (evaluating dicta, pre-provisioning a dev box), global install works:
 
 ```bash
-npm install -g @shoki/core
-shoki setup
+npm install -g dicta
+dicta setup
 ```
 
-You'll still need a local install (`npm install @shoki/core` inside the project) to `import` shoki in test code.
+You'll still need a local install (`npm install dicta` inside the project) to `import` dicta in test code.
 
 See [`docs/getting-started/install.md`](docs/getting-started/install.md) for details.
 
@@ -73,7 +75,7 @@ Shoki solves those piece by piece.
 └──────────┬───────────┘
            │
 ┌──────────▼───────────┐
-│   @shoki/core (TS)   │   Public API + `shoki` CLI + matcher fns + vitest plugin
+│   dicta (TS)         │   Public API + `dicta` CLI + matcher fns + vitest plugin
 └──────────┬───────────┘
            │ N-API
 ┌──────────▼───────────┐
@@ -90,13 +92,13 @@ Shoki solves those piece by piece.
 └──────────────────────┘
 ```
 
-Shoki ships **3 npm packages**:
+Dicta ships **3 npm packages**:
 
-- `@shoki/core` — TypeScript API, `shoki` CLI (`bin`), matcher functions at `@shoki/core/matchers`, and Vitest plugin at `@shoki/core/vitest`, `@shoki/core/vitest/setup`, `@shoki/core/vitest/browser`.
+- `dicta` — TypeScript API, `dicta` CLI (`bin`), matcher functions at `dicta/matchers`, and Vitest plugin at `dicta/vitest`, `dicta/vitest/setup`, `dicta/vitest/browser`.
 - `@shoki/binding-darwin-arm64` — platform binary (Zig `.node`), auto-installed via `optionalDependencies`. Never installed by hand.
 - `@shoki/binding-darwin-x64` — same, for Intel Macs. Auto-installed via `optionalDependencies`. Never installed by hand.
 
-The helper apps (`Shoki.app` + `Shoki Setup.app`) are **not** in the npm tarballs. `npx shoki setup` downloads them from GitHub Releases on first run (~10MB), verifies SHA256, installs them into `~/Applications/`, and triggers the macOS TCC permission flow. The helper bundles are **single-language Zig** — no Swift, no Objective-C sources. See [`docs/background/architecture.md`](docs/background/architecture.md) for the full story (signed-wrapper-app rationale, wire format spec, driver extensibility).
+The helper apps (`Shoki.app` + `Shoki Setup.app`) are **not** in the npm tarballs. `npx dicta setup` downloads them from GitHub Releases on first run (~10MB), verifies SHA256, installs them into `~/Applications/`, and triggers the macOS TCC permission flow. The helper bundles are **single-language Zig** — no Swift, no Objective-C sources. See [`docs/background/architecture.md`](docs/background/architecture.md) for the full story (signed-wrapper-app rationale, wire format spec, driver extensibility).
 
 ## Not yet
 

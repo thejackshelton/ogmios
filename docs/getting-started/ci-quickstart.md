@@ -61,7 +61,7 @@ The composite action auto-detects your runner and applies the right setup:
 
 - **Self-hosted tart** — no-op; the image is already baked with VO-AppleScript-enabled + TCC grants.
 - **Cirrus Runners** — no-op; same tart image under the hood.
-- **GetMac / GH-hosted** — runs `shoki doctor --fix` to enable VO AppleScript, kills background announcement-emitting apps (Slack, Discord, Mail, Calendar), and verifies Accessibility grants.
+- **GetMac / GH-hosted** — runs `dicta doctor --fix` to enable VO AppleScript, kills background announcement-emitting apps (Slack, Discord, Mail, Calendar), and verifies Accessibility grants.
 
 See [CI-03 / CI-05 in the roadmap](https://github.com/shoki/shoki/blob/main/.planning/ROADMAP.md) for the full matrix of what gets set up where.
 
