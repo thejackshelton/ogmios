@@ -8,4 +8,5 @@
 
 comptime {
     _ = @import("test/xpc_service_test.zig");
+    _ = @import("test/ax_observer_test.zig");
 }

@@ -45,6 +45,8 @@ pub fn build(b: *std.Build) void {
     // that xpc_main would otherwise reach for in Plan 02.
     if (target.result.os.tag == .macos) {
         xpc_core_mod.linkFramework("Foundation", .{});
+        xpc_core_mod.linkFramework("ApplicationServices", .{});
+        xpc_core_mod.linkFramework("CoreFoundation", .{});
     }
 
     b.installArtifact(xpc_core);
@@ -65,6 +67,8 @@ pub fn build(b: *std.Build) void {
     });
     if (target.result.os.tag == .macos) {
         test_mod.linkFramework("Foundation", .{});
+        test_mod.linkFramework("ApplicationServices", .{});
+        test_mod.linkFramework("CoreFoundation", .{});
     }
 
     const t = b.addTest(.{ .root_module = test_mod });
