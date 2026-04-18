@@ -184,13 +184,17 @@ Plans:
 
 ### Phase 10: CLI-driven Shoki.app distribution — shoki setup downloads from GitHub Releases, strips quarantine, installs to ~/Applications
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal**: User-facing install is `npm install shoki` + `npx shoki setup`. 3 packages total. Shoki.app + Shoki Setup.app land in ~/Applications/ via CLI download from GitHub Releases (not bundled in npm tarballs). Renames `@shoki/sdk` → `shoki` and collapses `@shoki/vitest` into `shoki/vitest` subpath, dropping the package count from 4 to 3.
+**Requirements**: N/A — distribution refactor + DX phase; verifies via runtime command checks (CONTEXT.md verification mandate).
 **Depends on:** Phase 9
-**Plans:** 0 plans
+**Plans:** 5 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 10 to break down)
+- [ ] 10-01-PLAN.md — Package consolidation: rename @shoki/sdk → shoki + merge @shoki/vitest into shoki/vitest subpaths + sweep imports + pnpm green [Wave 1]
+- [ ] 10-02-PLAN.md — `shoki setup` download flow: fetch shoki-<platform>.zip from GitHub Releases + SHA256 verify + unzip to ~/Applications/ + strip quarantine + launch [Wave 2]
+- [ ] 10-03-PLAN.md — .github/workflows/app-release.yml: app-v* tag → build + sign + ditto-zip + sha256 + gh release create [Wave 3, depends on Plan 04]
+- [ ] 10-04-PLAN.md — Strip helper/ from binding tarballs + rewire .github/actions/build-helper-app + scrub release.yml [Wave 2]
+- [ ] 10-05-PLAN.md — Docs sweep (README + every docs/ + CHANGELOG) + final end-to-end verification gate + 10-SUMMARY.md [Wave 4]
 
 ---
 *Roadmap created: 2026-04-17*
