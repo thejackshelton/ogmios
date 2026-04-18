@@ -164,7 +164,61 @@ pub fn build(b: *std.Build) void {
     b.getInstallStep().dependOn(&install_dylib.step);
 
     // -----------------------------------------------------------------------
-    // 4. Test step — Plan 01 + Plan 02 Task 1 tests
+    // 4. ShokiSetup executable + .app bundle — Plan 08-03
+    // -----------------------------------------------------------------------
+    //
+    // Zig-compiled GUI whose whole purpose is to trigger the macOS
+    // Accessibility + Automation-of-VoiceOver TCC prompts cleanly on first
+    // launch. See src/setup/setup_main.zig for the flow.
+    //
+    // Framework linkage is a superset of ShokiRunner's because we also need
+    // AppKit (NSApplication + NSAlert) and libobjc (objc_msgSend variants).
+
+    const setup_mod = b.createModule(.{
+        .root_source_file = b.path("src/setup/setup_main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    if (target.result.os.tag == .macos) {
+        setup_mod.linkFramework("Foundation", .{});
+        setup_mod.linkFramework("AppKit", .{});
+        setup_mod.linkFramework("ApplicationServices", .{});
+        setup_mod.linkFramework("CoreFoundation", .{});
+        setup_mod.linkSystemLibrary("objc", .{});
+    }
+
+    const setup_exe = b.addExecutable(.{
+        .name = "ShokiSetup",
+        .root_module = setup_mod,
+    });
+
+    // Raw exe alongside .build/ShokiRunner so scripts can find it at a
+    // stable path if they want to invoke without the bundle wrapper.
+    const install_setup = b.addInstallFileWithDir(
+        setup_exe.getEmittedBin(),
+        .{ .custom = "../.build" },
+        "ShokiSetup",
+    );
+    b.getInstallStep().dependOn(&install_setup.step);
+
+    // Stage the .app bundle: Contents/Info.plist + Contents/MacOS/ShokiSetup.
+    const install_setup_plist = b.addInstallFileWithDir(
+        b.path("src/setup/Info.plist"),
+        .{ .custom = "../.build/ShokiSetup.app/Contents" },
+        "Info.plist",
+    );
+    b.getInstallStep().dependOn(&install_setup_plist.step);
+
+    const install_setup_bundle_exe = b.addInstallFileWithDir(
+        setup_exe.getEmittedBin(),
+        .{ .custom = "../.build/ShokiSetup.app/Contents/MacOS" },
+        "ShokiSetup",
+    );
+    b.getInstallStep().dependOn(&install_setup_bundle_exe.step);
+
+    // -----------------------------------------------------------------------
+    // 5. Test step — Plan 01 + Plan 02 + Plan 03 tests
     // -----------------------------------------------------------------------
 
     const test_step = b.step("test", "Run helper unit tests");
@@ -179,6 +233,10 @@ pub fn build(b: *std.Build) void {
         test_mod.linkFramework("Foundation", .{});
         test_mod.linkFramework("ApplicationServices", .{});
         test_mod.linkFramework("CoreFoundation", .{});
+        // Plan 08-03: setup_bindings_test.zig references AppKit +
+        // libobjc symbols (objc_getClass, sel_registerName).
+        test_mod.linkFramework("AppKit", .{});
+        test_mod.linkSystemLibrary("objc", .{});
     }
 
     const t = b.addTest(.{ .root_module = test_mod });
