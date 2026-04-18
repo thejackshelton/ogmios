@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 10-02 — shoki setup download + verify + unzip + quarantine-strip + launch flow
-last_updated: "2026-04-18T14:16:24.004Z"
+stopped_at: Completed 10-03 — app-release.yml + package-app-zip.sh for GitHub-Releases app distribution
+last_updated: "2026-04-18T14:29:25.204Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 10
   completed_phases: 4
   total_plans: 42
-  completed_plans: 31
-  percent: 74
+  completed_plans: 32
+  percent: 76
 ---
 
 # Project State
@@ -71,6 +71,7 @@ Progress: [█░░░░░░░░░] 17%
 | Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from P01 | 10m | 2 tasks | 48 files |
 | Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from P04 | 8m | 2 tasks | 5 files |
 | Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from P02 | 7m | 2 tasks | 13 files |
+| Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from P03 | 30m | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from]: Plan 10-01: Renamed @shoki/sdk → shoki (unscoped), merged @shoki/vitest into shoki/vitest* subpaths; plugin detection needle + plugin.name updated to 'shoki/vitest(/browser)'; 3-package monorepo baseline (shoki + 2 platform bindings) for downstream Phase 10 plans
 - [Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from]: Plan 10-04: Binding tarballs now ship only shoki.node + README + LICENSE; build-helper-app action removed from release.yml entirely (build-zig-binding installs Zig itself); CI assertion step guards against .app bundles ever leaking back into packages/binding-darwin-*
 - [Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from]: Plan 10-02: runSetup is dependency-free at boundary (Node 24 fetch + crypto + fs/promises); execa dynamic-imported only in launch branch. xattr exit code 1 is a success (no quarantine xattr on fresh extract). compatibleAppVersion flat at package.json top level for jq-friendly CI reads. 25 new tests, 3 new source files, zero new runtime deps.
+- [Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from]: Plan 10-03: app-release.yml publishes shoki-darwin-{arm64,x64}.zip+.sha256 to GitHub Releases on app-v* tags; package-app-zip.sh uses staged-dir ditto (ditto -c rejects multi-source) to keep Shoki.app + Shoki Setup.app at archive root; build-app-bundle.sh gained --target for x64 cross-compile; secret gating via job-level env (step if: cannot reference secrets context)
 
 ### Pending Todos
 
@@ -137,6 +139,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-04-18T14:16:24.002Z
-Stopped at: Completed 10-02 — shoki setup download + verify + unzip + quarantine-strip + launch flow
+Last session: 2026-04-18T14:29:25.201Z
+Stopped at: Completed 10-03 — app-release.yml + package-app-zip.sh for GitHub-Releases app distribution
 Resume file: None
