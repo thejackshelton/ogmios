@@ -204,16 +204,36 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — packages/sdk TS surface rename (package.json, plugin needle, CLI, error classes, env vars, tests) [Wave 1]
-- [ ] 11-02-PLAN.md — Binding packages rename to @munadi scope (package.json + README) [Wave 1]
-- [ ] 11-03-PLAN.md — Zig core rename: package name, build product, plist keys, env vars, rebuild munadi.node into both bindings [Wave 2 — depends on 11-02]
-- [ ] 11-04-PLAN.md — Helper app end-to-end rename: Zig sources, Info.plists, XPC symbols, dylib, build scripts, .app bundles [Wave 1]
-- [ ] 11-05-PLAN.md — Infra rebrand: tart Packer images, Ansible vars, TCC-grant script [Wave 1]
-- [ ] 11-06-PLAN.md — Prose + example + workflow sweep: README, CHANGELOG, CLAUDE.md, CONTRIBUTING, docs/**, RELEASE runbook, example Qwik project, .github/** [Wave 3 — depends on 11-01..05]
-- [ ] 11-07-PLAN.md — Terminal: version bump 0.1.1, GitHub repo rename, npm publish + deprecate prior names, parent folder rename (session-terminating) [Wave 4 — depends on 11-01..06, checkpoints]
+- [x] 11-01-PLAN.md — packages/sdk TS surface rename (package.json, plugin needle, CLI, error classes, env vars, tests) [Wave 1]
+- [x] 11-02-PLAN.md — Binding packages rename to @munadi scope (package.json + README) [Wave 1]
+- [x] 11-03-PLAN.md — Zig core rename: package name, build product, plist keys, env vars, rebuild munadi.node into both bindings [Wave 2 — depends on 11-02]
+- [x] 11-04-PLAN.md — Helper app end-to-end rename: Zig sources, Info.plists, XPC symbols, dylib, build scripts, .app bundles [Wave 1]
+- [x] 11-05-PLAN.md — Infra rebrand: tart Packer images, Ansible vars, TCC-grant script [Wave 1]
+- [ ] 11-06-PLAN.md — Prose + example + workflow sweep: README, CHANGELOG, CLAUDE.md, CONTRIBUTING, docs/**, RELEASE runbook, example Qwik project, .github/** [Wave 3 — SUPERSEDED by Phase 12]
+- [ ] 11-07-PLAN.md — Terminal: version bump 0.1.1, GitHub repo rename, npm publish + deprecate prior names, parent folder rename (session-terminating) [Wave 4 — SUPERSEDED by Phase 12]
+
+### Phase 12: Final rebrand to Ogmios — replace every Shoki, Dicta, and Munadi token with Ogmios across binaries, npm packages, CLI bin, state dir, env vars, plist keys, Zig source, infra, error class names, repo URL, all docs and prose, homepage Celtic etymology
+
+**Goal:** Complete the fifth-and-final rebrand. Every remaining Shoki/Dicta/Munadi token across the entire repo becomes Ogmios (Ὄγμιος — the Gaulish god of eloquence, whom Lucian of Samosata described as an old man binding listeners with chains of gold and amber from his tongue to their ears). Scope completes what Phase 11 Waves 1–2 started (SDK, bindings, helper, Zig core, infra all renamed to Munadi) and EXECUTES what Phase 11 Waves 3–4 never ran (docs sweep, CI workflows, release pipeline, GitHub repo rename, parent folder rename) — but targeting Ogmios directly, not Munadi. Breaking change across the TS API (`MunadiX` / `ShokiX` error classes → `OgmiosX`; `munadiVitest()` → `ogmiosVitest()`; env vars `MUNADI_*` / `SHOKI_*` → `OGMIOS_*`). Includes clean-break legacy state-dir notice (`ogmios doctor` detects `~/.shoki/` / `~/.dicta/` / `~/.munadi/` on first run and prints safe `rm -rf` command). Fallback to `@jackshelton/ogmios` personal scope if primary `ogmios` name is blocked by npm's unpublish lockout. Terminal step renames the parent working directory and kills the Claude session.
+**Requirements**: N/A — final rebrand phase, no v1 REQ-IDs.
+**Depends on:** Phase 11
+**Plans:** 10 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — packages/sdk TS surface rename Munadi -> Ogmios (package.json, error classes, factory, IMPORT_NEEDLE, CLI, env vars, plist keys, state dir, 10 command files via git mv, tests, fixtures) [Wave 1]
+- [ ] 12-02-PLAN.md — Binding packages rename @munadi -> @ogmios scope (package.json + README; main/files keep munadi.node until Plan 12-04) [Wave 1]
+- [ ] 12-03-PLAN.md — Helper app end-to-end rename: Zig sources, Info.plists (org.ogmios.*), XPC symbols ogmios_xpc_*, libOgmiosXPCClient.dylib, OgmiosRunner/OgmiosSetup bundles, entitlements, build/sign/package scripts, ogmios-darwin-*.zip output [Wave 1]
+- [ ] 12-04-PLAN.md — Zig core rename: .ogmios_core package (regen fingerprint), libogmios.dylib, MUNADI_* -> OGMIOS_* env vars, _ogmios_snapshot_* plist keys, OgmiosDriver vtable, rebuild ogmios.node addon, flip binding main/files [Wave 2 — depends on 12-03]
+- [ ] 12-05-PLAN.md — Infra rebrand: tart Packer images, Ansible vars, TCC-grant script, marker file, flag file [Wave 1]
+- [ ] 12-06-PLAN.md — Clean up hard-guarded Shoki residuals in packages/sdk/src/cli/checks/helper-*.ts + setup-*.ts + add legacy state-dir detection (~/.shoki/ / ~/.dicta/ / ~/.munadi/) with safe rm-rf notice [Wave 2 — depends on 12-01, 12-03]
+- [ ] 12-07-PLAN.md — Sweep .github/actions/** + .github/workflows/** for residual Shoki (libshoki.dylib, shoki.node) + Munadi tokens -> Ogmios [Wave 2 — depends on 12-03, 12-04]
+- [ ] 12-08-PLAN.md — Example project (examples/vitest-browser-qwik): rename shoki-matchers.d.ts -> ogmios-matchers.d.ts via git mv, flip workspace dep munadi -> ogmios, sweep imports + README + vitest.config [Wave 2 — depends on 12-01]
+- [ ] 12-09-PLAN.md — Full prose sweep: README + CHANGELOG (add v0.1.1 entry on top; historical entries preserved) + CLAUDE.md + CONTRIBUTING + LICENSE boilerplates + docs/** + RELEASE-RUNBOOK; add Celtic etymology (Lucian + golden chains + tongue-to-ear) to homepage and README [Wave 3 — depends on Waves 1 + 2]
+- [ ] 12-10-PLAN.md — Terminal release: version confirm 0.1.0, clean build + test gate, npm publish ogmios + @ogmios/binding-darwin-arm64 (with @jackshelton/ogmios fallback), npm deprecate dicta@0.1.0 + @shoki/binding-darwin-arm64@*, GitHub repo rename via gh api PATCH, parent folder rename /Users/jackshelton/dev/open-source/shoki -> /ogmios (session-terminating) [Wave 4 — depends on all prior 12-* plans]
 
 ---
 *Roadmap created: 2026-04-17*
 *Granularity: standard (target 5-8 phases) — 6 phases derived from natural delivery boundaries; Phase 3 is requirement-dense (16 reqs) but cohesive and will be split into 3-4 plans during /gsd-plan-phase.*
 *Phase 7 added 2026-04-17 as a post-Phase-6 verification phase (not in the original 6-phase v1 plan).*
 *Phase 8 plans added 2026-04-17: Zig helper port + ShokiSetup.app + package consolidation (7→4) + docs out of workspace. Wave 1 parallelism: 08-01 and 08-05 are orthogonal and run in parallel; 08-05 does not depend on helper work at all.*
+*Phase 12 plans added 2026-04-18: final rebrand to Ogmios. Wave 1 (Plans 01–05) is wide parallel across SDK/bindings/helper/infra (Plan 05 is infra-only, zero file overlap with others). Wave 2 (Plans 06–08) covers residuals + CI + example after Wave 1 establishes new artifact names. Wave 3 (Plan 09) is prose/docs sweep after everything else is Ogmios-named. Wave 4 (Plan 10) is release + terminating folder rename. Plan 11-06 and 11-07 are marked SUPERSEDED: their work is absorbed into Phase 12.*
