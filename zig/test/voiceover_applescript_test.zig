@@ -443,3 +443,88 @@ test "PollLoop.stop signals the thread and join completes within an interval" {
         allocator.free(entry_buf[0].phrase);
     }
 }
+
+// ---------------------------------------------------------------------------
+// RealSpawner tests — exercise the production fork+execvp+pipe path against
+// /bin/cat as a stand-in for osascript (osascript requires VoiceOver +
+// AppleScript-enabled plist + TCC, none of which are available in Zig test
+// context; /bin/cat proves the pipe/thread/queue machinery).
+// ---------------------------------------------------------------------------
+
+test "real spawner: cat_roundtrip writes a line and reads it back" {
+    const allocator = std.testing.allocator;
+    const spawner = applescript.realSpawner();
+    const argv = [_][]const u8{"/bin/cat"};
+    const child = try spawner.spawn(allocator, &argv);
+    defer child.deinitCtx();
+
+    try child.writeStdin("hello\n");
+    const line = try child.readStdoutLine(allocator, 2000);
+    defer allocator.free(line);
+    try std.testing.expectEqualStrings("hello", line);
+
+    child.kill();
+    child.wait();
+}
+
+test "real spawner: cat_multiline_roundtrip returns each line in order" {
+    const allocator = std.testing.allocator;
+    const spawner = applescript.realSpawner();
+    const argv = [_][]const u8{"/bin/cat"};
+    const child = try spawner.spawn(allocator, &argv);
+    defer child.deinitCtx();
+
+    try child.writeStdin("a\nb\nc\n");
+
+    const l1 = try child.readStdoutLine(allocator, 2000);
+    defer allocator.free(l1);
+    try std.testing.expectEqualStrings("a", l1);
+
+    const l2 = try child.readStdoutLine(allocator, 2000);
+    defer allocator.free(l2);
+    try std.testing.expectEqualStrings("b", l2);
+
+    const l3 = try child.readStdoutLine(allocator, 2000);
+    defer allocator.free(l3);
+    try std.testing.expectEqualStrings("c", l3);
+
+    child.kill();
+    child.wait();
+}
+
+test "real spawner: bogus_binary_spawn_fails returns FileNotFound" {
+    const allocator = std.testing.allocator;
+    const spawner = applescript.realSpawner();
+    const argv = [_][]const u8{"/bin/does-not-exist"};
+    const result = spawner.spawn(allocator, &argv);
+    try std.testing.expectError(error.FileNotFound, result);
+}
+
+test "real spawner: read_timeout_returns_error_Timeout when child produces nothing" {
+    const allocator = std.testing.allocator;
+    const spawner = applescript.realSpawner();
+    const argv = [_][]const u8{"/bin/cat"};
+    const child = try spawner.spawn(allocator, &argv);
+    defer child.deinitCtx();
+
+    // Don't write anything; cat blocks waiting for stdin, so stdout stays empty.
+    const result = child.readStdoutLine(allocator, 200);
+    try std.testing.expectError(error.Timeout, result);
+
+    child.kill();
+    child.wait();
+}
+
+test "real spawner: kill_then_wait_is_idempotent (no panic, no double-free)" {
+    const allocator = std.testing.allocator;
+    const spawner = applescript.realSpawner();
+    const argv = [_][]const u8{"/bin/cat"};
+    const child = try spawner.spawn(allocator, &argv);
+    defer child.deinitCtx();
+
+    child.kill();
+    child.wait();
+    // Second kill + wait should be a no-op.
+    child.kill();
+    child.wait();
+}

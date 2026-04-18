@@ -31,33 +31,12 @@ fn makeVoiceOver(allocator: std.mem.Allocator) anyerror!driver_mod.DriverHandle 
         allocator,
         defaults_mod.realSubprocessRunner,
         lifecycle_mod.realClock,
-        realAppleScriptSpawner(),
+        applescript_mod.realSpawner(),
         ax_mod.realXpcBackend,
     );
     const vt_slot = try allocator.create(driver_mod.ShokiDriver);
     vt_slot.* = voiceover_mod.VoiceOverDriver.vtable();
     return .{ .ctx = @ptrCast(instance), .vtable = vt_slot };
-}
-
-/// Real osascript spawner — uses std.process.Child. Wrapped here (not in
-/// applescript.zig) to keep that module test-clean; Plan 05 owns the link.
-var real_spawner_ctx_sentinel: u8 = 0;
-fn realSpawnImpl(ctx: *anyopaque, allocator: std.mem.Allocator, argv: []const []const u8) anyerror!*applescript_mod.ChildProcess {
-    _ = ctx;
-    _ = allocator;
-    _ = argv;
-    // Full implementation lands when the binding integrates real osascript spawning
-    // in a production build. For Plan 05's unit-test round-trip the test inserts
-    // a MockSpawner; CI integration tests (Plan 07) use the real path once the
-    // spawner is fleshed out.
-    return error.RealSpawnerNotYetImplemented;
-}
-
-fn realAppleScriptSpawner() applescript_mod.ChildProcessSpawner {
-    return .{
-        .ctx = @ptrCast(&real_spawner_ctx_sentinel),
-        .spawnFn = realSpawnImpl,
-    };
 }
 
 pub const drivers = [_]RegisteredDriver{

@@ -189,7 +189,7 @@ pub const PipedChild = struct {
 
     pub fn kill(self: *PipedChild) void {
         if (self.pid > 0) {
-            _ = c.kill(self.pid, @intFromEnum(c.SIG.TERM));
+            _ = c.kill(self.pid, .TERM);
         }
     }
 
