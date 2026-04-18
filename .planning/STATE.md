@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-04-18T01:17:37.900Z"
+stopped_at: Completed 07-06-PLAN.md — QA-REPORT.md + 07-SUMMARY.md written, gate=YELLOW
+last_updated: "2026-04-18T01:37:09.214Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 31
-  completed_plans: 20
-  percent: 65
+  completed_plans: 21
+  percent: 68
 ---
 
 # Project State
@@ -62,6 +62,7 @@ Progress: [█░░░░░░░░░] 17%
 | Phase 07-v1-integration-verification-and-qa-real-voiceover-announceme P03 | 6 | 2 tasks | 9 files |
 | Phase 07-v1-integration-verification-and-qa-real-voiceover-announceme P05 | 10m | 3 tasks | 9 files |
 | Phase 07 P04 | 9 | 3 tasks | 10 files |
+| Phase 07 P06 | 55m | 4 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 07-v1-integration-verification-and-qa-real-voiceover-announceme]: Plan 07-05: Snapshot file format is shoki-owned plist XML with _shoki_snapshot_{version,pid,ts_unix,domain} magic keys; 7-day TTL with --force override; file-I/O via libc to bypass Zig 0.16 std.Io.Dir churn
 - [Phase 07]: Used AXUIElementCreateApplication(renderer_pid) + SHOKI_AX_TARGET_PID env var (zero wire-format impact) to scope AX observer to the Chromium renderer — filters URL-bar noise from the capture log
 - [Phase 07]: Paired positive+negative DOM-vs-URL tests (gated on SHOKI_INTEGRATION=1 darwin) + Zig regression test pin the env-var wiring and the pgrep-last-line selection rule
+- [Phase 07]: Phase 7 gate is YELLOW — 12/15 PASS, 2 BLOCKED on one-time macOS Automation TCC grant for terminal toward VoiceOver (no dialog fires in CLI-parent context)
 
 ### Pending Todos
 
@@ -97,6 +99,7 @@ None yet.
 - Phase 5 has a research flag: per-provider tart YAML + slim-image target (<15 GB). Resolve in `/gsd-plan-phase 5`.
 - Coverage discrepancy: REQUIREMENTS.md header says "42 total v1 requirements" but the actual count is 46 (5 FOUND + 6 PERM + 16 CAP + 8 VITEST + 6 CI + 4 DOCS + 1 EXT). Header should be corrected on next REQUIREMENTS.md edit.
 - Wave 2 parallel-agent git contamination: Plan 02's agent used git add -A and swept Plan 04's Task 2 files into commit 40c4463. Net content correct, attribution wrong. Suggest enforcing no-git-add-A rule or using worktrees in future parallel waves.
+- Items 13/14 of CONTEXT.md checklist BLOCKED on Automation TCC grant (terminal to VoiceOver); see QA-REPORT.md § Unblockers Step 1
 
 ## Deferred Items
 
@@ -108,6 +111,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-04-18T01:17:37.898Z
-Stopped at: Completed 07-04-PLAN.md
+Last session: 2026-04-18T01:37:03.640Z
+Stopped at: Completed 07-06-PLAN.md — QA-REPORT.md + 07-SUMMARY.md written, gate=YELLOW
 Resume file: None
