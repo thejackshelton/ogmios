@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 10-03 — app-release.yml + package-app-zip.sh for GitHub-Releases app distribution
-last_updated: "2026-04-18T14:29:25.204Z"
+stopped_at: Completed Phase 10 (CLI-driven Shoki.app distribution + 4→3 package consolidation)
+last_updated: "2026-04-18T14:39:27.242Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 10
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 42
-  completed_plans: 32
-  percent: 76
+  completed_plans: 33
+  percent: 79
 ---
 
 # Project State
@@ -109,6 +109,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from]: Plan 10-04: Binding tarballs now ship only shoki.node + README + LICENSE; build-helper-app action removed from release.yml entirely (build-zig-binding installs Zig itself); CI assertion step guards against .app bundles ever leaking back into packages/binding-darwin-*
 - [Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from]: Plan 10-02: runSetup is dependency-free at boundary (Node 24 fetch + crypto + fs/promises); execa dynamic-imported only in launch branch. xattr exit code 1 is a success (no quarantine xattr on fresh extract). compatibleAppVersion flat at package.json top level for jq-friendly CI reads. 25 new tests, 3 new source files, zero new runtime deps.
 - [Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from]: Plan 10-03: app-release.yml publishes shoki-darwin-{arm64,x64}.zip+.sha256 to GitHub Releases on app-v* tags; package-app-zip.sh uses staged-dir ditto (ditto -c rejects multi-source) to keep Shoki.app + Shoki Setup.app at archive root; build-app-bundle.sh gained --target for x64 cross-compile; secret gating via job-level env (step if: cannot reference secrets context)
+- [Phase 10]: Renamed @shoki/sdk → shoki; collapsed @shoki/vitest into shoki/vitest subpaths; .apps moved out of npm tarballs onto GitHub Releases; new app-v* tag cadence independent from v* SDK cadence
 
 ### Pending Todos
 
@@ -139,6 +140,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-04-18T14:29:25.201Z
-Stopped at: Completed 10-03 — app-release.yml + package-app-zip.sh for GitHub-Releases app distribution
+Last session: 2026-04-18T14:39:27.205Z
+Stopped at: Completed Phase 10 (CLI-driven Shoki.app distribution + 4→3 package consolidation)
 Resume file: None
