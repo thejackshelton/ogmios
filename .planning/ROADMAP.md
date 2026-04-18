@@ -165,11 +165,11 @@ Plans:
 **Plans:** 6 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Helper Zig port Wave 1: build.zig skeleton + hand-written XPC externs + dispatcher with ping handler + unit tests (no Swift deletion yet; Swift coexists) [Wave 1]
+- [x] 08-01-PLAN.md — Helper Zig port Wave 1: build.zig skeleton + hand-written XPC externs + dispatcher with ping handler + unit tests (no Swift deletion yet; Swift coexists) [Wave 1]
 - [ ] 08-02-PLAN.md — Helper Zig port Wave 2: AX observer + CFRunLoop + main entry + Zig-built libShokiXPCClient.dylib + build-app-bundle.sh rewrite + DELETE all Swift (Package.swift, Sources/, Tests/) [Wave 2]
 - [ ] 08-03-PLAN.md — ShokiSetup.app: Zig + AppKit/Obj-C runtime externs + second executable target in helper/build.zig + --version/--self-test/--bogus flags + interactive flow that triggers AX + Automation TCC prompts + human-verify checkpoint [Wave 3]
 - [ ] 08-04-PLAN.md — CI integration: action.yml + ci.yml + release.yml updated to Zig-native, remove helper-test Swift job, add helper-smoke job that LAUNCHES both bundles, sign+notarize BOTH apps per architecture [Wave 4]
-- [ ] 08-05-PLAN.md — Package consolidation: doctor + matchers merged into @shoki/sdk (bin + exports['./cli'] + exports['./matchers']); @shoki/vitest owns expect.extend at /setup subpath; delete packages/doctor, packages/matchers; rewrite all imports across packages + examples [Wave 1 — orthogonal to helper work]
+- [x] 08-05-PLAN.md — Package consolidation: doctor + matchers merged into @shoki/sdk (bin + exports['./cli'] + exports['./matchers']); @shoki/vitest owns expect.extend at /setup subpath; delete packages/doctor, packages/matchers; rewrite all imports across packages + examples [Wave 1 — orthogonal to helper work]
 - [ ] 08-06-PLAN.md — Docs out of pnpm workspace + standalone docs CI + 4-package-world doc sweep (install snippets, quickstarts, matcher/CLI pages) + CHANGELOG entry + final end-to-end verify + 08-SUMMARY.md [Wave 5]
 
 ### Phase 9: Qwik example + docs switch from React

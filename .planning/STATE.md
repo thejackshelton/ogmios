@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 07-06-PLAN.md — QA-REPORT.md + 07-SUMMARY.md written, gate=YELLOW
-last_updated: "2026-04-18T01:37:09.214Z"
+stopped_at: Completed 08-05-PLAN.md — package consolidation 7->4, 167 sdk tests pass (= 97+19+51 sum)
+last_updated: "2026-04-18T03:36:35.386Z"
 last_activity: 2026-04-18
 progress:
-  total_phases: 7
+  total_phases: 9
   completed_phases: 3
-  total_plans: 31
-  completed_plans: 21
-  percent: 68
+  total_plans: 37
+  completed_plans: 23
+  percent: 62
 ---
 
 # Project State
@@ -63,6 +63,7 @@ Progress: [█░░░░░░░░░] 17%
 | Phase 07-v1-integration-verification-and-qa-real-voiceover-announceme P05 | 10m | 3 tasks | 9 files |
 | Phase 07 P04 | 9 | 3 tasks | 10 files |
 | Phase 07 P06 | 55m | 4 tasks | 2 files |
+| Phase 08-zig-helper-port-shokisetup-app-gui-package-consolidation P05 | 8m | 2 tasks | 65 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 07]: Used AXUIElementCreateApplication(renderer_pid) + SHOKI_AX_TARGET_PID env var (zero wire-format impact) to scope AX observer to the Chromium renderer — filters URL-bar noise from the capture log
 - [Phase 07]: Paired positive+negative DOM-vs-URL tests (gated on SHOKI_INTEGRATION=1 darwin) + Zig regression test pin the env-var wiring and the pgrep-last-line selection rule
 - [Phase 07]: Phase 7 gate is YELLOW — 12/15 PASS, 2 BLOCKED on one-time macOS Automation TCC grant for terminal toward VoiceOver (no dialog fires in CLI-parent context)
+- [Phase 08-zig-helper-port-shokisetup-app-gui-package-consolidation]: Plan 08-05: @shoki/sdk absorbs cli (bin.shoki -> dist/cli/main.js) + matchers (pure fns at /matchers subpath); @shoki/vitest absorbs expect.extend wiring at /setup subpath; CLI entry split from library entry to avoid parseAsync side-effects on library import; peerDep vitest (optional) + 'import type {} from vitest' anchor required for  under TS NodeNext + composite
 
 ### Pending Todos
 
@@ -111,6 +113,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-04-18T01:37:03.640Z
-Stopped at: Completed 07-06-PLAN.md — QA-REPORT.md + 07-SUMMARY.md written, gate=YELLOW
+Last session: 2026-04-18T03:36:26.633Z
+Stopped at: Completed 08-05-PLAN.md — package consolidation 7->4, 167 sdk tests pass (= 97+19+51 sum)
 Resume file: None
