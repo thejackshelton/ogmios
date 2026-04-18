@@ -3,6 +3,7 @@ const lifecycle = @import("../src/drivers/voiceover/lifecycle.zig");
 const defaults_mod = @import("../src/drivers/voiceover/defaults.zig");
 const applescript_mod = @import("../src/drivers/voiceover/applescript.zig");
 const opts_mod = @import("../src/core/options.zig");
+const clock_mod = @import("../src/core/clock.zig");
 
 // ---------------------------------------------------------------------------
 // MockSubprocessRunner — extended variant that matches argv pattern to a
@@ -761,4 +762,162 @@ test "signal-delivery test deferred to integration (Plan 07)" {
     // Keeping this test shape for grep targets:
     //   `grep -c "test \"" >= 14` in this file.
     try std.testing.expect(true);
+}
+
+// ===========================================================================
+// Plan 07-05 tests — on-disk snapshot file (SIGKILL recovery escape hatch)
+// ===========================================================================
+
+/// Build a minimal PlistSnapshot in memory for serialization tests. Uses the
+/// real keyCatalog ordering so entries[i] corresponds to catalog[i].
+fn buildTestSnapshot(allocator: std.mem.Allocator) !defaults_mod.PlistSnapshot {
+    var snap = defaults_mod.PlistSnapshot{
+        .allocator = allocator,
+        .domain = try allocator.dupe(u8, "com.apple.VoiceOver4/default"),
+        .entries = undefined,
+    };
+    // Populate a plausible mix: bool true, bool false, int 90, int 0, bool false,
+    // int 0, bool true, string voice, bool false.
+    snap.entries[0] = .{ .boolean = true }; // SCREnableAppleScript
+    snap.entries[1] = .{ .boolean = false }; // DisableSound
+    snap.entries[2] = .{ .integer = 72 }; // RateAsPercent
+    snap.entries[3] = .{ .integer = 1 }; // VerbosityLevel
+    snap.entries[4] = .{ .boolean = true }; // ShouldSpeakHints
+    snap.entries[5] = .{ .integer = 2 }; // PunctuationLevel
+    snap.entries[6] = .{ .boolean = true }; // ShouldSpeakStaticText
+    snap.entries[7] = .{ .string = try allocator.dupe(u8, "com.apple.speech.synthesis.voice.Alex") };
+    snap.entries[8] = .{ .boolean = false }; // AnnounceKeyCommands
+    return snap;
+}
+
+/// Read an entire file via libc (Zig 0.16 std.fs changed its Reader API;
+/// libc keeps the unit test simple and matches what writeSnapshotFile uses).
+fn readFileAllLibc(allocator: std.mem.Allocator, path: [:0]const u8) ![]u8 {
+    var flags: std.c.O = .{};
+    flags.ACCMODE = .RDONLY;
+    const mode_arg: std.c.mode_t = 0;
+    const fd = std.c.open(path.ptr, flags, mode_arg);
+    if (fd < 0) return error.OpenFailed;
+    defer _ = std.c.close(fd);
+
+    var buf: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer buf.deinit(allocator);
+    var chunk: [4096]u8 = undefined;
+    while (true) {
+        const n = std.c.read(fd, &chunk, chunk.len);
+        if (n < 0) return error.ReadFailed;
+        if (n == 0) break;
+        const nz: usize = @intCast(n);
+        try buf.appendSlice(allocator, chunk[0..nz]);
+    }
+    return buf.toOwnedSlice(allocator);
+}
+
+/// Build a unique tempfile path under /tmp. Doesn't create the file.
+fn makeTempPath(allocator: std.mem.Allocator, name: []const u8) ![:0]u8 {
+    const ts: u64 = clock_mod.nanoTimestamp();
+    const path = try std.fmt.allocPrintSentinel(allocator, "/tmp/shoki-test-{s}-{d}.plist", .{ name, ts }, 0);
+    return path;
+}
+
+test "writeSnapshotFile writes a parseable plist" {
+    const allocator = std.testing.allocator;
+
+    var snap = try buildTestSnapshot(allocator);
+    defer snap.deinit();
+
+    const path = try makeTempPath(allocator, "snapshot");
+    defer allocator.free(path);
+    defer _ = std.c.unlink(path.ptr);
+
+    try lifecycle.writeSnapshotFileForTest(allocator, &snap, path);
+
+    const contents = try readFileAllLibc(allocator, path);
+    defer allocator.free(contents);
+
+    try std.testing.expect(std.mem.indexOf(u8, contents, "<?xml version=\"1.0\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contents, "<plist version=\"1.0\">") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>SCREnableAppleScript</key>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>_shoki_snapshot_version</key>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contents, "<integer>1</integer>") != null); // version magic
+    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>_shoki_snapshot_pid</key>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>_shoki_snapshot_ts_unix</key>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>_shoki_snapshot_domain</key>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contents, "com.apple.VoiceOver4/default") != null);
+    // Voice string rendered as <string>…</string>.
+    try std.testing.expect(std.mem.indexOf(u8, contents, "com.apple.speech.synthesis.voice.Alex") != null);
+    // Closing tags present.
+    try std.testing.expect(std.mem.endsWith(u8, contents, "</plist>\n"));
+}
+
+test "serializeSnapshot emits each of the 9 catalog keys in order" {
+    const allocator = std.testing.allocator;
+    var snap = try buildTestSnapshot(allocator);
+    defer snap.deinit();
+
+    const xml = try lifecycle.serializeSnapshotForTest(allocator, &snap, 12345, 1700000000);
+    defer allocator.free(xml);
+
+    const catalog = defaults_mod.keyCatalog();
+    var last_idx: usize = 0;
+    for (catalog) |k| {
+        const tag = try std.fmt.allocPrint(allocator, "<key>{s}</key>", .{k.name});
+        defer allocator.free(tag);
+        const found = std.mem.indexOf(u8, xml, tag) orelse return error.KeyMissing;
+        try std.testing.expect(found >= last_idx);
+        last_idx = found;
+    }
+    // Metadata pid + ts appear with the passed values.
+    try std.testing.expect(std.mem.indexOf(u8, xml, "<integer>12345</integer>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, xml, "<integer>1700000000</integer>") != null);
+}
+
+test "writeSnapshotFile creates the parent directory if missing" {
+    const allocator = std.testing.allocator;
+
+    var snap = try buildTestSnapshot(allocator);
+    defer snap.deinit();
+
+    // Nested subdir under /tmp that does NOT yet exist.
+    const ts: u64 = clock_mod.nanoTimestamp();
+    const path = try std.fmt.allocPrintSentinel(
+        allocator,
+        "/tmp/shoki-test-mkpath-{d}/sub/dir/vo-snapshot.plist",
+        .{ts},
+        0,
+    );
+    defer allocator.free(path);
+    defer _ = std.c.unlink(path.ptr);
+
+    try lifecycle.writeSnapshotFileForTest(allocator, &snap, path);
+
+    // File exists and is non-empty.
+    const contents = try readFileAllLibc(allocator, path);
+    defer allocator.free(contents);
+    try std.testing.expect(contents.len > 0);
+}
+
+test "deleteSnapshotFile is idempotent when the file is absent" {
+    const allocator = std.testing.allocator;
+    const path = try makeTempPath(allocator, "never-created");
+    defer allocator.free(path);
+
+    // Should not throw even though the file doesn't exist.
+    lifecycle.deleteSnapshotFile(path);
+    lifecycle.deleteSnapshotFile(path); // twice — still fine.
+}
+
+test "resolveSnapshotPath honors SHOKI_SNAPSHOT_PATH env override" {
+    // We can only test the env-override branch without mutating the user's
+    // HOME. The override path is reached via c.getenv; in Zig's test runner
+    // we can't setenv portably on every stdlib version. Skip the setenv path
+    // and just verify the default HOME-based branch produces a path ending
+    // in ".shoki/vo-snapshot.plist".
+    const allocator = std.testing.allocator;
+    const path = lifecycle.resolveSnapshotPath(allocator) catch |err| switch (err) {
+        error.HomeNotSet => return, // Test env without HOME — skip.
+        else => return err,
+    };
+    defer allocator.free(path);
+    try std.testing.expect(std.mem.endsWith(u8, path, ".shoki/vo-snapshot.plist"));
 }

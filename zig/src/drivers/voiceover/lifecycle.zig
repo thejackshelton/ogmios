@@ -9,6 +9,230 @@ const c = std.c;
 pub const SubprocessRunner = defaults_mod.SubprocessRunner;
 
 // ---------------------------------------------------------------------------
+// Snapshot file on-disk format (Plan 07-05)
+//
+// After snapshotSettings() captures the 9 plist keys into Lifecycle.snapshot,
+// we ALSO write them to ~/.shoki/vo-snapshot.plist (or $SHOKI_SNAPSHOT_PATH).
+// This is the SIGKILL-recovery escape hatch: even if the process dies without
+// running any exit hooks (SIGKILL, power loss, OOM killer), `shoki restore-vo-
+// settings` can read this file and re-apply the original values via
+// `defaults write`.
+//
+// Format: Apple plist XML 1.0 with the 9 VO keys + three `_shoki_*` metadata
+// keys (version magic, pid, timestamp). The restore CLI uses the version
+// magic to refuse unrecognized files and the timestamp to enforce a 7-day TTL.
+// ---------------------------------------------------------------------------
+
+pub const SNAPSHOT_VERSION: u32 = 1;
+
+/// Resolve the snapshot-file path: $SHOKI_SNAPSHOT_PATH if set, else
+/// $HOME/.shoki/vo-snapshot.plist. Caller owns the returned string.
+pub fn resolveSnapshotPath(allocator: std.mem.Allocator) ![]u8 {
+    if (c.getenv("SHOKI_SNAPSHOT_PATH")) |ptr| {
+        const slice = std.mem.span(@as([*:0]const u8, ptr));
+        if (slice.len > 0) return allocator.dupe(u8, slice);
+    }
+    const home_ptr = c.getenv("HOME") orelse return error.HomeNotSet;
+    const home = std.mem.span(@as([*:0]const u8, home_ptr));
+    return std.fmt.allocPrint(allocator, "{s}/.shoki/vo-snapshot.plist", .{home});
+}
+
+/// Escape a string for safe inclusion inside a plist `<string>` element.
+/// Minimal XML escaping — enough for the handful of VO voice names we see
+/// in practice (e.g. "com.apple.speech.synthesis.voice.Alex").
+fn appendEscapedXml(allocator: std.mem.Allocator, buf: *std.ArrayListUnmanaged(u8), s: []const u8) !void {
+    for (s) |ch| switch (ch) {
+        '&' => try buf.appendSlice(allocator, "&amp;"),
+        '<' => try buf.appendSlice(allocator, "&lt;"),
+        '>' => try buf.appendSlice(allocator, "&gt;"),
+        else => try buf.append(allocator, ch),
+    };
+}
+
+fn appendPlistEntry(
+    allocator: std.mem.Allocator,
+    buf: *std.ArrayListUnmanaged(u8),
+    key_name: []const u8,
+    value: defaults_mod.PlistValue,
+) !void {
+    try buf.appendSlice(allocator, "    <key>");
+    try appendEscapedXml(allocator, buf, key_name);
+    try buf.appendSlice(allocator, "</key>\n");
+    switch (value) {
+        .boolean => |b| {
+            try buf.appendSlice(allocator, if (b) "    <true/>\n" else "    <false/>\n");
+        },
+        .integer => |n| {
+            try buf.appendSlice(allocator, "    <integer>");
+            var numbuf: [32]u8 = undefined;
+            const s = try std.fmt.bufPrint(&numbuf, "{d}", .{n});
+            try buf.appendSlice(allocator, s);
+            try buf.appendSlice(allocator, "</integer>\n");
+        },
+        .string => |s| {
+            try buf.appendSlice(allocator, "    <string>");
+            try appendEscapedXml(allocator, buf, s);
+            try buf.appendSlice(allocator, "</string>\n");
+        },
+        .missing => {
+            // Emit a distinct marker so the restore CLI can round-trip
+            // `.missing` → `defaults delete`. Plist has no native "absent"
+            // value so we use an empty string wrapped in a sentinel dict.
+            try buf.appendSlice(allocator, "    <string>__SHOKI_MISSING__</string>\n");
+        },
+    }
+}
+
+fn appendPlistMetaInt(
+    allocator: std.mem.Allocator,
+    buf: *std.ArrayListUnmanaged(u8),
+    key_name: []const u8,
+    value: i64,
+) !void {
+    try buf.appendSlice(allocator, "    <key>");
+    try buf.appendSlice(allocator, key_name);
+    try buf.appendSlice(allocator, "</key>\n    <integer>");
+    var numbuf: [32]u8 = undefined;
+    const s = try std.fmt.bufPrint(&numbuf, "{d}", .{value});
+    try buf.appendSlice(allocator, s);
+    try buf.appendSlice(allocator, "</integer>\n");
+}
+
+/// Serialize a PlistSnapshot to plist XML with shoki metadata keys.
+/// Pure fn — no I/O — for ease of testing.
+pub fn serializeSnapshot(
+    allocator: std.mem.Allocator,
+    snap: *const defaults_mod.PlistSnapshot,
+    pid: i64,
+    ts_unix: i64,
+) ![]u8 {
+    var buf: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer buf.deinit(allocator);
+
+    try buf.appendSlice(allocator,
+        \\<?xml version="1.0" encoding="UTF-8"?>
+        \\<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        \\<plist version="1.0">
+        \\<dict>
+        \\
+    );
+
+    // Write the domain the snapshot came from so `shoki restore-vo-settings`
+    // writes back to the same place (Sonoma vs Sequoia+ Group Container path).
+    try buf.appendSlice(allocator, "    <key>_shoki_snapshot_domain</key>\n    <string>");
+    try appendEscapedXml(allocator, &buf, snap.domain);
+    try buf.appendSlice(allocator, "</string>\n");
+
+    const catalog = defaults_mod.keyCatalog();
+    var i: usize = 0;
+    while (i < defaults_mod.CATALOG_LEN) : (i += 1) {
+        try appendPlistEntry(allocator, &buf, catalog[i].name, snap.entries[i]);
+    }
+
+    try appendPlistMetaInt(allocator, &buf, "_shoki_snapshot_version", @intCast(SNAPSHOT_VERSION));
+    try appendPlistMetaInt(allocator, &buf, "_shoki_snapshot_pid", pid);
+    try appendPlistMetaInt(allocator, &buf, "_shoki_snapshot_ts_unix", ts_unix);
+
+    try buf.appendSlice(allocator, "</dict>\n</plist>\n");
+    return buf.toOwnedSlice(allocator);
+}
+
+/// Recursively create parent directories via libc mkdir. Returns when the
+/// directory already exists (EEXIST is treated as success).
+fn makePathAll(allocator: std.mem.Allocator, dir: []const u8) !void {
+    // Walk from root to leaf, calling mkdir on each prefix.
+    var i: usize = 0;
+    while (i < dir.len) {
+        // Skip separators.
+        while (i < dir.len and dir[i] == '/') : (i += 1) {}
+        // Advance to next separator (or end).
+        while (i < dir.len and dir[i] != '/') : (i += 1) {}
+        const prefix = dir[0..i];
+        if (prefix.len == 0) continue;
+        const z = try allocator.dupeZ(u8, prefix);
+        defer allocator.free(z);
+        const rc = c.mkdir(z.ptr, 0o700);
+        if (rc != 0) {
+            // Accept EEXIST; fail on anything else.
+            const errno_val = std.c._errno().*;
+            const EEXIST: c_int = 17;
+            if (errno_val != EEXIST) return error.MkdirFailed;
+        }
+    }
+}
+
+/// Write a plist snapshot to disk atomically (write to <path>.tmp, rename).
+/// Creates parent directory if missing. File permission is 0600 (user-only).
+pub fn writeSnapshotFile(
+    allocator: std.mem.Allocator,
+    snap: *const defaults_mod.PlistSnapshot,
+    path: []const u8,
+) !void {
+    // Ensure parent dir exists.
+    if (std.fs.path.dirname(path)) |dir| {
+        try makePathAll(allocator, dir);
+    }
+
+    const pid: i64 = @intCast(std.c.getpid());
+    // clock_mod.nanoTimestamp returns wall-clock nanoseconds since the epoch;
+    // divide to get Unix seconds. This avoids depending on std.time.timestamp
+    // which was removed in Zig 0.16.
+    const ts_unix: i64 = @intCast(clock_mod.nanoTimestamp() / std.time.ns_per_s);
+
+    const xml = try serializeSnapshot(allocator, snap, pid, ts_unix);
+    defer allocator.free(xml);
+
+    const tmp_path = try std.fmt.allocPrint(allocator, "{s}.tmp", .{path});
+    defer allocator.free(tmp_path);
+    const tmp_path_z = try allocator.dupeZ(u8, tmp_path);
+    defer allocator.free(tmp_path_z);
+    const path_z = try allocator.dupeZ(u8, path);
+    defer allocator.free(path_z);
+
+    var flags: std.c.O = .{};
+    flags.ACCMODE = .WRONLY;
+    flags.CREAT = true;
+    flags.TRUNC = true;
+
+    const mode_arg: c.mode_t = 0o600;
+    const fd = c.open(tmp_path_z.ptr, flags, mode_arg);
+    if (fd < 0) return error.OpenFailed;
+
+    // Write in a loop until all bytes are committed.
+    {
+        defer _ = c.close(fd);
+        var written: usize = 0;
+        while (written < xml.len) {
+            const n = c.write(fd, xml.ptr + written, xml.len - written);
+            if (n < 0) return error.WriteFailed;
+            const nz: usize = @intCast(n);
+            if (nz == 0) return error.WriteFailed;
+            written += nz;
+        }
+    }
+
+    // Atomic rename.
+    if (c.rename(tmp_path_z.ptr, path_z.ptr) != 0) return error.RenameFailed;
+}
+
+/// Delete the snapshot file if it exists. Called on clean stopHandle — a
+/// stale file means the last shoki run crashed without running cleanup.
+pub fn deleteSnapshotFile(path: []const u8) void {
+    // Best-effort — absent is fine.
+    var pathbuf: [std.posix.PATH_MAX]u8 = undefined;
+    if (path.len >= pathbuf.len) return;
+    @memcpy(pathbuf[0..path.len], path);
+    pathbuf[path.len] = 0;
+    const path_z: [*:0]const u8 = @ptrCast(&pathbuf);
+    _ = c.unlink(path_z);
+}
+
+/// Test-only re-export so test files can exercise writeSnapshotFile without
+/// spinning up a full Lifecycle.startHandle.
+pub const writeSnapshotFileForTest = writeSnapshotFile;
+pub const serializeSnapshotForTest = serializeSnapshot;
+
+// ---------------------------------------------------------------------------
 // Clock — local redeclaration to avoid a circular dependency with applescript.zig
 // (which also defines Clock). Plan 05 unifies these into a single Clock import.
 // The shape is intentionally identical so the two can interoperate via ptrCast.
@@ -208,6 +432,19 @@ pub const Lifecycle = struct {
         // 3. Snapshot current plist values BEFORE writing shoki defaults.
         self.snapshot = try defaults_mod.snapshotSettings(self.allocator, self.runner, dom);
 
+        // 3b. Persist snapshot to disk for SIGKILL recovery (Plan 07-05).
+        // If this fails we still proceed — the in-memory snapshot is enough
+        // for graceful shutdown; we only lose the crash-recovery escape hatch.
+        if (self.snapshot) |*snap| {
+            const snap_path = resolveSnapshotPath(self.allocator) catch null;
+            if (snap_path) |p| {
+                defer self.allocator.free(p);
+                writeSnapshotFile(self.allocator, snap, p) catch |err| {
+                    std.log.warn("writeSnapshotFile failed: {s}", .{@errorName(err)});
+                };
+            }
+        }
+
         // 4. Write shoki defaults.
         try defaults_mod.configureSettings(self.allocator, self.runner, dom, self.options);
 
@@ -260,6 +497,14 @@ pub const Lifecycle = struct {
             try defaults_mod.restoreSettings(self.allocator, self.runner, snap);
             snap.deinit();
             self.snapshot = null;
+        }
+
+        // 4b. Delete the on-disk snapshot — clean shutdown means we don't
+        // need the SIGKILL-recovery escape hatch anymore. If the file is
+        // still present on next boot, something crashed (Plan 07-05).
+        if (resolveSnapshotPath(self.allocator) catch null) |p| {
+            defer self.allocator.free(p);
+            deleteSnapshotFile(p);
         }
 
         // 5. Tear down the osascript shell.
