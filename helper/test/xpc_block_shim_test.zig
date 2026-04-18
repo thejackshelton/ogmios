@@ -9,7 +9,7 @@
 // Testing note: we can't test `xpc_connection_set_event_handler` directly
 // in a unit test without a live Mach service + entitlements. What we CAN
 // test is the shim's block-ABI correctness in isolation via the
-// `munadi_xpc_self_test_invoke_handler_block` entry point, which:
+// `ogmios_xpc_self_test_invoke_handler_block` entry point, which:
 //
 //   1. Takes a Zig-exported C handler pointer + an argument
 //   2. Wraps it in a block (`^(xpc_object_t){ handler(event); }`)
@@ -39,12 +39,12 @@ test "block-ABI shim: install_event_handler symbol is linkable" {
     // Just taking the address proves the linker resolved the C symbol. If
     // the blocks runtime or the C file weren't linked in, this test file
     // wouldn't compile.
-    const ptr = @intFromPtr(&xpc.munadi_xpc_install_event_handler_block);
+    const ptr = @intFromPtr(&xpc.ogmios_xpc_install_event_handler_block);
     try testing.expect(ptr != 0);
 }
 
 test "block-ABI shim: install_peer_message_handler symbol is linkable" {
-    const ptr = @intFromPtr(&xpc.munadi_xpc_install_peer_message_handler_block);
+    const ptr = @intFromPtr(&xpc.ogmios_xpc_install_peer_message_handler_block);
     try testing.expect(ptr != 0);
 }
 
@@ -57,7 +57,7 @@ test "block-ABI shim: self_test_invoke exercises block copy + release round-trip
     // shim doesn't dereference it — it just passes it through — so any
     // non-null pointer works for proving the call landed.
     const sentinel: *anyopaque = @ptrFromInt(0xDEADBEEF);
-    xpc.munadi_xpc_self_test_invoke_handler_block(testHandler, sentinel);
+    xpc.ogmios_xpc_self_test_invoke_handler_block(testHandler, sentinel);
 
     try testing.expectEqual(@as(u32, 1), invoke_count);
     try testing.expect(last_arg != null);
@@ -70,8 +70,8 @@ test "block-ABI shim: self_test_invoke is re-entrant (two sequential calls)" {
 
     const a: *anyopaque = @ptrFromInt(0x1111);
     const b: *anyopaque = @ptrFromInt(0x2222);
-    xpc.munadi_xpc_self_test_invoke_handler_block(testHandler, a);
-    xpc.munadi_xpc_self_test_invoke_handler_block(testHandler, b);
+    xpc.ogmios_xpc_self_test_invoke_handler_block(testHandler, a);
+    xpc.ogmios_xpc_self_test_invoke_handler_block(testHandler, b);
 
     // Two calls, last_arg observes the second invocation.
     try testing.expectEqual(@as(u32, 2), invoke_count);

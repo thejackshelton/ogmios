@@ -2,9 +2,9 @@
 build/
 DerivedData/
 *.xcodeproj/xcuserdata/
-MunadiRunner.app/
+OgmiosRunner.app/
 *.dSYM/
 .notarize-log.json
 .notarize-submission-id
 .codesign.out
-MunadiRunner.zip
+OgmiosRunner.zip

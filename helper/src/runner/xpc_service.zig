@@ -1,10 +1,10 @@
-// MunadiRunner XPC dispatcher (Plan 08-01 scaffold).
+// OgmiosRunner XPC dispatcher (Plan 08-01 scaffold).
 //
 // This module implements the server-side message dispatch for the frozen
 // wire protocol defined in
-// `helper/Sources/MunadiRunnerProtocol/MunadiRunnerProtocol.swift`:
+// `helper/Sources/OgmiosRunnerProtocol/OgmiosRunnerProtocol.swift`:
 //
-//     ping()                                     -> { reply: "munadi-runner-pong" }
+//     ping()                                     -> { reply: "ogmios-runner-pong" }
 //     startAXObserver(voicePID, subscriberID)    -> { ok, errorCode, errorMessage? }
 //     stopAXObserver(subscriberID)               -> { ok, errorCode, errorMessage? }
 //
@@ -31,11 +31,11 @@ const std = @import("std");
 const xpc = @import("xpc_bindings");
 
 // ---------------------------------------------------------------------------
-// Error codes (mirrors `helper/Sources/MunadiRunnerService/MunadiRunnerService.swift`)
+// Error codes (mirrors `helper/Sources/OgmiosRunnerService/OgmiosRunnerService.swift`)
 // ---------------------------------------------------------------------------
 
 /// XPC-protocol-level error codes. Kept in sync with the NSError codes used
-/// by `MunadiRunnerService.swift` so a v1 Zig client speaking to a v0 Swift
+/// by `OgmiosRunnerService.swift` so a v1 Zig client speaking to a v0 Swift
 /// helper (or vice versa) sees the same numeric codes during Plan 01/02
 /// coexistence.
 pub const ErrorCode = enum(i64) {
@@ -43,10 +43,10 @@ pub const ErrorCode = enum(i64) {
     /// Unknown method name — dispatcher fell through its lookup table.
     unknown_method = -2,
     /// Caller supplied an invalid or missing argument (e.g. voicePID <= 0).
-    /// Matches `MunadiRunnerService.swift` line 59.
+    /// Matches `OgmiosRunnerService.swift` line 59.
     invalid_arg = -11,
     /// AX observer already started before a matching `stopAXObserver` call.
-    /// Matches `MunadiRunnerService.swift` line 36 (code -10). Currently
+    /// Matches `OgmiosRunnerService.swift` line 36 (code -10). Currently
     /// unused by the stub but reserved so Plan 02 can emit it.
     already_started = -10,
     /// Internal/unexpected failure.
@@ -174,7 +174,7 @@ fn dispatchCore(
     ops: Ops,
 ) anyerror!void {
     if (std.mem.eql(u8, method, "ping")) {
-        try ops.setString(resp_ctx, "reply", "munadi-runner-pong");
+        try ops.setString(resp_ctx, "reply", "ogmios-runner-pong");
         return;
     }
 

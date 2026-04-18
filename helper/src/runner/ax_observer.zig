@@ -1,4 +1,4 @@
-// Zig port of `helper/Sources/MunadiRunnerService/AXObserver.swift` (Phase 08
+// Zig port of `helper/Sources/OgmiosRunnerService/AXObserver.swift` (Phase 08
 // Plan 02 Task 1).
 //
 // ## What this module replaces
@@ -8,7 +8,7 @@
 // PID (Phase 7 Plan 04 — "DOM vs Chrome URL bar" filter). It spun up a
 // dedicated thread running a private `CFRunLoop`, attached the observer's
 // runloop source there, and forwarded every notification to a Swift closure
-// (`EventCallback`) which dispatched back into `MunadiRunnerService`.
+// (`EventCallback`) which dispatched back into `OgmiosRunnerService`.
 //
 // The Zig port keeps the same public surface — `init`, `start(pid)`, `stop()`,
 // `debugEmit`, `isStarted` — but reads arguments and writes callback calls
@@ -103,10 +103,10 @@ pub const EventCallback = *const fn (
 ) void;
 
 /// Errors returned by `Session.start`. Mirrors the `NSError` codes produced
-/// by `MunadiRunnerService.swift` so a client can map them 1:1 on both sides
+/// by `OgmiosRunnerService.swift` so a client can map them 1:1 on both sides
 /// of the XPC boundary.
 pub const AxError = error{
-    /// Caller passed `target_pid <= 0`. Matches MunadiRunnerService.swift:56.
+    /// Caller passed `target_pid <= 0`. Matches OgmiosRunnerService.swift:56.
     InvalidPid,
     /// `AXObserverCreateWithInfoCallback` failed (typically because the
     /// target process went away or the caller lacks AX TCC grants).

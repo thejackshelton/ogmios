@@ -1,7 +1,7 @@
 // Hand-written `extern` decls for the macOS AppKit + Objective-C runtime +
-// CoreFoundation surface used by MunadiSetup.app.
+// CoreFoundation surface used by OgmiosSetup.app.
 //
-// MunadiSetup.app's whole job is to trigger two TCC prompts (Accessibility +
+// OgmiosSetup.app's whole job is to trigger two TCC prompts (Accessibility +
 // Automation-of-VoiceOver) and show a success modal. We need:
 //
 //   * Objective-C runtime     -> objc_getClass, sel_registerName, objc_msgSend variants
@@ -129,7 +129,7 @@ pub const objc_msgSend_id_idp: MsgSendIdIdpFn = @extern(MsgSendIdIdpFn, .{ .name
 // `{ kAXTrustedCheckOptionPrompt: true }` and the grant is MISSING, macOS
 // displays the system Accessibility prompt dialog.
 //
-// This is THE call that makes MunadiSetup.app worth existing — CLI parents
+// This is THE call that makes OgmiosSetup.app worth existing — CLI parents
 // don't trigger this prompt because macOS gates it on a bundled app.
 
 pub extern "c" fn AXIsProcessTrustedWithOptions(options: ?*anyopaque) bool;

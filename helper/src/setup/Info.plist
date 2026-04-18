@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>org.munadi.setup</string>
+    <string>org.ogmios.setup</string>
     <key>CFBundleName</key>
-    <string>MunadiSetup</string>
+    <string>OgmiosSetup</string>
     <key>CFBundleDisplayName</key>
-    <string>Munadi Setup</string>
+    <string>Ogmios Setup</string>
     <key>CFBundleExecutable</key>
-    <string>MunadiSetup</string>
+    <string>OgmiosSetup</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundlePackageType</key>
@@ -20,16 +20,16 @@
     <string>1</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
-    <!-- MunadiSetup.app is interactive — show in dock while running. -->
+    <!-- OgmiosSetup.app is interactive — show in dock while running. -->
     <key>LSUIElement</key>
     <false/>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright (c) 2026 Munadi contributors. MIT licensed.</string>
+    <string>Copyright (c) 2026 Ogmios contributors. MIT licensed.</string>
     <key>NSAccessibilityUsageDescription</key>
-    <string>Munadi Setup requests Accessibility access so munadi's test tools can observe VoiceOver announcements during automated tests.</string>
+    <string>Ogmios Setup requests Accessibility access so ogmios's test tools can observe VoiceOver announcements during automated tests.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>Munadi Setup sends AppleScript to VoiceOver once to enable the Automation permission required for munadi tests.</string>
+    <string>Ogmios Setup sends AppleScript to VoiceOver once to enable the Automation permission required for ogmios tests.</string>
 </dict>
 </plist>
