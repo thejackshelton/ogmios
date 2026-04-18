@@ -15,11 +15,11 @@
 //
 // Public surface:
 //
-//   void shoki_xpc_install_event_handler_block(
+//   void munadi_xpc_install_event_handler_block(
 //       xpc_connection_t connection,
 //       void (*handler)(xpc_object_t event));
 //
-//   void shoki_xpc_install_peer_message_handler_block(
+//   void munadi_xpc_install_peer_message_handler_block(
 //       xpc_connection_t connection,
 //       void (*handler)(xpc_object_t message));
 //
@@ -34,7 +34,7 @@
 #include <Block.h>
 #include <xpc/xpc.h>
 
-void shoki_xpc_install_event_handler_block(
+void munadi_xpc_install_event_handler_block(
     xpc_connection_t connection,
     void (*handler)(xpc_object_t event))
 {
@@ -47,7 +47,7 @@ void shoki_xpc_install_event_handler_block(
     });
 }
 
-void shoki_xpc_install_peer_message_handler_block(
+void munadi_xpc_install_peer_message_handler_block(
     xpc_connection_t connection,
     void (*handler)(xpc_object_t message))
 {
@@ -60,7 +60,7 @@ void shoki_xpc_install_peer_message_handler_block(
 // helper's Zig-side unit test to prove the shim links and is callable without
 // crashing. Takes a Zig-exported C handler pointer and INVOKES it once via a
 // block-wrapped thunk; proves the block ABI round-trip works in isolation.
-void shoki_xpc_self_test_invoke_handler_block(
+void munadi_xpc_self_test_invoke_handler_block(
     void (*handler)(xpc_object_t event),
     xpc_object_t arg)
 {

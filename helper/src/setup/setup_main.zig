@@ -1,9 +1,9 @@
-// ShokiSetup.app — Zig-compiled GUI whose only job is to trigger the macOS
+// MunadiSetup.app — Zig-compiled GUI whose only job is to trigger the macOS
 // TCC prompts for Accessibility + Automation-of-VoiceOver on first launch.
 //
 // Phase 07 QA-REPORT.md proved that CLI parent processes cannot trigger these
 // prompts — macOS only prompts when a bundled `.app` tries to use a
-// protected API. ShokiSetup.app replaces "follow these 4 System Settings
+// protected API. MunadiSetup.app replaces "follow these 4 System Settings
 // steps" with "double-click this once."
 //
 // ## Sequencing (why this file is opinionated)
@@ -35,12 +35,12 @@
 //      in a retry loop — the first hit fires the Automation TCC prompt;
 //      subsequent hits succeed once the user clicks Allow. Polls every
 //      500ms for up to 60s.
-//  10. Success NSAlert: "Shoki is ready".
+//  10. Success NSAlert: "Munadi is ready".
 //  11. NSAppleScript `tell application "VoiceOver" to quit` (courtesy cleanup).
 //  12. [NSApp terminate:nil].
 //
 // Flags:
-//   --version               -> print "ShokiSetup <ver> (zig-compiled)"; exit 0
+//   --version               -> print "MunadiSetup <ver> (zig-compiled)"; exit 0
 //   --self-test             -> exercise linkage (objc_getClass for
 //                              NSApplication + NSAppleScript); skip UI;
 //                              exit 0 — for CI smoke tests
@@ -56,7 +56,7 @@ const ak = @import("appkit_bindings.zig");
 
 pub const version = "0.1.0";
 
-/// Mode of the ShokiSetup run, derived from argv.
+/// Mode of the MunadiSetup run, derived from argv.
 pub const CmdMode = enum { interactive, version, self_test, self_test_sequencing };
 
 /// Parse errors — only one shape: unknown flag -> hard fail w/ exit 2.
@@ -118,7 +118,7 @@ pub fn main(init: std.process.Init.Minimal) !void {
         var buf: [128]u8 = undefined;
         const line = try std.fmt.bufPrint(
             &buf,
-            "ShokiSetup: unknown flag '{s}'\n",
+            "MunadiSetup: unknown flag '{s}'\n",
             .{first},
         );
         _ = write(2, line.ptr, line.len);
@@ -130,7 +130,7 @@ pub fn main(init: std.process.Init.Minimal) !void {
             var buf: [64]u8 = undefined;
             const line = try std.fmt.bufPrint(
                 &buf,
-                "ShokiSetup {s} (zig-compiled)\n",
+                "MunadiSetup {s} (zig-compiled)\n",
                 .{version},
             );
             _ = write(1, line.ptr, line.len);
@@ -142,19 +142,19 @@ pub fn main(init: std.process.Init.Minimal) !void {
             // its own non-zero exit code so CI diagnostics tell us
             // exactly what broke.
             _ = ak.objc_getClass("NSObject") orelse {
-                _ = write(2, "ShokiSetup: libobjc missing\n", 28);
+                _ = write(2, "MunadiSetup: libobjc missing\n", 28);
                 exit(10);
             };
             _ = ak.objc_getClass("NSApplication") orelse {
-                _ = write(2, "ShokiSetup: AppKit missing\n", 27);
+                _ = write(2, "MunadiSetup: AppKit missing\n", 27);
                 exit(11);
             };
             _ = ak.objc_getClass("NSAppleScript") orelse {
-                _ = write(2, "ShokiSetup: Foundation missing\n", 31);
+                _ = write(2, "MunadiSetup: Foundation missing\n", 31);
                 exit(12);
             };
             _ = ak.objc_getClass("NSAlert") orelse {
-                _ = write(2, "ShokiSetup: NSAlert missing\n", 28);
+                _ = write(2, "MunadiSetup: NSAlert missing\n", 28);
                 exit(13);
             };
             return;
@@ -232,8 +232,8 @@ fn runInteractive() !void {
     //    This gives them a chance to read BEFORE the first TCC dialog.
     // -----------------------------------------------------------------
     showAlert(
-        "Welcome to Shoki Setup",
-        "Click Continue to grant the 2 permissions shoki needs " ++
+        "Welcome to Munadi Setup",
+        "Click Continue to grant the 2 permissions munadi needs " ++
             "(Accessibility + Automation of VoiceOver).\n\n" ++
             "After you click Continue, macOS will show its own system " ++
             "dialog. Follow the on-screen instructions to grant " ++
@@ -261,9 +261,9 @@ fn runInteractive() !void {
         if (!granted) {
             showAlert(
                 "Accessibility access is required",
-                "Shoki could not detect an Accessibility grant within 120 " ++
+                "Munadi could not detect an Accessibility grant within 120 " ++
                     "seconds.\n\nOpen System Settings \xe2\x86\x92 Privacy & Security " ++
-                    "\xe2\x86\x92 Accessibility, enable ShokiSetup, and re-run this " ++
+                    "\xe2\x86\x92 Accessibility, enable MunadiSetup, and re-run this " ++
                     "app.",
                 "Close",
             );
@@ -277,7 +277,7 @@ fn runInteractive() !void {
     // -----------------------------------------------------------------
     showAlert(
         "Accessibility granted",
-        "Next, Shoki needs permission to control VoiceOver via " ++
+        "Next, Munadi needs permission to control VoiceOver via " ++
             "AppleScript (Automation).\n\n" ++
             "When you click Continue, VoiceOver will briefly start, and " ++
             "macOS will show a second system dialog asking for Automation " ++
@@ -310,17 +310,17 @@ fn runInteractive() !void {
     // -----------------------------------------------------------------
     if (automation_granted) {
         showAlert(
-            "\xe2\x9c\x85 Shoki is ready",
+            "\xe2\x9c\x85 Munadi is ready",
             "Both permissions have been granted. You can now close this " ++
-                "window and run your shoki tests.",
+                "window and run your munadi tests.",
             "Close",
         );
     } else {
         showAlert(
             "\xe2\x9a\xa0 Automation not granted",
-            "Shoki could not detect Automation access within 60 seconds.\n\n" ++
+            "Munadi could not detect Automation access within 60 seconds.\n\n" ++
                 "Open System Settings \xe2\x86\x92 Privacy & Security \xe2\x86\x92 Automation, " ++
-                "enable ShokiSetup's control of VoiceOver, and re-run this app.",
+                "enable MunadiSetup's control of VoiceOver, and re-run this app.",
             "Close",
         );
     }

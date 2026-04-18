@@ -4,18 +4,18 @@
 // production `dispatch` against an actual XPC connection.
 //
 // Test list (matches 08-01-PLAN.md `<behavior>` block):
-//   1. ping returns "shoki-runner-pong"
+//   1. ping returns "munadi-runner-pong"
 //   2. startAXObserver({voicePID=-1}) returns invalid_arg
 //   3. startAXObserver({voicePID=12345}) returns ok=1
 //   4. stopAXObserver({subscriberID="s1"}) returns ok=1 unconditionally
 //   5. dispatch("unknownMethod", …) returns ok=0, errorCode=unknown_method
-//   6. mach_service_name constant equals "org.shoki.runner"
+//   6. mach_service_name constant equals "org.munadi.runner"
 
 const std = @import("std");
 const testing = std.testing;
 const svc = @import("../src/runner/xpc_service.zig");
 
-test "ping handler returns shoki-runner-pong" {
+test "ping handler returns munadi-runner-pong" {
     const allocator = testing.allocator;
     var req = svc.TestDict.init(allocator);
     defer req.deinit();
@@ -25,7 +25,7 @@ test "ping handler returns shoki-runner-pong" {
     try svc.dispatchForTest(&req, "ping", &resp);
 
     const reply = resp.getString("reply") orelse return error.MissingReplyField;
-    try testing.expectEqualStrings("shoki-runner-pong", reply);
+    try testing.expectEqualStrings("munadi-runner-pong", reply);
 }
 
 test "startAXObserver rejects negative voicePID with invalid_arg" {
@@ -104,8 +104,8 @@ test "unknown method returns ok=0 with errorCode=unknown_method" {
     try testing.expect(err_msg.len > 0);
 }
 
-test "mach_service_name is the frozen wire constant org.shoki.runner" {
+test "mach_service_name is the frozen wire constant org.munadi.runner" {
     const c_name: [*:0]const u8 = svc.mach_service_name;
     const name_slice = std.mem.span(c_name);
-    try testing.expectEqualStrings("org.shoki.runner", name_slice);
+    try testing.expectEqualStrings("org.munadi.runner", name_slice);
 }

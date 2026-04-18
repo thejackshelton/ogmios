@@ -1,5 +1,5 @@
 // Hand-written `extern` declarations for the macOS AX (Accessibility) +
-// CoreFoundation surface that the Shoki helper uses to observe VoiceOver
+// CoreFoundation surface that the Munadi helper uses to observe VoiceOver
 // announcements.
 //
 // Why hand-written and not `@cImport`?

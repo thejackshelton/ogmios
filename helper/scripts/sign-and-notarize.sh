@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Sign and notarize a .app bundle (ShokiRunner.app OR ShokiSetup.app).
+# Sign and notarize a .app bundle (MunadiRunner.app OR MunadiSetup.app).
 #
 # Usage: ./scripts/sign-and-notarize.sh <path-to-app> [--entitlements <path>]
 #
 # Plan 08-04 factored the script to accept any .app path (previously
-# ShokiRunner-only). CI loops over both bundles, calling this once per bundle.
+# MunadiRunner-only). CI loops over both bundles, calling this once per bundle.
 # Entitlements default is inferred from the bundle basename:
-#   - ShokiRunner.app -> src/runner/ShokiRunner.entitlements
-#   - ShokiSetup.app  -> src/setup/ShokiSetup.entitlements
-#   - anything else   -> src/runner/ShokiRunner.entitlements (backward-compat
-#                        default; callers can override via --entitlements).
+#   - MunadiRunner.app -> src/runner/MunadiRunner.entitlements
+#   - MunadiSetup.app  -> src/setup/MunadiSetup.entitlements
+#   - anything else    -> src/runner/MunadiRunner.entitlements (backward-compat
+#                         default; callers can override via --entitlements).
 #
 # Required env vars:
 #   APPLE_DEVELOPER_ID_APP       e.g. "Developer ID Application: Your Name (ABCDE12345)"
@@ -67,9 +67,9 @@ HELPER_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 if [[ -z "$ENT_PATH" ]]; then
     base="$(basename "$APP_PATH" .app)"
     case "$base" in
-        ShokiRunner) ENT_PATH="$HELPER_DIR/src/runner/ShokiRunner.entitlements" ;;
-        ShokiSetup)  ENT_PATH="$HELPER_DIR/src/setup/ShokiSetup.entitlements" ;;
-        *)           ENT_PATH="$HELPER_DIR/src/runner/ShokiRunner.entitlements" ;;
+        MunadiRunner) ENT_PATH="$HELPER_DIR/src/runner/MunadiRunner.entitlements" ;;
+        MunadiSetup)  ENT_PATH="$HELPER_DIR/src/setup/MunadiSetup.entitlements" ;;
+        *)            ENT_PATH="$HELPER_DIR/src/runner/MunadiRunner.entitlements" ;;
     esac
 fi
 

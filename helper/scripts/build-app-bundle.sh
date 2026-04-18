@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Build ShokiRunner.app AND ShokiSetup.app from the Zig helper.
+# Build MunadiRunner.app AND MunadiSetup.app from the Zig helper.
 #
 # Usage: ./scripts/build-app-bundle.sh [--configuration release|debug] [--target <zig-triple>]
 #
 # Runs from the helper/ directory. Produces:
-#   - helper/.build/ShokiRunner.app/
-#   - helper/.build/ShokiSetup.app/
-#   - helper/.build/libShokiXPCClient.dylib
+#   - helper/.build/MunadiRunner.app/
+#   - helper/.build/MunadiSetup.app/
+#   - helper/.build/libMunadiXPCClient.dylib
 #
 # Phase 08 Plan 04 extended this script to verify BOTH bundles + the dylib
 # in a single `zig build` invocation (helper/build.zig stages both .app
@@ -49,16 +49,16 @@ fi
 echo "[build-app-bundle] Building Zig helper (configuration=$CONFIG${TARGET:+, target=$TARGET})"
 zig build "${ZIG_ARGS[@]}"
 
-RUNNER="$HELPER_DIR/.build/ShokiRunner.app"
-SETUP="$HELPER_DIR/.build/ShokiSetup.app"
-DYLIB="$HELPER_DIR/.build/libShokiXPCClient.dylib"
+RUNNER="$HELPER_DIR/.build/MunadiRunner.app"
+SETUP="$HELPER_DIR/.build/MunadiSetup.app"
+DYLIB="$HELPER_DIR/.build/libMunadiXPCClient.dylib"
 
 # Verify every artifact that downstream CI (sign + notarize + copy into
 # binding package) depends on. A missing file here means `zig build` silently
 # dropped a target — fail loud rather than ship a broken bundle.
-for f in "$RUNNER/Contents/MacOS/ShokiRunner" \
+for f in "$RUNNER/Contents/MacOS/MunadiRunner" \
          "$RUNNER/Contents/Info.plist" \
-         "$SETUP/Contents/MacOS/ShokiSetup" \
+         "$SETUP/Contents/MacOS/MunadiSetup" \
          "$SETUP/Contents/Info.plist" \
          "$DYLIB"; do
     if [[ ! -e "$f" ]]; then

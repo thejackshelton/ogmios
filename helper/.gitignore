@@ -2,9 +2,9 @@
 build/
 DerivedData/
 *.xcodeproj/xcuserdata/
-ShokiRunner.app/
+MunadiRunner.app/
 *.dSYM/
 .notarize-log.json
 .notarize-submission-id
 .codesign.out
-ShokiRunner.zip
+MunadiRunner.zip
