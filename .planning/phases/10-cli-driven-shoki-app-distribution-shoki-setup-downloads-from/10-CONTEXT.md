@@ -20,34 +20,79 @@ Out of scope: Dev ID signing (kept optional for later), a dedicated homebrew cas
 <decisions>
 ## Implementation Decisions
 
-### Core package rename: `@shoki/sdk` → `shoki`
+### Package consolidation: 4 → 3
 
-Matches ecosystem precedent for the "core package unscoped, plugins scoped" pattern. Users type `npm i shoki`, which mirrors the CLI they'll also invoke (`npx shoki setup`, `npx shoki doctor`).
+Collapse `@shoki/vitest` into `shoki` as subpath exports + optional peer dep. Drop `@shoki/sdk` scope in favor of unscoped `shoki`. Platform bindings stay scoped (napi pattern is unavoidable).
 
 **Final npm namespace shape:**
 
 | Package | Install cmd | Who uses it |
 |---------|-------------|-------------|
-| `shoki` | `npm i shoki` | every consumer — core SDK + CLI |
-| `@shoki/vitest` | `npm i -D @shoki/vitest` | Vitest users only |
+| `shoki` | `npm i shoki` | every consumer — core SDK + CLI + matchers + Vitest subpath |
 | `@shoki/binding-darwin-arm64` | (auto via `optionalDependencies`) | transparent to consumers |
 | `@shoki/binding-darwin-x64` | (auto via `optionalDependencies`) | transparent to consumers |
 
+**3 packages total** (down from 4 post-Phase 8, from 7 pre-Phase 8).
+
+**Why merge `@shoki/vitest` into `shoki`:**
+
+It's ~300 lines of Vitest-specific glue. Wrapping it in a separate package buys nothing — consumers always install shoki anyway, and tree-shaking keeps non-Vitest users from paying for code they don't import. With Vitest as an *optional* peer dep (`peerDependenciesMeta.vitest.optional: true`), pure-Node users see zero warnings. Same pattern `msw/node` vs `msw/browser` uses.
+
+**shoki's exports map:**
+
+```json
+{
+  "name": "shoki",
+  "exports": {
+    ".": "./dist/index.js",
+    "./matchers": "./dist/matchers/index.js",
+    "./cli": "./dist/cli/index.js",
+    "./vitest": "./dist/vitest/index.js",
+    "./vitest/browser": "./dist/vitest/browser.js",
+    "./vitest/setup": "./dist/vitest/setup.js"
+  },
+  "bin": { "shoki": "./dist/cli/main.js" },
+  "optionalDependencies": {
+    "@shoki/binding-darwin-arm64": "workspace:*",
+    "@shoki/binding-darwin-x64": "workspace:*"
+  },
+  "peerDependencies": {
+    "vitest": "^3 || ^4",
+    "@vitest/browser": "^3 || ^4"
+  },
+  "peerDependenciesMeta": {
+    "vitest": { "optional": true },
+    "@vitest/browser": { "optional": true }
+  }
+}
+```
+
+**User imports:**
+
+```typescript
+import { voiceOver } from 'shoki';                      // core SDK
+import { toHaveAnnounced } from 'shoki/matchers';       // pure matchers
+import shokiVitest from 'shoki/vitest';                 // Vitest plugin
+import 'shoki/vitest/setup';                            // expect.extend wiring
+import { voiceOver as voBrowser } from 'shoki/vitest/browser'; // browser proxy
+```
+
 **Mechanical changes:**
 
-- `packages/sdk/package.json` → `"name": "shoki"` (was `@shoki/sdk`)
-- Subpath exports unchanged: `shoki`, `shoki/matchers`, `shoki/cli`
-- `packages/vitest/src/**` — import sweeps: `@shoki/sdk/matchers` → `shoki/matchers`
-- `examples/vitest-browser-qwik/**` — import sweeps: `@shoki/sdk` → `shoki`
-- `examples/vitest-browser-qwik/package.json` — `"shoki": "workspace:*"` in deps
-- `docs/**/*.md` — all `from '@shoki/sdk'` → `from 'shoki'`, all `npm add @shoki/sdk` → `npm add shoki`
-- `README.md` — install block
-- `CHANGELOG.md` — "Core package renamed `@shoki/sdk` → `shoki`" under [Unreleased]
-- CI workflows — `pnpm --filter @shoki/sdk ...` → `pnpm --filter shoki ...`
-- `optionalDependencies` inside `shoki/package.json` — still reference `@shoki/binding-*` (bindings stay scoped)
-- `packages/vitest/package.json` `peerDependencies` — `"shoki": "*"` (was `"@shoki/sdk"`)
+- `packages/sdk/package.json` → `"name": "shoki"` (was `@shoki/sdk`); add Vitest subpath exports + optional peer deps
+- `packages/vitest/src/**` → move into `packages/sdk/src/vitest/` as subpath code
+- `packages/vitest/test/**` → move into `packages/sdk/test/vitest/`
+- Delete `packages/vitest/` entirely
+- Update `pnpm-workspace.yaml` if needed
+- `examples/vitest-browser-qwik/**` — import sweeps: `@shoki/sdk` → `shoki`, `@shoki/vitest` → `shoki/vitest`, `@shoki/vitest/setup` → `shoki/vitest/setup`, `@shoki/vitest/browser` → `shoki/vitest/browser`
+- `examples/vitest-browser-qwik/package.json` — one dep: `"shoki": "workspace:*"`. Drop `@shoki/vitest` dep entirely.
+- `docs/**/*.md` — every import and install command updated
+- `README.md` — install block shows one command: `npm i shoki`
+- `CHANGELOG.md` — "Consolidated 4 packages → 3: `@shoki/sdk` → `shoki`, `@shoki/vitest` → `shoki/vitest` subpath" under [Unreleased]
+- CI workflows — `pnpm --filter @shoki/sdk ...` and `pnpm --filter @shoki/vitest ...` → `pnpm --filter shoki ...`
+- `optionalDependencies` inside `shoki/package.json` — platform bindings stay scoped
 
-**Future ecosystem packages** (`@shoki/playwright`, `@shoki/xctest`, `@shoki/storybook`) all stay scoped.
+**Future ecosystem packages** (Playwright, XCTest, Storybook): same-package subpaths — `shoki/playwright`, `shoki/xctest`, `shoki/storybook`, each with their own optional peer deps. We don't expand the scoped namespace further.
 
 ### Distribution: unified `Shoki.app.zip` per platform
 
