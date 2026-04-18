@@ -1,46 +1,64 @@
-name: Build helper app
+name: Build helper apps
 description: >-
-  Builds ShokiRunner.app via helper/scripts/build-app-bundle.sh and optionally
-  signs + notarizes it when Apple secrets are present. Drops the built .app
-  into the matching binding package's helper/ directory.
+  Builds ShokiRunner.app AND ShokiSetup.app via helper/scripts/build-app-bundle.sh
+  (zig build) and optionally signs + notarizes both when Apple secrets are present.
+  Drops both built .app bundles into the binding package's helper/ directory.
 
 inputs:
   binding-package-dir:
     description: "Path to the @shoki/binding-<os>-<arch> package directory"
     required: true
   sign:
-    description: "Sign + notarize the built .app (requires APPLE_* env)"
+    description: "Sign + notarize the built .apps (requires APPLE_* env)"
     required: false
     default: "false"
 
 runs:
   using: composite
   steps:
-    - name: Build app bundle
+    - name: Install Zig 0.16
+      uses: mlugg/setup-zig@v2
+      with:
+        version: "0.16.0"
+
+    - name: Verify Zig version
+      shell: bash
+      run: |
+        zig version
+        case "$(zig version)" in
+          0.16.*) echo "zig 0.16 detected";;
+          *) echo "warn: expected zig 0.16.x, got $(zig version)";;
+        esac
+
+    - name: Build both app bundles
       shell: bash
       working-directory: helper
       run: |
         set -euo pipefail
         ./scripts/build-app-bundle.sh
-        ls -la .build/ShokiRunner.app
+        ls -la .build/ShokiRunner.app .build/ShokiSetup.app
 
-    - name: Sign + notarize
+    - name: Sign + notarize both bundles
       if: inputs.sign == 'true'
       shell: bash
       working-directory: helper
       run: |
         set -euo pipefail
-        if [[ -z "${DEVELOPER_ID_IDENTITY:-}" ]]; then
-            echo "warn: DEVELOPER_ID_IDENTITY not set — skipping sign+notarize"
+        if [[ -z "${DEVELOPER_ID_IDENTITY:-}" && -z "${APPLE_DEVELOPER_ID_APP:-}" ]]; then
+            echo "warn: no sign identity set (DEVELOPER_ID_IDENTITY / APPLE_DEVELOPER_ID_APP) — skipping sign+notarize"
             exit 0
         fi
-        ./scripts/sign-and-notarize.sh
+        export APPLE_DEVELOPER_ID_APP="${APPLE_DEVELOPER_ID_APP:-$DEVELOPER_ID_IDENTITY}"
+        for app in .build/ShokiRunner.app .build/ShokiSetup.app; do
+            ./scripts/sign-and-notarize.sh "$app"
+        done
 
-    - name: Copy signed bundle into binding package
+    - name: Copy signed bundles into binding package
       shell: bash
       run: |
         set -euo pipefail
         TARGET_DIR="$GITHUB_WORKSPACE/${{ inputs.binding-package-dir }}/helper"
         mkdir -p "$TARGET_DIR"
         cp -R helper/.build/ShokiRunner.app "$TARGET_DIR/"
-        ls -la "$TARGET_DIR/ShokiRunner.app"
+        cp -R helper/.build/ShokiSetup.app "$TARGET_DIR/"
+        ls -la "$TARGET_DIR/"

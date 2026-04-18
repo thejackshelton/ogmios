@@ -37,6 +37,52 @@ jobs:
           binding-package-dir: packages/binding-darwin-arm64
           run-tests: "true"
 
+  # Phase 08 Plan 04: replaced the old helper-test Swift job with a
+  # helper-smoke job that LAUNCHES both bundles end-to-end. This
+  # matches CONTEXT.md § "Verification mandate" — run the tool, don't
+  # grep source. `open -W -n` forces LaunchServices registration so a
+  # malformed Info.plist fails the job the way a user double-click would.
+  helper-smoke:
+    name: Helper build + smoke launch
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: "0.16.0"
+      - name: zig version
+        run: zig version
+      - name: zig build
+        working-directory: helper
+        run: zig build --summary all
+      - name: zig build test
+        working-directory: helper
+        run: zig build test --summary all
+      - name: ShokiRunner --version smoke
+        working-directory: helper
+        run: ./.build/ShokiRunner.app/Contents/MacOS/ShokiRunner --version
+      - name: ShokiSetup --self-test smoke
+        working-directory: helper
+        run: ./.build/ShokiSetup.app/Contents/MacOS/ShokiSetup --self-test
+      - name: LaunchServices registration smoke — ShokiRunner
+        working-directory: helper
+        # `open -W -n` waits for the bundle to exit; --args --version forces
+        # the binary down the fast-path instead of parking on dispatch_main.
+        # This catches Info.plist / LaunchServices rejection that a plain
+        # exe invocation would miss.
+        run: open -W -n .build/ShokiRunner.app --args --version
+      - name: LaunchServices registration smoke — ShokiSetup
+        working-directory: helper
+        run: open -W -n .build/ShokiSetup.app --args --self-test
+      - name: Bundle structure verify
+        working-directory: helper
+        run: |
+          test -f .build/ShokiRunner.app/Contents/Info.plist
+          test -f .build/ShokiSetup.app/Contents/Info.plist
+          test -x .build/ShokiRunner.app/Contents/MacOS/ShokiRunner
+          test -x .build/ShokiSetup.app/Contents/MacOS/ShokiSetup
+          test -f .build/libShokiXPCClient.dylib
+
   sdk-test-native:
     name: SDK tests with native binding (darwin-arm64)
     runs-on: macos-14
@@ -73,12 +119,3 @@ jobs:
       - name: Post-job background-app quiesce
         if: always()
         run: .github/actions/setup/kill-background-apps.sh
-
-  helper-test:
-    name: Helper Swift tests
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v4
-      - name: swift test
-        working-directory: helper
-        run: swift test
