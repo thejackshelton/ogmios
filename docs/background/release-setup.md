@@ -34,10 +34,12 @@ Running tests locally does not require Apple signing. Helper builds and signing 
 
 Shoki publishes via npm's trusted-publishing flow — no `NPM_TOKEN` secret in CI.
 
+> Note: Section 2 covers the **SDK / npm** release pipeline (`.github/workflows/release.yml`, triggered by `v*` tags). The separate **helper `.app` bundles** (Shoki.app + Shoki Setup.app) ship from a different pipeline on a different cadence — see § 7 below for the `app-v*` tag flow and the `compatibleAppVersion` coupling.
+
 ### One-time enrollment per package
 
 For each of:
-- `@shoki/sdk`
+- `shoki` (the SDK, formerly `@shoki/sdk`)
 - `@shoki/binding-darwin-arm64`
 - `@shoki/binding-darwin-x64`
 
@@ -204,3 +206,135 @@ ssh -o StrictHostKeyChecking=no admin@$IP \
 - **`tccutil` grant step failed inside Ansible** — TCC.db schema changed.
   See `infra/tart/scripts/tcc-grant.sh` header notes and inspect
   `sqlite3 TCC.db "PRAGMA table_info(access)"` on the failing image.
+
+---
+
+## 7. App release (helper `.app` bundles via GitHub Releases)
+
+Shoki ships two helper bundles — `Shoki.app` (the long-lived runner, formerly
+`ShokiRunner.app`) and `Shoki Setup.app` (one-shot onboarding UX, formerly
+`ShokiSetup.app`). These are distributed via **GitHub Releases**, not npm.
+
+Phase 10 split the two release channels for a reason:
+- npm (`v*` tags, § 2) is cheap, frequent, and text-only — pure `shoki.node` +
+  TS code. No Apple secrets required to cut a patch.
+- Helper bundles (`app-v*` tags, this section) are signed + notarized and
+  only change when `helper/` source changes. Decoupling the cadences means
+  an SDK bugfix doesn't force a helper rebuild, and a helper fix doesn't
+  force a `pnpm publish -r` of every package.
+
+### When to cut an app release
+
+Only when `helper/` source changes — Zig sources, Info.plist, entitlements,
+build.zig tweaks that alter binary output. A pure-docs or pure-TS change
+never needs a new `app-v*` tag.
+
+### Tagging flow
+
+```bash
+# From the default branch, after helper/ changes are merged:
+git tag app-v0.1.0
+git push origin app-v0.1.0
+```
+
+This triggers `.github/workflows/app-release.yml`, which:
+1. Builds `ShokiRunner.app` + `ShokiSetup.app` for `darwin-arm64` + `darwin-x64`
+   (x64 cross-compiled from the `macos-14` runner via
+   `helper/scripts/build-app-bundle.sh --target x86_64-macos`).
+2. Signs + notarizes each bundle via `helper/scripts/sign-and-notarize.sh`
+   if `DEVELOPER_ID_IDENTITY` is set (forks without Apple secrets still get
+   ad-hoc signed artifacts — download + install still works).
+3. Renames the bundles to their user-visible names (`Shoki.app`,
+   `Shoki Setup.app`) and packages both into a single zip per arch via
+   `helper/scripts/package-app-zip.sh`. Output files:
+   - `shoki-darwin-arm64.zip` + `shoki-darwin-arm64.zip.sha256`
+   - `shoki-darwin-x64.zip`   + `shoki-darwin-x64.zip.sha256`
+4. Uploads all four files to `gh release create app-v<VERSION>` on the
+   commit the tag points at (`--target ${{ github.sha }}`).
+
+The resulting URL scheme — e.g.
+`https://github.com/<owner>/shoki/releases/download/app-v0.1.0/shoki-darwin-arm64.zip`
+— is the wire contract with Plan 10-02's `shoki setup` downloader.
+
+### Required secrets
+
+Shared with § 1 (same Apple credentials, same cert import step):
+
+| Secret | Used for |
+|--------|----------|
+| `APPLE_DEVELOPER_ID_APPLICATION_CERT_B64` | `apple-actions/import-codesign-certs` on each runner |
+| `APPLE_DEVELOPER_ID_APPLICATION_CERT_PASSWORD` | same |
+| `DEVELOPER_ID_IDENTITY` | `sign-and-notarize.sh` codesign identity string |
+| `APPLE_ID` | `notarytool submit --apple-id` |
+| `APPLE_TEAM_ID` | `notarytool submit --team-id` |
+| `APPLE_APP_SPECIFIC_PASSWORD` | `notarytool submit --password` |
+
+No npm secret is needed — the workflow doesn't touch the registry. The
+`GITHUB_TOKEN` GitHub auto-injects into every workflow is sufficient for
+`gh release create` because the workflow declares `permissions.contents: write`.
+
+### `compatibleAppVersion` coupling (critical)
+
+`packages/sdk/package.json` has a top-level `compatibleAppVersion` field. This
+is the version of `Shoki.app` the SDK knows how to talk to. `shoki setup`
+fetches from `app-v<compatibleAppVersion>`.
+
+Rule: **after publishing an `app-v*` release, bump `compatibleAppVersion` in
+`packages/sdk/package.json` to match, then cut a `v*` SDK release.** Otherwise
+`shoki setup` on the next install still downloads the previous `.app` version.
+
+The reverse isn't required: SDK patch releases that don't need a new helper
+just keep the same `compatibleAppVersion` value. An `app-v*` tag can sit
+unreleased on the SDK side indefinitely until an SDK change needs it.
+
+### Artifact contract (what consumers parse)
+
+Plan 10-02's `packages/sdk/src/cli/setup-download.ts` expects:
+
+- **Zip layout:** `Shoki.app/` and `Shoki Setup.app/` at the archive root
+  (no wrapper directory). Produced by `ditto -c -k` on a staging dir
+  containing the two renamed bundles.
+- **SHA256 sidecar:** `<64-char-hex>  <basename>\n` (two spaces between
+  hash and filename — the `shasum -a 256` default format). The parser
+  also accepts a bare `<64-char-hex>` as a fallback.
+
+Changing either shape is a breaking change to the SDK/app contract —
+coordinate with `setup-download.ts` if the layout needs to evolve.
+
+### First-time bootstrap (before v1.0)
+
+Until `shoki setup` is shipping to real users, you can also publish
+manually from a maintainer's Mac:
+
+```bash
+cd helper
+./scripts/build-app-bundle.sh --target aarch64-macos
+./scripts/sign-and-notarize.sh .build/ShokiRunner.app    # optional without secrets
+./scripts/sign-and-notarize.sh .build/ShokiSetup.app     # optional without secrets
+./scripts/package-app-zip.sh --arch arm64
+
+# Repeat for x64 (--target x86_64-macos, --arch x64), then:
+gh release create app-v0.1.0 \
+    helper/.build/shoki-darwin-arm64.zip \
+    helper/.build/shoki-darwin-arm64.zip.sha256 \
+    helper/.build/shoki-darwin-x64.zip \
+    helper/.build/shoki-darwin-x64.zip.sha256 \
+    --title "Shoki.app v0.1.0" \
+    --notes "Initial app release."
+```
+
+Once the CI path is trusted, the manual flow is purely a break-glass tool.
+
+### If the app-release workflow fails
+
+- **Cross-compile x86_64 fails on the `macos-14` runner** — known pitfall
+  in some Zig versions. Fallback: change `build-x64.runs-on` to
+  `macos-13` (Intel) so the x64 target is native. Document the toggle
+  here when it bites.
+- **Notarization fails** — same playbook as § 4 (fetch the notarytool log).
+- **SHA mismatch in the "Verify zip integrity" step** — almost always a
+  stale `.build/` from a prior partial run. Add a `rm -rf helper/.build`
+  step before the build or trigger a fresh runner.
+- **`gh release create` says "release already exists"** — you're pushing a
+  tag that was already published. Delete the old release (`gh release
+  delete app-vX.Y.Z`) before re-pushing, or bump the version.

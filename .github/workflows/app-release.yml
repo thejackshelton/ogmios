@@ -1,0 +1,224 @@
+# App release — publishes Shoki.app + Shoki Setup.app bundles to GitHub Releases.
+#
+# This workflow is DECOUPLED from .github/workflows/release.yml (SDK / npm publish).
+# - `v*` tags  -> release.yml        -> publishes shoki + @shoki/binding-* to npm
+# - `app-v*` tags -> app-release.yml -> publishes helper bundles to GitHub Releases
+#
+# Phase 10-02's `shoki setup` CLI downloads from
+#   https://github.com/<owner>/shoki/releases/download/app-v<VERSION>/shoki-<platform>.zip
+# so the tag, filenames, and sha256 sidecar format published here are a
+# wire-level contract with that consumer.
+#
+# The SDK's packages/sdk/package.json carries a `compatibleAppVersion` field
+# that MUST match the most recent app-v* release — see docs/background/release-setup.md.
+
+name: App release
+
+on:
+  push:
+    tags: ['app-v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 0.1.0) — used only by manual dispatch; ignored when triggered by tag push'
+        required: true
+
+permissions:
+  contents: write   # gh release create
+  id-token: write   # reserved for future trusted-publishing / attestation
+
+concurrency:
+  group: app-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-arm64:
+    name: Build darwin-arm64 bundles
+    runs-on: macos-14
+    # Job-level env lifts secrets into the env context so step `if:` can
+    # gate on secret presence (the secrets context itself is not available
+    # to step `if:` per GitHub Actions rules).
+    env:
+      HAVE_CERT: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_B64 != '' && 'true' || 'false' }}
+      HAVE_SIGN_IDENTITY: ${{ secrets.DEVELOPER_ID_IDENTITY != '' && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Zig 0.16.0
+        uses: mlugg/setup-zig@v2
+        with:
+          version: "0.16.0"
+
+      # Conditional: only import the Developer ID cert when the secret is
+      # present. Forks / unconfigured repos get ad-hoc signed bundles, which
+      # still extract + launch; users just see the "cannot verify developer"
+      # dialog until they click through. Secret presence is the toggle, not
+      # a workflow input, so a fork PR can never accidentally request signing.
+      - name: Import Developer ID cert (if secrets present)
+        if: env.HAVE_CERT == 'true'
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_B64 }}
+          p12-password: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASSWORD }}
+
+      - name: Build both app bundles (arm64)
+        working-directory: helper
+        run: ./scripts/build-app-bundle.sh --target aarch64-macos
+
+      # sign-and-notarize.sh runs per-bundle; the loop here matches the
+      # pattern in build-helper-app/action.yml. Guard on DEVELOPER_ID_IDENTITY
+      # so the workflow degrades cleanly on forks without Apple secrets.
+      - name: Sign + notarize both bundles (if identity set)
+        if: env.HAVE_SIGN_IDENTITY == 'true'
+        working-directory: helper
+        env:
+          APPLE_DEVELOPER_ID_APP: ${{ secrets.DEVELOPER_ID_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for app in .build/ShokiRunner.app .build/ShokiSetup.app; do
+            ./scripts/sign-and-notarize.sh "$app"
+          done
+
+      - name: Package release zip + SHA256 (arm64)
+        working-directory: helper
+        run: ./scripts/package-app-zip.sh --arch arm64
+
+      - name: Verify zip integrity
+        working-directory: helper
+        run: |
+          set -euo pipefail
+          cd .build
+          actual=$(shasum -a 256 shoki-darwin-arm64.zip | awk '{print $1}')
+          expected=$(awk '{print $1}' shoki-darwin-arm64.zip.sha256)
+          if [[ "$actual" != "$expected" ]]; then
+            echo "error: sha mismatch — zip=$actual sidecar=$expected" >&2
+            exit 1
+          fi
+          echo "sha ok: $actual"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-darwin-arm64
+          path: |
+            helper/.build/shoki-darwin-arm64.zip
+            helper/.build/shoki-darwin-arm64.zip.sha256
+
+  build-x64:
+    name: Build darwin-x64 bundles (cross-compile)
+    runs-on: macos-14
+    # See build-arm64 header for the HAVE_CERT / HAVE_SIGN_IDENTITY pattern.
+    env:
+      HAVE_CERT: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_B64 != '' && 'true' || 'false' }}
+      HAVE_SIGN_IDENTITY: ${{ secrets.DEVELOPER_ID_IDENTITY != '' && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Zig 0.16.0
+        uses: mlugg/setup-zig@v2
+        with:
+          version: "0.16.0"
+
+      - name: Import Developer ID cert (if secrets present)
+        if: env.HAVE_CERT == 'true'
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_B64 }}
+          p12-password: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASSWORD }}
+
+      - name: Build both app bundles (x64, cross-compile from arm64 host)
+        working-directory: helper
+        run: ./scripts/build-app-bundle.sh --target x86_64-macos
+
+      - name: Sign + notarize both bundles (if identity set)
+        if: env.HAVE_SIGN_IDENTITY == 'true'
+        working-directory: helper
+        env:
+          APPLE_DEVELOPER_ID_APP: ${{ secrets.DEVELOPER_ID_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for app in .build/ShokiRunner.app .build/ShokiSetup.app; do
+            ./scripts/sign-and-notarize.sh "$app"
+          done
+
+      - name: Package release zip + SHA256 (x64)
+        working-directory: helper
+        run: ./scripts/package-app-zip.sh --arch x64
+
+      - name: Verify zip integrity
+        working-directory: helper
+        run: |
+          set -euo pipefail
+          cd .build
+          actual=$(shasum -a 256 shoki-darwin-x64.zip | awk '{print $1}')
+          expected=$(awk '{print $1}' shoki-darwin-x64.zip.sha256)
+          if [[ "$actual" != "$expected" ]]; then
+            echo "error: sha mismatch — zip=$actual sidecar=$expected" >&2
+            exit 1
+          fi
+          echo "sha ok: $actual"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-darwin-x64
+          path: |
+            helper/.build/shoki-darwin-x64.zip
+            helper/.build/shoki-darwin-x64.zip.sha256
+
+  publish-release:
+    name: Publish GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-arm64, build-x64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-darwin-arm64
+          path: dist/app-darwin-arm64
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-darwin-x64
+          path: dist/app-darwin-x64
+
+      - name: Resolve release tag + version
+        id: tag
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ inputs.version }}"
+            TAG="app-v$VERSION"
+          else
+            TAG="${GITHUB_REF_NAME}"
+            VERSION="${TAG#app-v}"
+          fi
+          if [[ -z "$VERSION" || "$VERSION" == "$TAG" ]]; then
+            echo "error: could not derive VERSION from TAG=$TAG" >&2
+            exit 1
+          fi
+          echo "tag=$TAG"       >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "resolved: tag=$TAG version=$VERSION"
+
+      - name: List downloaded artifacts
+        run: find dist -type f -printf '%p (%s bytes)\n' | sort
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release create "${{ steps.tag.outputs.tag }}" \
+            --target "${{ github.sha }}" \
+            --title "Shoki.app ${{ steps.tag.outputs.tag }}" \
+            --notes "Native helper bundles for the shoki SDK. Install via \`npx shoki setup\` — manual download is not required." \
+            dist/app-darwin-arm64/shoki-darwin-arm64.zip \
+            dist/app-darwin-arm64/shoki-darwin-arm64.zip.sha256 \
+            dist/app-darwin-x64/shoki-darwin-x64.zip \
+            dist/app-darwin-x64/shoki-darwin-x64.zip.sha256
