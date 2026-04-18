@@ -4,15 +4,16 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    // Helper Swift-built dylib directory. Swift's `swift build` puts the
-    // product under `helper/.build/{debug,release}/`; callers can override
-    // via `-Dhelper-dylib-dir=<path>` so a debug-mode helper build links
-    // cleanly against a debug-mode Zig binding for CI.
+    // Helper Zig-built dylib directory. Phase 08 Plan 02 replaced the Swift
+    // `swift build` output under `helper/.build/{debug,release}/` with a
+    // Zig `zig build` output at `helper/.build/libShokiXPCClient.dylib`
+    // (single artifact, no optimize-mode subdir). Callers can override via
+    // `-Dhelper-dylib-dir=<path>` if needed.
     const helper_dylib_dir_opt = b.option(
         []const u8,
         "helper-dylib-dir",
-        "Path to the directory containing libShokiXPCClient.dylib (from `swift build`). Default: ../helper/.build/release",
-    ) orelse "../helper/.build/release";
+        "Path to the directory containing libShokiXPCClient.dylib (from helper/build.zig). Default: ../helper/.build",
+    ) orelse "../helper/.build";
 
     const napi_dep = b.dependency("napi_zig", .{
         .target = target,

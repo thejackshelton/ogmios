@@ -30,6 +30,9 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
+// `ax_bindings.zig` is a sibling file in the same directory — imported by
+// relative path (no named module needed; both files share the same module
+// root subtree for every consumer module that contains them).
 const ax = @import("ax_bindings.zig");
 
 // ---------------------------------------------------------------------------

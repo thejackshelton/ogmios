@@ -25,7 +25,10 @@
 // Test-only invariants are documented inline and enforced by the unit tests.
 
 const std = @import("std");
-const xpc = @import("xpc_bindings.zig");
+// Imported as a named module (see helper/build.zig) so consumers that create
+// their own xpc_service module can share the same xpc_bindings decls across
+// module-subtree boundaries (Zig 0.16 rule).
+const xpc = @import("xpc_bindings");
 
 // ---------------------------------------------------------------------------
 // Error codes (mirrors `helper/Sources/ShokiRunnerService/ShokiRunnerService.swift`)
