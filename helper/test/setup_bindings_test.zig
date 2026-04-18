@@ -62,3 +62,17 @@ test "parseArgs(--bogus) -> error.UnknownFlag" {
     const result = setup.parseArgs("--bogus");
     try testing.expectError(setup.ParseError.UnknownFlag, result);
 }
+
+test "AXIsProcessTrusted() returns a valid bool (no crash)" {
+    // Bindings regression guard: matches the shape of the crash fixed in
+    // Plan 08-03 where `kCFTypeDictionaryKeyCallBacks` was mis-typed as
+    // `*anyopaque` instead of `opaque {}`. `AXIsProcessTrusted()` is the
+    // no-prompt probe variant — it must return `true` or `false` without
+    // surfacing a dialog or faulting. We don't care which value it returns
+    // here (that depends on whether the CI/dev machine granted Accessibility
+    // to the test harness); we only care that the call signature is sound.
+    const trusted: bool = ak.AXIsProcessTrusted();
+    // Both booleans are valid; the assertion is just "we got back a bool
+    // without crashing."
+    try testing.expect(trusted == true or trusted == false);
+}

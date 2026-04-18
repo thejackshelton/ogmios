@@ -134,6 +134,13 @@ pub const objc_msgSend_id_idp: MsgSendIdIdpFn = @extern(MsgSendIdIdpFn, .{ .name
 
 pub extern "c" fn AXIsProcessTrustedWithOptions(options: ?*anyopaque) bool;
 
+/// `AXIsProcessTrusted()` — no-prompt probe for Accessibility grant.
+/// Unlike `AXIsProcessTrustedWithOptions`, this variant NEVER surfaces a
+/// system dialog; it just reports the current TCC state. We use it both
+/// as a pre-check (to skip the prompt if already granted) and as a poll
+/// target after the prompt is shown.
+pub extern "c" fn AXIsProcessTrusted() bool;
+
 // ---------------------------------------------------------------------------
 // CoreFoundation — for the options dict passed to AXIsProcessTrustedWithOptions
 // ---------------------------------------------------------------------------
