@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: "Completed 07-05 (SIGKILL-robust settings restore + shoki restore-vo-settings CLI). 3 commits: bf1bb17, 1083d43, c50cf4d"
-last_updated: "2026-04-18T01:03:00.894Z"
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-04-18T01:17:37.900Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 31
-  completed_plans: 19
-  percent: 61
+  completed_plans: 20
+  percent: 65
 ---
 
 # Project State
@@ -61,6 +61,7 @@ Progress: [█░░░░░░░░░] 17%
 | Phase 04-vitest-browser-mode-integration P04 | 10m | 2 tasks | 17 files |
 | Phase 07-v1-integration-verification-and-qa-real-voiceover-announceme P03 | 6 | 2 tasks | 9 files |
 | Phase 07-v1-integration-verification-and-qa-real-voiceover-announceme P05 | 10m | 3 tasks | 9 files |
+| Phase 07 P04 | 9 | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 07-v1-integration-verification-and-qa-real-voiceover-announceme]: voiceOver is both a factory AND a namespace: Object.assign(voiceOverFactory, { start: startSingleton, end: endSingleton }) with explicit VoiceOverFn interface. Process-singleton refcounted — start() boots on first call, end() tears down on last call, end()-without-start is a no-op.
 - [Phase 07-v1-integration-verification-and-qa-real-voiceover-announceme]: handle.stop() and handle.end() share one doStop closure in createDriverHandle so mock-call counts are symmetric across both names and there is no 'this'-binding footgun for destructured callers.
 - [Phase 07-v1-integration-verification-and-qa-real-voiceover-announceme]: Plan 07-05: Snapshot file format is shoki-owned plist XML with _shoki_snapshot_{version,pid,ts_unix,domain} magic keys; 7-day TTL with --force override; file-I/O via libc to bypass Zig 0.16 std.Io.Dir churn
+- [Phase 07]: Used AXUIElementCreateApplication(renderer_pid) + SHOKI_AX_TARGET_PID env var (zero wire-format impact) to scope AX observer to the Chromium renderer — filters URL-bar noise from the capture log
+- [Phase 07]: Paired positive+negative DOM-vs-URL tests (gated on SHOKI_INTEGRATION=1 darwin) + Zig regression test pin the env-var wiring and the pgrep-last-line selection rule
 
 ### Pending Todos
 
@@ -105,6 +108,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-04-18T01:02:57.198Z
-Stopped at: Completed 07-05 (SIGKILL-robust settings restore + shoki restore-vo-settings CLI). 3 commits: bf1bb17, 1083d43, c50cf4d
+Last session: 2026-04-18T01:17:37.898Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None
