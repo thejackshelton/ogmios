@@ -11,7 +11,7 @@ pub const RingBuffer = rb_mod.RingBuffer;
 pub const XpcHandle = *anyopaque;
 
 /// C ABI callback signature matching Swift's @convention(c) block in
-/// ShokiXPCClient.swift's `receiveAXEvent` forwarder.
+/// MunadiXPCClient's `receiveAXEvent` forwarder.
 pub const EventCCallback = *const fn (
     phrase: [*:0]const u8,
     ts_nanos: u64,
@@ -20,12 +20,12 @@ pub const EventCCallback = *const fn (
     userdata: ?*anyopaque,
 ) callconv(.c) void;
 
-// Real extern declarations — link against libShokiXPCClient.dylib (Plan 05 glue).
-extern "c" fn shoki_xpc_connect() ?XpcHandle;
-extern "c" fn shoki_xpc_set_event_callback(h: XpcHandle, cb: EventCCallback, userdata: ?*anyopaque) void;
-extern "c" fn shoki_xpc_start_ax_observer(h: XpcHandle, pid: i32) i32;
-extern "c" fn shoki_xpc_stop_ax_observer(h: XpcHandle) i32;
-extern "c" fn shoki_xpc_disconnect(h: XpcHandle) void;
+// Real extern declarations — link against libMunadiXPCClient.dylib (Plan 05 glue).
+extern "c" fn munadi_xpc_connect() ?XpcHandle;
+extern "c" fn munadi_xpc_set_event_callback(h: XpcHandle, cb: EventCCallback, userdata: ?*anyopaque) void;
+extern "c" fn munadi_xpc_start_ax_observer(h: XpcHandle, pid: i32) i32;
+extern "c" fn munadi_xpc_stop_ax_observer(h: XpcHandle) i32;
+extern "c" fn munadi_xpc_disconnect(h: XpcHandle) void;
 
 // ---------------------------------------------------------------------------
 // XpcBackend — mockable abstraction over the C ABI. Tests inject a mock; Plan
@@ -63,21 +63,21 @@ pub const XpcBackend = struct {
 
 // Real-backend wrappers that call the extern "c" symbols.
 fn realConnect(_: *anyopaque) anyerror!XpcHandle {
-    const h = shoki_xpc_connect() orelse return error.XpcConnectFailed;
+    const h = munadi_xpc_connect() orelse return error.XpcConnectFailed;
     return h;
 }
 fn realSetCallback(_: *anyopaque, h: XpcHandle, cb: EventCCallback, userdata: ?*anyopaque) void {
-    shoki_xpc_set_event_callback(h, cb, userdata);
+    munadi_xpc_set_event_callback(h, cb, userdata);
 }
 fn realStartObserver(_: *anyopaque, h: XpcHandle, pid: i32) anyerror!void {
-    const rc = shoki_xpc_start_ax_observer(h, pid);
+    const rc = munadi_xpc_start_ax_observer(h, pid);
     if (rc != 0) return error.XpcStartObserverFailed;
 }
 fn realStopObserver(_: *anyopaque, h: XpcHandle) void {
-    _ = shoki_xpc_stop_ax_observer(h);
+    _ = munadi_xpc_stop_ax_observer(h);
 }
 fn realDisconnect(_: *anyopaque, h: XpcHandle) void {
-    shoki_xpc_disconnect(h);
+    munadi_xpc_disconnect(h);
 }
 
 const real_vtable: XpcBackend.VTable = .{
@@ -119,9 +119,9 @@ pub const AxNotifications = struct {
     /// vitest-browser-mode), NOT the VoiceOver process pid. The helper-side
     /// `AXObserverSession` now calls `AXUIElementCreateApplication(pid)` to
     /// scope the subscription so only the target app's AX events reach the
-    /// callback — this is how shoki excludes Chrome URL-bar / tab-title noise
+    /// callback — this is how munadi excludes Chrome URL-bar / tab-title noise
     /// from the capture log. See `resolveChromeRendererPid` in `driver.zig`
-    /// and the `SHOKI_AX_TARGET_PID` env var override.
+    /// and the `MUNADI_AX_TARGET_PID` env var override.
     pub fn start(self: *AxNotifications, target_app_pid: i32) !void {
         self.mutex.lock();
         defer self.mutex.unlock();

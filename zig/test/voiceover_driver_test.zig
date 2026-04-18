@@ -407,8 +407,8 @@ test "Start sequence invokes Lifecycle → PollLoop → AxNotifications in order
     vt.deinit(ctx);
 }
 
-test "SHOKI_AX_TARGET_PID env override is honored in startImpl (Phase 7 Plan 04)" {
-    // This pins the pid-filter wiring: when SHOKI_AX_TARGET_PID is set, the AX
+test "MUNADI_AX_TARGET_PID env override is honored in startImpl (Phase 7 Plan 04)" {
+    // This pins the pid-filter wiring: when MUNADI_AX_TARGET_PID is set, the AX
     // observer MUST receive that pid (renderer pid) instead of the default
     // VO-pid from pgrep. Regressing this silently re-admits Chrome URL-bar
     // noise into the capture log.
@@ -495,8 +495,8 @@ test "SHOKI_AX_TARGET_PID env override is honored in startImpl (Phase 7 Plan 04)
         extern "c" fn setenv(name: [*:0]const u8, value: [*:0]const u8, overwrite: c_int) c_int;
         extern "c" fn unsetenv(name: [*:0]const u8) c_int;
     };
-    _ = env_c.setenv("SHOKI_AX_TARGET_PID", "99999", 1);
-    defer _ = env_c.unsetenv("SHOKI_AX_TARGET_PID");
+    _ = env_c.setenv("MUNADI_AX_TARGET_PID", "99999", 1);
+    defer _ = env_c.unsetenv("MUNADI_AX_TARGET_PID");
 
     try vt.start(ctx);
 

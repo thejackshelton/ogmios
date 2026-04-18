@@ -14,7 +14,7 @@ pub const NoopDriver = struct {
         return self;
     }
 
-    pub fn vtable() driver_mod.ShokiDriver {
+    pub fn vtable() driver_mod.MunadiDriver {
         return .{
             .init = initImpl,
             .start = startImpl,

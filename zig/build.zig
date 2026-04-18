@@ -6,13 +6,13 @@ pub fn build(b: *std.Build) void {
 
     // Helper Zig-built dylib directory. Phase 08 Plan 02 replaced the Swift
     // `swift build` output under `helper/.build/{debug,release}/` with a
-    // Zig `zig build` output at `helper/.build/libShokiXPCClient.dylib`
+    // Zig `zig build` output at `helper/.build/libMunadiXPCClient.dylib`
     // (single artifact, no optimize-mode subdir). Callers can override via
     // `-Dhelper-dylib-dir=<path>` if needed.
     const helper_dylib_dir_opt = b.option(
         []const u8,
         "helper-dylib-dir",
-        "Path to the directory containing libShokiXPCClient.dylib (from helper/build.zig). Default: ../helper/.build",
+        "Path to the directory containing libMunadiXPCClient.dylib (from helper/build.zig). Default: ../helper/.build",
     ) orelse "../helper/.build";
 
     const napi_dep = b.dependency("napi_zig", .{
@@ -30,20 +30,20 @@ pub fn build(b: *std.Build) void {
     lib_mod.addImport("napi_zig", napi_zig);
 
     const lib = b.addLibrary(.{
-        .name = "shoki",
+        .name = "munadi",
         .linkage = .dynamic,
         .root_module = lib_mod,
     });
     lib.linker_allow_shlib_undefined = true; // N-API symbols resolved at load time by Node
 
-    // Link against libShokiXPCClient.dylib (built by `swift build` in helper/).
+    // Link against libMunadiXPCClient.dylib (built by `zig build` in helper/).
     // On non-darwin targets the whole step is skipped — the voiceover driver
     // is gated on `.darwin` in the registry so Linux/Windows CI builds won't
     // reach this symbol.
     if (target.result.os.tag == .macos) {
         const helper_path = b.path(helper_dylib_dir_opt);
         lib_mod.addLibraryPath(helper_path);
-        lib_mod.linkSystemLibrary("ShokiXPCClient", .{});
+        lib_mod.linkSystemLibrary("MunadiXPCClient", .{});
         lib_mod.addRPath(helper_path);
     }
 
@@ -63,12 +63,12 @@ pub fn build(b: *std.Build) void {
     });
     test_mod.addImport("napi_zig", napi_zig);
     // Tests transitively import ax_notifications.zig which declares
-    // `extern "c" fn shoki_xpc_*` — link the helper dylib here too so the
+    // `extern "c" fn munadi_xpc_*` — link the helper dylib here too so the
     // test binary resolves those symbols.
     if (target.result.os.tag == .macos) {
         const helper_path = b.path(helper_dylib_dir_opt);
         test_mod.addLibraryPath(helper_path);
-        test_mod.linkSystemLibrary("ShokiXPCClient", .{});
+        test_mod.linkSystemLibrary("MunadiXPCClient", .{});
         test_mod.addRPath(helper_path);
     }
     const t = b.addTest(.{

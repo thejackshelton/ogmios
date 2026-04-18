@@ -11,7 +11,7 @@ pub const RingBuffer = rb_mod.RingBuffer;
 
 /// Sentinel emitted by osascript after each script so our reader knows a reply
 /// is complete. The first stdout line matching SENTINEL terminates a reply.
-pub const SENTINEL: []const u8 = "__SHOKI_SEP__";
+pub const SENTINEL: []const u8 = "__MUNADI_SEP__";
 
 // ---------------------------------------------------------------------------
 // ChildProcess abstraction (vtable-style; mockable in tests)

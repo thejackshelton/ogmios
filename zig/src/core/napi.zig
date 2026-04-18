@@ -13,7 +13,7 @@ fn allocator() std.mem.Allocator {
     return gpa.allocator();
 }
 
-pub const SHOKI_VERSION: []const u8 = "0.0.0";
+pub const MUNADI_VERSION: []const u8 = "0.0.0";
 
 // --- Trivial surface ---
 
@@ -24,7 +24,7 @@ pub fn ping(env: napi.Env) !napi.Val {
 
 pub fn version(env: napi.Env) !napi.Val {
     _ = env;
-    return napi.Val.fromString(SHOKI_VERSION);
+    return napi.Val.fromString(MUNADI_VERSION);
 }
 
 pub fn wireVersion(env: napi.Env) !napi.Val {

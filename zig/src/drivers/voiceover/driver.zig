@@ -10,7 +10,7 @@ const lifecycle_mod = @import("lifecycle.zig");
 
 /// VoiceOverDriver composes Plan 03's Lifecycle + Plan 02's PollLoop +
 /// Plan 04's AxNotifications into a single driver implementing the frozen
-/// ShokiDriver vtable.
+/// MunadiDriver vtable.
 ///
 /// Ring buffer is owned here and shared between both capture paths — PollLoop
 /// pushes entries tagged `source=.applescript`, AxNotifications tags `source=.ax`.
@@ -50,7 +50,7 @@ pub const VoiceOverDriver = struct {
         return self;
     }
 
-    pub fn vtable() driver_mod.ShokiDriver {
+    pub fn vtable() driver_mod.MunadiDriver {
         return .{
             .init = initImpl,
             .start = startImpl,
@@ -125,13 +125,13 @@ pub const VoiceOverDriver = struct {
         // Phase 7 Plan 04 ("DOM vs Chrome URL bar"): the AX observer is now
         // scoped to a TARGET APP pid (see ax_notifications.zig's start()
         // doc-comment). Priority order:
-        //   1. SHOKI_AX_TARGET_PID env var — set by Vitest-browser test setup
+        //   1. MUNADI_AX_TARGET_PID env var — set by Vitest-browser test setup
         //      after resolving the Chromium renderer pid via pgrep.
         //   2. Back-compat fallback: the VoiceOver process pid, preserving the
         //      Phase 3 semantic for any caller that hasn't updated. Under this
         //      fallback the helper observes VO's own AXUIElement — which emits
         //      nothing useful on its own, so tests that care about correctness
-        //      MUST set SHOKI_AX_TARGET_PID.
+        //      MUST set MUNADI_AX_TARGET_PID.
         const target_pid = readTargetPidEnv() orelse
             (try resolveVoiceOverPid(self.allocator, self.runner));
 
@@ -220,7 +220,7 @@ fn resolveVoiceOverPid(allocator: std.mem.Allocator, runner: defaults_mod.Subpro
     return std.fmt.parseInt(i32, first, 10);
 }
 
-/// Read the `SHOKI_AX_TARGET_PID` env var and parse it as an i32. Returns null
+/// Read the `MUNADI_AX_TARGET_PID` env var and parse it as an i32. Returns null
 /// when the var is absent, empty, or fails to parse (fail-closed so a bogus
 /// value falls through to the VO-pid default rather than crashing the driver).
 ///
@@ -228,7 +228,7 @@ fn resolveVoiceOverPid(allocator: std.mem.Allocator, runner: defaults_mod.Subpro
 /// wire-format impact (CAP-15) — we read it at driver start time inside the
 /// driver process, not across the XPC/N-API boundary.
 fn readTargetPidEnv() ?i32 {
-    const ptr = c.getenv("SHOKI_AX_TARGET_PID") orelse return null;
+    const ptr = c.getenv("MUNADI_AX_TARGET_PID") orelse return null;
     const slice = std.mem.span(@as([*:0]const u8, ptr));
     const trimmed = std.mem.trim(u8, slice, " \t\r\n");
     if (trimmed.len == 0) return null;
@@ -242,8 +242,8 @@ fn readTargetPidEnv() ?i32 {
 /// one per tab. The parent Chromium process owns the URL bar / tab title /
 /// chrome; the renderer owns the DOM viewport the test exercises. To keep
 /// captured announcements scoped to page content, we bind the AX observer to
-/// the renderer's pid via `SHOKI_AX_TARGET_PID`. Test harnesses can resolve
-/// the pid themselves (the `@shoki/vitest` plugin runs `pgrep` directly from
+/// the renderer's pid via `MUNADI_AX_TARGET_PID`. Test harnesses can resolve
+/// the pid themselves (the `munadi/vitest` plugin runs `pgrep` directly from
 /// Node) OR call this Zig helper from their setup code.
 ///
 /// Returns the LAST-listed pid from pgrep (most recently spawned — typically

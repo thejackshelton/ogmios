@@ -80,8 +80,8 @@ pub const PlistValue = union(enum) {
 pub const PlistKey = struct {
     name: []const u8,
     value_type: PlistValueType,
-    /// What shoki writes during `configureSettings`.
-    shoki_default: PlistValue,
+    /// What munadi writes during `configureSettings`.
+    munadi_default: PlistValue,
 };
 
 /// The 9 VoiceOver plist keys snapshotted on start and restored on stop.
@@ -89,15 +89,15 @@ pub const PlistKey = struct {
 /// via 03-CONTEXT.md D-03. Deviation will break VO startup or capture.
 pub fn keyCatalog() []const PlistKey {
     const catalog = comptime [_]PlistKey{
-        .{ .name = "SCREnableAppleScript", .value_type = .boolean, .shoki_default = .{ .boolean = true } },
-        .{ .name = "SCRCategories_SCRCategorySystemWide_SCRSoundComponentSettings_SCRDisableSound", .value_type = .boolean, .shoki_default = .{ .boolean = true } },
-        .{ .name = "SCRCategories_SCRCategoryRotorAndTables_SCRGeneralSettings_SCRRateAsPercent", .value_type = .integer, .shoki_default = .{ .integer = 90 } },
-        .{ .name = "SCRCategories_SCRCategoryActivities_SCRVerbositySettings_SCRVerbosityLevel", .value_type = .integer, .shoki_default = .{ .integer = 0 } },
-        .{ .name = "SCRCategories_SCRCategoryHintsAndTips_SCRHintDelay_SCRShouldSpeakHints", .value_type = .boolean, .shoki_default = .{ .boolean = false } },
-        .{ .name = "SCRCategories_SCRCategoryPunctuationAndSymbols_SCRPunctuationSettings_SCRPunctuationLevel", .value_type = .integer, .shoki_default = .{ .integer = 0 } },
-        .{ .name = "SCRCategories_SCRCategoryVerbosity_SCRShouldSpeakStaticText", .value_type = .boolean, .shoki_default = .{ .boolean = true } },
-        .{ .name = "SCRCategories_SCRCategoryVoices_SCRSpeakChannel", .value_type = .string, .shoki_default = .{ .string = "com.apple.speech.synthesis.voice.Alex" } },
-        .{ .name = "SCRShouldAnnounceKeyCommands", .value_type = .boolean, .shoki_default = .{ .boolean = false } },
+        .{ .name = "SCREnableAppleScript", .value_type = .boolean, .munadi_default = .{ .boolean = true } },
+        .{ .name = "SCRCategories_SCRCategorySystemWide_SCRSoundComponentSettings_SCRDisableSound", .value_type = .boolean, .munadi_default = .{ .boolean = true } },
+        .{ .name = "SCRCategories_SCRCategoryRotorAndTables_SCRGeneralSettings_SCRRateAsPercent", .value_type = .integer, .munadi_default = .{ .integer = 90 } },
+        .{ .name = "SCRCategories_SCRCategoryActivities_SCRVerbositySettings_SCRVerbosityLevel", .value_type = .integer, .munadi_default = .{ .integer = 0 } },
+        .{ .name = "SCRCategories_SCRCategoryHintsAndTips_SCRHintDelay_SCRShouldSpeakHints", .value_type = .boolean, .munadi_default = .{ .boolean = false } },
+        .{ .name = "SCRCategories_SCRCategoryPunctuationAndSymbols_SCRPunctuationSettings_SCRPunctuationLevel", .value_type = .integer, .munadi_default = .{ .integer = 0 } },
+        .{ .name = "SCRCategories_SCRCategoryVerbosity_SCRShouldSpeakStaticText", .value_type = .boolean, .munadi_default = .{ .boolean = true } },
+        .{ .name = "SCRCategories_SCRCategoryVoices_SCRSpeakChannel", .value_type = .string, .munadi_default = .{ .string = "com.apple.speech.synthesis.voice.Alex" } },
+        .{ .name = "SCRShouldAnnounceKeyCommands", .value_type = .boolean, .munadi_default = .{ .boolean = false } },
     };
     return &catalog;
 }
@@ -248,7 +248,7 @@ fn parseReadResult(allocator: std.mem.Allocator, vt: PlistValueType, trimmed: []
     }
 }
 
-/// Write shoki's defaults, honoring per-call InitOptions overrides:
+/// Write munadi's defaults, honoring per-call InitOptions overrides:
 /// - `opts.mute == false` skips the DisableSound key entirely (user keeps theirs).
 /// - `opts.speech_rate` replaces the catalog's 90 default.
 pub fn configureSettings(
@@ -266,7 +266,7 @@ pub fn configureSettings(
         const effective_value: PlistValue = if (i == KEY_INDEX_SPEECH_RATE)
             PlistValue{ .integer = @intCast(opts.speech_rate) }
         else
-            key.shoki_default;
+            key.munadi_default;
 
         try writeKey(allocator, runner, domain, key, effective_value);
     }
