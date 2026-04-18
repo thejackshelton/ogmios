@@ -1,4 +1,4 @@
-import { shokiVitest } from '@shoki/vitest';
+import { shokiVitest } from 'shoki/vitest';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
@@ -17,7 +17,7 @@ const SHOKI_PLATFORM = process.platform;
 // Vitest 4 uses the `playwright()` provider factory from
 // `@vitest/browser-playwright`; vitest-browser-qwik@0.3+ peer-depends on
 // Vitest ^4, so the example runs Vitest 4 while the rest of the monorepo
-// stays on Vitest 3. @shoki/vitest's peer range is `^3 || ^4`.
+// stays on Vitest 3. shoki's peer range is `^3 || ^4`.
 export default defineConfig({
   plugins: [testSSR(), qwikVite(), shokiVitest()],
   define: {
