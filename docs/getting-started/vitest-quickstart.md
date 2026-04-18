@@ -15,17 +15,17 @@ The canonical example uses **Qwik** because its `renderSSR()` helper lets you as
 Local install in your test project — this is the canonical path (see [Install → Why local install](./install#why-local-install)):
 
 ```bash
-npm install -D shoki vitest @vitest/browser playwright vitest-browser-qwik
+npm install -D @shoki/core vitest @vitest/browser playwright vitest-browser-qwik
 ```
 
 Or the pnpm equivalent used throughout these docs:
 
 ```bash
-pnpm add -D shoki vitest @vitest/browser playwright @qwik.dev/core vitest-browser-qwik
+pnpm add -D @shoki/core vitest @vitest/browser playwright @qwik.dev/core vitest-browser-qwik
 pnpm exec playwright install chromium
 ```
 
-The `@shoki/binding-darwin-arm64` (or `-x64`) native package is installed automatically as an `optionalDependency` of `shoki`.
+The `@shoki/binding-darwin-arm64` (or `-x64`) native package is installed automatically as an `optionalDependency` of `@shoki/core`.
 
 ## 2. Configure Vitest
 
@@ -33,14 +33,14 @@ The `@shoki/binding-darwin-arm64` (or `-x64`) native package is installed automa
 
 ```ts
 import { defineConfig } from "vitest/config";
-import { shokiVitest } from "shoki/vitest";
+import { shokiVitest } from "@shoki/core/vitest";
 import { qwikVite } from "@qwik.dev/core/optimizer";
 import { testSSR } from "vitest-browser-qwik/ssr-plugin";
 
 export default defineConfig({
   plugins: [testSSR(), qwikVite(), shokiVitest()],
   test: {
-    setupFiles: ["shoki/vitest/setup"],
+    setupFiles: ["@shoki/core/vitest/setup"],
     browser: {
       enabled: true,
       provider: "playwright",
@@ -52,12 +52,12 @@ export default defineConfig({
 
 The `testSSR()` plugin is what unlocks Qwik's `renderSSR()` helper — it's optional if you only need CSR tests.
 
-`shoki/vitest/setup` runs `expect.extend(...)` for Shoki's four matchers (`toHaveAnnounced`, `toHaveAnnouncedText`, `toHaveNoAnnouncement`, `toHaveStableLog`) — the matcher implementations themselves are pure functions at `shoki/matchers` and the setup file is the framework-specific wiring.
+`@shoki/core/vitest/setup` runs `expect.extend(...)` for Shoki's four matchers (`toHaveAnnounced`, `toHaveAnnouncedText`, `toHaveNoAnnouncement`, `toHaveStableLog`) — the matcher implementations themselves are pure functions at `@shoki/core/matchers` and the setup file is the framework-specific wiring.
 
 The `shokiVitest()` plugin:
 
 - Registers 10 `BrowserCommand`s so browser-side tests can talk to the Node-side SDK over Vitest's tinyRPC.
-- Auto-sets `poolOptions.threads.singleThread = true` when it sees `shoki/vitest/browser` imports — VoiceOver is a system singleton, so parallel tests would collide.
+- Auto-sets `poolOptions.threads.singleThread = true` when it sees `@shoki/core/vitest/browser` imports — VoiceOver is a system singleton, so parallel tests would collide.
 - Throws `ShokiConcurrentTestError` at the first `test.concurrent` in a VO-scoped file, pointing you at the exact fix.
 
 ## 3. Define a Qwik component
@@ -90,7 +90,7 @@ export const SubmitButton = component$(() => {
 ```tsx
 import { render } from "vitest-browser-qwik";
 import { page } from "@vitest/browser/context";
-import { voiceOver, type ShokiBrowserSession } from "shoki/vitest/browser";
+import { voiceOver, type ShokiBrowserSession } from "@shoki/core/vitest/browser";
 import { expect, test, beforeAll, afterAll, beforeEach } from "vitest";
 import { SubmitButton } from "../src/SubmitButton";
 

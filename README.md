@@ -1,7 +1,7 @@
 # Shoki
 
 [![CI](https://img.shields.io/github/actions/workflow/status/shoki/shoki/ci.yml?branch=main&label=CI)](https://github.com/shoki/shoki/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/shoki?color=CB3837&logo=npm)](https://www.npmjs.com/package/shoki)
+[![npm](https://img.shields.io/npm/v/@shoki/core?color=CB3837&logo=npm)](https://www.npmjs.com/package/@shoki/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%2014%20%7C%2015%20%7C%2026-lightgrey?logo=apple)](docs/background/platform-risk.md)
 
@@ -22,16 +22,16 @@ Shoki is a library + CLI. The canonical path is **local install in your test pro
 > **v0.1.0 ships arm64 only** (Apple Silicon Macs). Intel Mac support arrives in v0.2. Most active Mac dev machines are Apple Silicon (Apple stopped selling Intel in 2023).
 
 ```bash
-npm install shoki
+npm install @shoki/core
 npx shoki setup
 ```
 
-Why local: your test files will `import { voiceOver } from 'shoki'`, which only resolves when shoki is in your project's `package.json`. The `shoki setup` CLI works via `npx` from a local install — no global install needed.
+Why local: your test files will `import { voiceOver } from '@shoki/core'`, which only resolves when `@shoki/core` is in your project's `package.json`. The `shoki setup` CLI works via `npx` from a local install — no global install needed.
 
 For Vitest users:
 
 ```bash
-npm install -D shoki vitest @vitest/browser playwright
+npm install -D @shoki/core vitest @vitest/browser playwright
 ```
 
 `shoki setup` downloads `Shoki.app` from GitHub Releases to `~/Applications/`, strips the macOS quarantine attribute, and walks you through Accessibility + Automation permission prompts. It runs once per machine — TCC grants persist across projects because the trust anchor is `~/Applications/Shoki.app`, independent of your `node_modules/`.
@@ -41,11 +41,11 @@ npm install -D shoki vitest @vitest/browser playwright
 If you just want to grant TCC on your Mac without a project yet (evaluating shoki, pre-provisioning a dev box), global install works:
 
 ```bash
-npm install -g shoki
+npm install -g @shoki/core
 shoki setup
 ```
 
-You'll still need a local install (`npm install shoki` inside the project) to `import` shoki in test code.
+You'll still need a local install (`npm install @shoki/core` inside the project) to `import` shoki in test code.
 
 See [`docs/getting-started/install.md`](docs/getting-started/install.md) for details.
 
@@ -73,7 +73,7 @@ Shoki solves those piece by piece.
 └──────────┬───────────┘
            │
 ┌──────────▼───────────┐
-│   shoki (TS)        │   Public API + `shoki` CLI + matcher fns + vitest plugin
+│   @shoki/core (TS)   │   Public API + `shoki` CLI + matcher fns + vitest plugin
 └──────────┬───────────┘
            │ N-API
 ┌──────────▼───────────┐
@@ -92,7 +92,7 @@ Shoki solves those piece by piece.
 
 Shoki ships **3 npm packages**:
 
-- `shoki` — TypeScript API, `shoki` CLI (`bin`), matcher functions at `shoki/matchers`, and Vitest plugin at `shoki/vitest`, `shoki/vitest/setup`, `shoki/vitest/browser`.
+- `@shoki/core` — TypeScript API, `shoki` CLI (`bin`), matcher functions at `@shoki/core/matchers`, and Vitest plugin at `@shoki/core/vitest`, `@shoki/core/vitest/setup`, `@shoki/core/vitest/browser`.
 - `@shoki/binding-darwin-arm64` — platform binary (Zig `.node`), auto-installed via `optionalDependencies`. Never installed by hand.
 - `@shoki/binding-darwin-x64` — same, for Intel Macs. Auto-installed via `optionalDependencies`. Never installed by hand.
 

@@ -51,7 +51,7 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 
 ### `ShokiConcurrentTestError` from the Vitest plugin
 
-- **Cause:** You used `test.concurrent(...)` inside a file that imports `shoki/vitest/browser`. VO is a system singleton; concurrent tests would pollute each other's capture logs.
+- **Cause:** You used `test.concurrent(...)` inside a file that imports `@shoki/core/vitest/browser`. VO is a system singleton; concurrent tests would pollute each other's capture logs.
 - **Fix:** Remove the `.concurrent`. Vitest will run the tests serially in a single thread. Shoki refcount semantics handle cross-file VO sharing.
 
 ### `ShokiPlatformUnsupportedError`

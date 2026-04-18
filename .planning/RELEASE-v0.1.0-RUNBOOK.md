@@ -1,6 +1,13 @@
 # v0.1.0 Release Runbook
 
-Human steps to publish shoki v0.1.0 + Shoki.app v0.1.0.
+Human steps to publish `@shoki/core` v0.1.0 + Shoki.app v0.1.0.
+
+> **Why `@shoki/core` and not `shoki`?** The unscoped `shoki` slot is blocked
+> by npm's anti-typosquatting check (too similar to
+> [`shiki`](https://www.npmjs.com/package/shiki), which gets `E403`). The
+> `@shoki` org scope is exempt from that filter, so the published name is
+> `@shoki/core`. The CLI bin name stays `shoki` — users still run
+> `npx shoki setup` / `npx shoki doctor` as before.
 
 ## Prerequisites
 
@@ -8,7 +15,7 @@ Human steps to publish shoki v0.1.0 + Shoki.app v0.1.0.
 - [ ] Node 24 LTS + pnpm 10 installed
 - [ ] Zig 0.16.0 installed (`brew install zig@0.16` or direct download)
 - [ ] GitHub account with repo creation rights
-- [ ] npmjs.com account — the one that will own shoki
+- [ ] npmjs.com account — the one that will own the `@shoki` scope
 
 ## Step 1: Get the repo on GitHub
 
@@ -62,11 +69,11 @@ pnpm publish -r --access public --no-git-checks
 pnpm publishes all 3 workspace packages in dependency order:
 1. `@shoki/binding-darwin-arm64@0.1.0`
 2. `@shoki/binding-darwin-x64@0.1.0`
-3. `shoki@0.1.0`
+3. `@shoki/core@0.1.0`
 
 Verify:
 ```bash
-npm view shoki@0.1.0
+npm view @shoki/core@0.1.0
 npm view @shoki/binding-darwin-arm64@0.1.0
 npm view @shoki/binding-darwin-x64@0.1.0
 ```
@@ -108,7 +115,7 @@ Verify the release at `https://github.com/<YOUR_ORG>/shoki/releases/tag/app-v0.1
 ```bash
 mkdir /tmp/shoki-smoke && cd /tmp/shoki-smoke
 npm init -y
-npm install shoki
+npm install @shoki/core
 npx shoki setup
 # click through the 2 TCC dialogs — should work end-to-end
 npx shoki doctor --json | jq

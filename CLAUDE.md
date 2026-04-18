@@ -88,7 +88,7 @@ If everything else fails, this must work: `voiceOver.listen()` in a Vitest brows
 ## Stack Patterns by Variant
 ### If the user is on Vitest browser mode (v1 canonical target):
 - Use Shoki from a Vitest `globalSetup` file (start VO once, stop on teardown).
-- In individual tests, `import { voiceOver } from "shoki"` and call `voiceOver.listen()`.
+- In individual tests, `import { voiceOver } from "@shoki/core"` and call `voiceOver.listen()`.
 - Assertions against `voiceOver.phraseLog()` run on the Node side (the test file context, not the browser context).
 - Because Shoki is observe-only, the user's Playwright provider drives the page and Shoki captures what VO says about it.
 ### If the user is on Playwright Test:
@@ -122,7 +122,7 @@ If everything else fails, this must work: `voiceOver.listen()` in a Vitest brows
 | Vitest 3.x | Playwright provider, Node 24 | Recommended provider as of 2026. WebdriverIO works but is heavier setup. |
 | tart 2.x | macOS 13+ host (Apple Silicon), guest macOS 13-15 (Sonoma, Sequoia, Tahoe all have public cirruslabs base images). | Guest must be ≥ macOS version where VoiceOver-AppleScript control works. macOS 14+ changed TCC prompt UX — handle both branches in `shoki doctor`. |
 | macOS 14+ SIP | VO-AppleScript-enabled file modification | Requires SIP-off to write `.VoiceOverAppleScriptEnabled`. Bake in tart image; never ask users to disable SIP on their host. |
-| napm package name | `shoki` + `@shoki/binding-*` | Requires owning the `@shoki` npm scope. Reserve now. |
+| npm package name | `@shoki/core` + `@shoki/binding-*` | Requires owning the `@shoki` npm scope. Reserve now. The unscoped `shoki` slot is blocked by npm's similarity filter vs. `shiki`. |
 ## Sources
 - **napi-zig README** — https://raw.githubusercontent.com/yuku-toolchain/napi-zig/main/README.md (full API, CLI reference, type conversion tables) — **HIGH confidence**, direct from source
 - **napi-zig build.zig.zon** — https://github.com/yuku-toolchain/napi-zig — Zig version minimum — **HIGH**

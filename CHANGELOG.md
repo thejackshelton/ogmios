@@ -23,19 +23,23 @@ First public release.
 
 ### Changed
 
-- **BREAKING — package rename:** `@shoki/sdk` is now published as the unscoped
-  package `shoki`. Update imports: `import { voiceOver } from 'shoki'`. The
-  scoped name is gone — the npm registry slot for `shoki` was confirmed
-  available and claimed in this release. (Phase 10 Plan 01)
-- **BREAKING — `@shoki/vitest` collapsed into `shoki`:** the Vitest plugin
-  now lives at the subpaths `shoki/vitest`, `shoki/vitest/setup`, and
-  `shoki/vitest/browser`. Update consumers:
-  - `import { shokiVitest } from '@shoki/vitest'` → `from 'shoki/vitest'`
-  - `import '@shoki/vitest/setup'` → `import 'shoki/vitest/setup'`
-  - `import { voiceOver } from '@shoki/vitest/browser'` → `from 'shoki/vitest/browser'`
-  - Drop `@shoki/vitest` from `devDependencies` — it's now a subpath of `shoki`.
-  `vitest` and `@vitest/browser` are now OPTIONAL peer deps of `shoki`. (Phase 10 Plan 01)
-- **3 packages total** (down from 4): `shoki` + `@shoki/binding-darwin-arm64`
+- **Final published name:** `@shoki/core` (scoped). The unscoped `shoki` slot
+  was blocked by npm's anti-typosquatting check against `shiki`, so this
+  release ships under the `@shoki` org scope. The CLI bin name stays
+  `shoki` — users still run `npx shoki setup`, `npx shoki doctor`, etc.
+- **BREAKING — package rename:** `@shoki/sdk` is now published as
+  `@shoki/core`. Update imports: `import { voiceOver } from '@shoki/core'`.
+  (Phase 10 Plan 01 renamed `@shoki/sdk` → unscoped `shoki`; this release
+  re-scopes to `@shoki/core` to bypass npm's similarity filter.)
+- **BREAKING — `@shoki/vitest` collapsed into `@shoki/core`:** the Vitest plugin
+  now lives at the subpaths `@shoki/core/vitest`, `@shoki/core/vitest/setup`, and
+  `@shoki/core/vitest/browser`. Update consumers:
+  - `import { shokiVitest } from '@shoki/vitest'` → `from '@shoki/core/vitest'`
+  - `import '@shoki/vitest/setup'` → `import '@shoki/core/vitest/setup'`
+  - `import { voiceOver } from '@shoki/vitest/browser'` → `from '@shoki/core/vitest/browser'`
+  - Drop `@shoki/vitest` from `devDependencies` — it's now a subpath of `@shoki/core`.
+  `vitest` and `@vitest/browser` are now OPTIONAL peer deps of `@shoki/core`. (Phase 10 Plan 01)
+- **3 packages total** (down from 4): `@shoki/core` + `@shoki/binding-darwin-arm64`
   + `@shoki/binding-darwin-x64`. The platform bindings stay scoped — the
   napi platform-package pattern requires it. (Phase 10 Plan 01)
 - **`shoki setup` now downloads `Shoki.app` from GitHub Releases on first run**
@@ -59,7 +63,7 @@ First public release.
   `--install-dir <path>`, `--skip-launch`, `--json`, `--version <ver>`,
   `--dry-run`. No new runtime dependencies — uses Node 24 native `fetch` +
   `crypto.createHash('sha256')`. (Phase 10 Plan 02)
-- **`compatibleAppVersion` field in `shoki/package.json`** — couples the SDK
+- **`compatibleAppVersion` field in `@shoki/core`'s `package.json`** — couples the SDK
   release cadence to the helper-app release cadence. The CLI uses it as the
   default `--version` for `shoki setup`. (Phase 10 Plan 02)
 - **GitHub Releases workflow for helper bundles** (`.github/workflows/app-release.yml`)
@@ -77,17 +81,17 @@ First public release.
 ```bash
 # Old (Phase 8/9):
 npm uninstall @shoki/sdk @shoki/vitest
-# New (Phase 10):
-npm install shoki
+# New (v0.1.0):
+npm install @shoki/core
 ```
 
 Update imports:
 
-- `from '@shoki/sdk'` → `from 'shoki'`
-- `from '@shoki/vitest'` → `from 'shoki/vitest'`
-- `from '@shoki/vitest/setup'` → `from 'shoki/vitest/setup'`
-- `from '@shoki/vitest/browser'` → `from 'shoki/vitest/browser'`
-- `from '@shoki/sdk/matchers'` → `from 'shoki/matchers'`
+- `from '@shoki/sdk'` → `from '@shoki/core'`
+- `from '@shoki/vitest'` → `from '@shoki/core/vitest'`
+- `from '@shoki/vitest/setup'` → `from '@shoki/core/vitest/setup'`
+- `from '@shoki/vitest/browser'` → `from '@shoki/core/vitest/browser'`
+- `from '@shoki/sdk/matchers'` → `from '@shoki/core/matchers'`
 
 Then run `npx shoki setup --force` to grab the latest `Shoki.app` + `Shoki Setup.app` from GitHub Releases.
 

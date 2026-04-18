@@ -39,7 +39,7 @@ Shoki publishes via npm's trusted-publishing flow — no `NPM_TOKEN` secret in C
 ### One-time enrollment per package
 
 For each of:
-- `shoki` (the SDK, formerly `shoki`)
+- `@shoki/core` (the SDK, formerly `@shoki/sdk`, briefly `shoki`)
 - `@shoki/binding-darwin-arm64`
 - `@shoki/binding-darwin-x64`
 
@@ -74,12 +74,12 @@ Use `--dry-run` liberally. After the first successful publish per package, enabl
 After a tag push:
 
 1. Watch the `Release` workflow in GitHub Actions. All four jobs should be green.
-2. `npm view shoki dist-tags` — should show the new `latest` version.
-3. `npm install shoki@latest` on a fresh macOS machine:
+2. `npm view @shoki/core dist-tags` — should show the new `latest` version.
+3. `npm install @shoki/core@latest` on a fresh macOS machine:
    - `@shoki/binding-darwin-arm64` or `@shoki/binding-darwin-x64` should be selected via `optionalDependencies`
-   - `node -e "require('shoki')"` should load without errors
+   - `node -e "require('@shoki/core')"` should load without errors
    - `codesign -dvvv node_modules/@shoki/binding-*/helper/ShokiRunner.app` should show a valid Developer ID signature
-4. `npm view shoki@<new-version> --json | jq .dist.attestations` — should show provenance attestation.
+4. `npm view @shoki/core@<new-version> --json | jq .dist.attestations` — should show provenance attestation.
 
 ---
 
@@ -100,7 +100,7 @@ xcrun notarytool log <log-uuid> --key AuthKey_XXX.p8 --key-id XXX --issuer XXX
 
 npm allows unpublishing within 72 hours. If a broken release ships:
 ```bash
-npm unpublish shoki@<broken-version>
+npm unpublish @shoki/core@<broken-version>
 npm unpublish @shoki/binding-darwin-arm64@<broken-version>
 npm unpublish @shoki/binding-darwin-x64@<broken-version>
 ```

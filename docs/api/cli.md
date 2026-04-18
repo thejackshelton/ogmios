@@ -1,6 +1,6 @@
 # `shoki` CLI
 
-Shipped as the `bin` entry of **`shoki`** (`bin: { "shoki": "./dist/cli/main.js" }`). Installing `shoki` puts `shoki` on your PATH via `npx`. Four subcommands today: `doctor`, `setup`, `info`, and `restore-vo-settings`.
+Shipped as the `bin` entry of **`@shoki/core`** (`bin: { "shoki": "./dist/cli/main.js" }`). Installing `@shoki/core` puts `shoki` on your PATH via `npx`. Four subcommands today: `doctor`, `setup`, `info`, and `restore-vo-settings`.
 
 ```bash
 npx shoki doctor
@@ -110,7 +110,7 @@ shoki info
 
 Dumps (to stdout):
 
-- `shoki` package versions (sdk, vitest).
+- `@shoki/core` package versions (sdk, vitest).
 - macOS version + codename.
 - Node version + arch.
 - pnpm version (if present in PATH).

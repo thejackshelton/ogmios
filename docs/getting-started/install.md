@@ -29,7 +29,7 @@ One package. One setup command. Done.
 
 ```bash
 # Install (one command, one package)
-npm install shoki
+npm install @shoki/core
 
 # First-run setup: downloads Shoki.app from GitHub Releases, installs to
 # ~/Applications/, strips quarantine, opens the macOS TCC permission flow.
@@ -39,20 +39,20 @@ npx shoki setup
 npx shoki doctor
 ```
 
-That's it. `npm install shoki` (or `pnpm add -D shoki`, or `yarn add -D shoki`) drops `shoki` on your PATH via `npx`, and `shoki setup` does the first-run download + install + permission dance once per machine.
+That's it. `npm install @shoki/core` (or `pnpm add -D @shoki/core`, or `yarn add -D @shoki/core`) drops the `shoki` CLI on your PATH via `npx`, and `shoki setup` does the first-run download + install + permission dance once per machine.
 
 ### Why local install
 
-Shoki is both a library and a CLI, but the canonical path is a **local install** inside your test project. Your test files will do `import { voiceOver } from 'shoki'`, which only resolves when shoki lives in your project's `package.json` and `node_modules/`. The `shoki` binary is available via `npx shoki …` from that same local install — no global install needed to run `setup` or `doctor`.
+Shoki is both a library and a CLI, but the canonical path is a **local install** inside your test project. Your test files will do `import { voiceOver } from '@shoki/core'`, which only resolves when `@shoki/core` lives in your project's `package.json` and `node_modules/`. The `shoki` binary is available via `npx shoki …` from that same local install — no global install needed to run `setup` or `doctor`.
 
-This mirrors how Vitest and Playwright distribute: they're libraries your tests import, plus CLIs you invoke via `npx` / `pnpm exec`. Don't global-install them; don't global-install shoki as the default.
+This mirrors how Vitest and Playwright distribute: they're libraries your tests import, plus CLIs you invoke via `npx` / `pnpm exec`. Don't global-install them; don't global-install `@shoki/core` as the default.
 
 ### When global install makes sense
 
 A **global install** works for setup-only use cases where you're not writing test code yet:
 
 ```bash
-npm install -g shoki
+npm install -g @shoki/core
 shoki setup
 ```
 
@@ -62,22 +62,22 @@ Reasonable reasons to global install:
 - **Pre-provisioning a dev box or CI image** — grant TCC once at the machine level so later project installs skip the prompt.
 - **Shared multi-project machines** — one TCC grant anchored on `~/Applications/Shoki.app` covers every project on that machine regardless of which `node_modules/` they use.
 
-You'll still need a local install (`npm install shoki` inside the project) to `import` shoki in test code. Global install does not give your test files access to the library.
+You'll still need a local install (`npm install @shoki/core` inside the project) to `import` shoki in test code. Global install does not give your test files access to the library.
 
 Precedent: tools like `pnpm` and `nvm` are global-by-default because they manage your environment. Shoki is closer to Vitest and Playwright — a library consumed by your tests — which is why local is the default.
 
 | Package | Purpose |
 |---------|---------|
-| `shoki` | Everything user-facing: core TS API (`voiceOver()`, `ScreenReaderHandle`, events), the `shoki` CLI (bin entry), matcher functions at `shoki/matchers`, and the Vitest plugin at `shoki/vitest` / `shoki/vitest/setup` / `shoki/vitest/browser`. |
+| `@shoki/core` | Everything user-facing: core TS API (`voiceOver()`, `ScreenReaderHandle`, events), the `shoki` CLI (bin entry), matcher functions at `@shoki/core/matchers`, and the Vitest plugin at `@shoki/core/vitest` / `@shoki/core/vitest/setup` / `@shoki/core/vitest/browser`. |
 
-The platform-specific binding (`@shoki/binding-darwin-arm64` or `@shoki/binding-darwin-x64`) is an **optional** dependency of `shoki` — pnpm/npm picks the right one for your OS + CPU at install time. Never installed by hand. No postinstall scripts, no `node-gyp`.
+The platform-specific binding (`@shoki/binding-darwin-arm64` or `@shoki/binding-darwin-x64`) is an **optional** dependency of `@shoki/core` — pnpm/npm picks the right one for your OS + CPU at install time. Never installed by hand. No postinstall scripts, no `node-gyp`.
 
-> **Heads up (v1.1):** prior versions shipped `@shoki/doctor`, `@shoki/matchers`, `@shoki/sdk`, and `@shoki/vitest` as separate packages. In v1.1 they all consolidated into the unscoped **`shoki`** package:
-> - `@shoki/sdk` → `shoki`
-> - `@shoki/vitest` → `shoki/vitest` (subpath export)
-> - `@shoki/vitest/setup` → `shoki/vitest/setup`
-> - `@shoki/vitest/browser` → `shoki/vitest/browser`
-> - `@shoki/sdk/matchers` → `shoki/matchers`
+> **Heads up (v0.1.0):** prior versions shipped `@shoki/doctor`, `@shoki/matchers`, `@shoki/sdk`, and `@shoki/vitest` as separate packages. In v0.1.0 they all consolidated into the scoped **`@shoki/core`** package:
+> - `@shoki/sdk` → `@shoki/core`
+> - `@shoki/vitest` → `@shoki/core/vitest` (subpath export)
+> - `@shoki/vitest/setup` → `@shoki/core/vitest/setup`
+> - `@shoki/vitest/browser` → `@shoki/core/vitest/browser`
+> - `@shoki/sdk/matchers` → `@shoki/core/matchers`
 >
 > See [CHANGELOG](https://github.com/shoki/shoki/blob/main/CHANGELOG.md) for the migration.
 
@@ -128,7 +128,7 @@ Exit code 0 means you're ready to write a test. Non-zero exit identifies which c
 A minimal sanity check without VoiceOver:
 
 ```bash
-node -e "const { voiceOver } = require('shoki'); console.log(typeof voiceOver);"
+node -e "const { voiceOver } = require('@shoki/core'); console.log(typeof voiceOver);"
 # expected: "function"
 ```
 
@@ -138,12 +138,12 @@ On a fresh macOS arm64 machine this also loads the native binding into memory; a
 
 Previously Shoki shipped 4 user-facing packages (`@shoki/sdk`, `@shoki/vitest`, plus the two bindings). We collapsed to 1 user-facing package:
 
-- **`shoki`** — core API, CLI, matchers, Vitest plugin, browser-safe entry points — all behind subpath exports.
+- **`@shoki/core`** — core API, CLI, matchers, Vitest plugin, browser-safe entry points — all behind subpath exports.
 - **`@shoki/binding-darwin-arm64` + `@shoki/binding-darwin-x64`** — auto-installed via `optionalDependencies`. Never seen by end users. The napi platform-package pattern requires them to stay scoped.
 
-Vitest and `@vitest/browser` are **optional peer deps** of `shoki` — install them only if you use the Vitest plugin.
+Vitest and `@vitest/browser` are **optional peer deps** of `@shoki/core` — install them only if you use the Vitest plugin.
 
-If you only need the capture core without Vitest ergonomics, `npm install shoki` is still the whole install. Matcher functions at `shoki/matchers` are framework-agnostic and usable from Playwright Test, XCUITest, or a plain Node script.
+If you only need the capture core without Vitest ergonomics, `npm install @shoki/core` is still the whole install. Matcher functions at `@shoki/core/matchers` are framework-agnostic and usable from Playwright Test, XCUITest, or a plain Node script.
 
 ## What's next
 

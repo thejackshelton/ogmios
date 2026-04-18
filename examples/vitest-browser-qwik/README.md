@@ -35,7 +35,7 @@ executes** via `renderSSR()`.
   verbatim from the React example to prove the pid filter is
   framework-agnostic.
 - `vitest.config.ts` — wires `testSSR()` + `qwikVite()` + `shokiVitest()`.
-- `src/vitest.setup.ts` — imports `shoki/vitest/setup` to register the four
+- `src/vitest.setup.ts` — imports `@shoki/core/vitest/setup` to register the four
   Shoki matchers on Vitest's `expect`.
 
 ## Why Qwik (and why SSR)
