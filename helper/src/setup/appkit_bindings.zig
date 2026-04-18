@@ -155,23 +155,33 @@ pub extern "c" fn CFStringCreateWithCString(
 pub const kCFStringEncodingUTF8: u32 = 0x08000100;
 
 /// `CFDictionaryCreate(alloc, keys, values, n, keyCallBacks, valueCallBacks)`.
+/// `keyCallBacks` and `valueCallBacks` are POINTERS to struct instances —
+/// pass `&kCFTypeDictionaryKeyCallBacks` etc.
 pub extern "c" fn CFDictionaryCreate(
     allocator: ?*anyopaque,
     keys: [*]const ?*anyopaque,
     values: [*]const ?*anyopaque,
     num_values: isize,
-    key_callbacks: ?*anyopaque,
-    value_callbacks: ?*anyopaque,
+    key_callbacks: ?*const CFDictionaryKeyCallBacks,
+    value_callbacks: ?*const CFDictionaryValueCallBacks,
 ) ?*anyopaque;
 
 /// `kCFBooleanTrue` — CFBoolean singleton for YES.
+/// Apple exports this as `const void * const` — a pointer VALUE, so direct use is correct.
 pub extern const kCFBooleanTrue: ?*anyopaque;
 
-/// `kCFTypeDictionaryKeyCallBacks` — standard retain/release key handling.
-pub extern const kCFTypeDictionaryKeyCallBacks: *anyopaque;
+/// `kCFTypeDictionaryKeyCallBacks` — opaque-struct instance (NOT a pointer).
+/// Apple exports this as `const CFDictionaryKeyCallBacks kCFTypeDictionaryKeyCallBacks;`
+/// — a struct variable, not a pointer. We must take `&` when passing to
+/// CFDictionaryCreate. Previously declared as `*anyopaque` which caused a
+/// SIGSEGV crash in AXIsProcessTrustedWithOptions → CFGetTypeID walking
+/// a dict built with garbage callback pointers.
+pub const CFDictionaryKeyCallBacks = opaque {};
+pub extern const kCFTypeDictionaryKeyCallBacks: CFDictionaryKeyCallBacks;
 
-/// `kCFTypeDictionaryValueCallBacks` — standard retain/release value handling.
-pub extern const kCFTypeDictionaryValueCallBacks: *anyopaque;
+/// `kCFTypeDictionaryValueCallBacks` — same story as the key callbacks.
+pub const CFDictionaryValueCallBacks = opaque {};
+pub extern const kCFTypeDictionaryValueCallBacks: CFDictionaryValueCallBacks;
 
 /// `CFRelease(obj)` — drop a CF reference.
 pub extern "c" fn CFRelease(obj: ?*anyopaque) void;

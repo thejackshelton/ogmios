@@ -228,8 +228,8 @@ fn buildPromptOptions() ?*anyopaque {
         &keys,
         &values,
         1,
-        ak.kCFTypeDictionaryKeyCallBacks,
-        ak.kCFTypeDictionaryValueCallBacks,
+        &ak.kCFTypeDictionaryKeyCallBacks,
+        &ak.kCFTypeDictionaryValueCallBacks,
     );
 }
 
