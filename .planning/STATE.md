@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 10-01 — rename @shoki/sdk → shoki + merge @shoki/vitest into shoki/vitest subpath
-last_updated: "2026-04-18T14:04:52.042Z"
+stopped_at: Completed 10-04 — strip .app bundles from npm binding tarballs + rewire SDK release
+last_updated: "2026-04-18T14:11:42.711Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 10
   completed_phases: 4
   total_plans: 42
-  completed_plans: 29
-  percent: 69
+  completed_plans: 30
+  percent: 71
 ---
 
 # Project State
@@ -69,6 +69,7 @@ Progress: [█░░░░░░░░░] 17%
 | Phase 08 P06 | 13m | 4 tasks | 16 files |
 | Phase 09 Pall | ~19min | 4 tasks | 27 files |
 | Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from P01 | 10m | 2 tasks | 48 files |
+| Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from P04 | 8m | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 09]: Hard-replaced examples/vitest-browser-react with vitest-browser-qwik to gain pre-hydration SSR a11y testing via renderSSR()
 - [Phase 09]: Widened @shoki/vitest peer range to vitest ^3 || ^4; Qwik example runs Vitest 4, rest of monorepo stays on Vitest 3
 - [Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from]: Plan 10-01: Renamed @shoki/sdk → shoki (unscoped), merged @shoki/vitest into shoki/vitest* subpaths; plugin detection needle + plugin.name updated to 'shoki/vitest(/browser)'; 3-package monorepo baseline (shoki + 2 platform bindings) for downstream Phase 10 plans
+- [Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from]: Plan 10-04: Binding tarballs now ship only shoki.node + README + LICENSE; build-helper-app action removed from release.yml entirely (build-zig-binding installs Zig itself); CI assertion step guards against .app bundles ever leaking back into packages/binding-darwin-*
 
 ### Pending Todos
 
@@ -133,6 +135,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-04-18T14:04:50.850Z
-Stopped at: Completed 10-01 — rename @shoki/sdk → shoki + merge @shoki/vitest into shoki/vitest subpath
+Last session: 2026-04-18T14:11:42.709Z
+Stopped at: Completed 10-04 — strip .app bundles from npm binding tarballs + rewire SDK release
 Resume file: None
