@@ -1,4 +1,4 @@
-// Packer template for the shoki VO-ready macOS Sequoia (15) image.
+// Packer template for the munadi VO-ready macOS Sequoia (15) image.
 // Mirrors sonoma.pkr.hcl; see that file for full comments.
 
 packer {
@@ -27,7 +27,7 @@ variable "base_image" {
 
 variable "output_name" {
   type    = string
-  default = "shoki-vo-ready-sequoia"
+  default = "munadi-vo-ready-sequoia"
 }
 
 variable "disk_size_gb" {
@@ -64,7 +64,7 @@ source "tart-cli" "sequoia" {
 }
 
 build {
-  name    = "shoki-macos-sequoia"
+  name    = "munadi-macos-sequoia"
   sources = ["source.tart-cli.sequoia"]
 
   provisioner "shell" {

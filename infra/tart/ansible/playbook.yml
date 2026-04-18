@@ -1,10 +1,10 @@
 ---
-# Shoki VO-ready macOS image — Ansible provisioning.
+# Munadi VO-ready macOS image — Ansible provisioning.
 #
 # Runs inside a fresh tart VM from a cirruslabs/macos-*-xcode base. Produces
 # an image where:
 #   - VoiceOver AppleScript is enabled
-#   - Accessibility + Automation TCC grants are pre-applied to org.shoki.runner
+#   - Accessibility + Automation TCC grants are pre-applied to org.munadi.runner
 #   - Node 24 + pnpm 10 are installed globally
 #   - Playwright browsers are pre-fetched
 #   - Spotlight / Time Machine / software updates are disabled
@@ -17,7 +17,7 @@
 #
 # Assumes the VM is `admin`-password provisioned by Packer.
 
-- name: Shoki VO-ready image provisioning
+- name: Munadi VO-ready image provisioning
   hosts: all
   become: true
   gather_facts: true
@@ -57,24 +57,24 @@
       failed_when: vo_applescript_check.stdout.strip() != "1"
 
     # ------------------------------------------------------------------
-    # 2. TCC grants — Accessibility + Automation for org.shoki.runner
+    # 2. TCC grants — Accessibility + Automation for org.munadi.runner
     # ------------------------------------------------------------------
     # The tccutil-based approach (jacobsalmela/tccutil): insert rows
     # directly into TCC.db while SIP is off. This is not supported outside
     # of image-bake VMs. We accept no runtime verification of the grant
     # here — the grant is validated later at image-bake time by a
-    # final-stage `shoki doctor` probe.
+    # final-stage `munadi doctor` probe.
     - name: TCC — copy the grant script into the VM
       ansible.builtin.copy:
         src: "../scripts/tcc-grant.sh"
-        dest: "/usr/local/bin/shoki-tcc-grant.sh"
+        dest: "/usr/local/bin/munadi-tcc-grant.sh"
         mode: "0755"
         owner: root
         group: wheel
 
-    - name: TCC — pre-grant Accessibility + Automation for {{ shoki_bundle_id }}
+    - name: TCC — pre-grant Accessibility + Automation for {{ munadi_bundle_id }}
       ansible.builtin.command:
-        cmd: "/usr/local/bin/shoki-tcc-grant.sh {{ shoki_bundle_id }}"
+        cmd: "/usr/local/bin/munadi-tcc-grant.sh {{ munadi_bundle_id }}"
       register: tcc_grant_out
       changed_when: "'inserted' in tcc_grant_out.stdout or 'updated' in tcc_grant_out.stdout"
 
@@ -164,18 +164,18 @@
       changed_when: true
 
     # ------------------------------------------------------------------
-    # 6. Prep a marker file so shoki doctor / setup-action can detect
-    #    "this is the baked shoki image"
+    # 6. Prep a marker file so munadi doctor / setup-action can detect
+    #    "this is the baked munadi image"
     # ------------------------------------------------------------------
     - name: Write image marker
       ansible.builtin.copy:
-        dest: "/etc/shoki-image"
+        dest: "/etc/munadi-image"
         mode: "0644"
         owner: root
         group: wheel
         content: |
           macos_version={{ macos_version | default('sonoma') }}
-          bundle_id={{ shoki_bundle_id }}
+          bundle_id={{ munadi_bundle_id }}
           node_version={{ node_version }}
           pnpm_version={{ pnpm_version }}
           built_at={{ ansible_date_time.iso8601 }}
@@ -187,5 +187,5 @@
         msg: |
           Image provisioning complete.
           macOS:      {{ sw_vers_out.stdout_lines | join(' | ') }}
-          bundle_id:  {{ shoki_bundle_id }}
+          bundle_id:  {{ munadi_bundle_id }}
           full_image: {{ full_image | default(false) }}

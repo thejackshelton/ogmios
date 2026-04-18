@@ -1,10 +1,10 @@
-// Packer template for the shoki VO-ready macOS Tahoe (26) image.
+// Packer template for the munadi VO-ready macOS Tahoe (26) image.
 // Mirrors sonoma.pkr.hcl; see that file for full comments.
 //
 // NOTE: The cirruslabs macos-tahoe-xcode base may not be published yet when
 // this file is first checked in. If tart-push errors with "image not found",
 // temporarily set base_image to a staging tag like `:26.0-beta` or skip tahoe
-// from the publish matrix until the base ships. The shoki CI story does not
+// from the publish matrix until the base ships. The munadi CI story does not
 // require tahoe at phase-5 release; sonoma + sequoia satisfy CI-01 through CI-06.
 
 packer {
@@ -33,7 +33,7 @@ variable "base_image" {
 
 variable "output_name" {
   type    = string
-  default = "shoki-vo-ready-tahoe"
+  default = "munadi-vo-ready-tahoe"
 }
 
 variable "disk_size_gb" {
@@ -70,7 +70,7 @@ source "tart-cli" "tahoe" {
 }
 
 build {
-  name    = "shoki-macos-tahoe"
+  name    = "munadi-macos-tahoe"
   sources = ["source.tart-cli.tahoe"]
 
   provisioner "shell" {

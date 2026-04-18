@@ -1,16 +1,16 @@
-# Shoki VO-ready tart images
+# Munadi VO-ready tart images
 
-Reference pre-baked macOS images for shoki CI. Published as:
+Reference pre-baked macOS images for munadi CI. Published as:
 
-- `ghcr.io/shoki/macos-vo-ready:sonoma` — macOS 14, slim (<15 GB)
-- `ghcr.io/shoki/macos-vo-ready:sequoia` — macOS 15, slim
-- `ghcr.io/shoki/macos-vo-ready:tahoe` — macOS 26, slim (when base image ships)
-- `ghcr.io/shoki/macos-vo-ready:<ver>@full` — same + Xcode + iOS simulators (~50 GB); opt-in
+- `ghcr.io/thejackshelton/munadi/macos-vo-ready:sonoma` — macOS 14, slim (<15 GB)
+- `ghcr.io/thejackshelton/munadi/macos-vo-ready:sequoia` — macOS 15, slim
+- `ghcr.io/thejackshelton/munadi/macos-vo-ready:tahoe` — macOS 26, slim (when base image ships)
+- `ghcr.io/thejackshelton/munadi/macos-vo-ready:<ver>@full` — same + Xcode + iOS simulators (~50 GB); opt-in
 
 Each image includes:
 
 - VoiceOver AppleScript enabled (`SCREnableAppleScript=1`)
-- Accessibility + Automation TCC grants pre-applied to `org.shoki.runner`
+- Accessibility + Automation TCC grants pre-applied to `org.munadi.runner`
 - Node 24 + pnpm 10 + Playwright browsers
 - Spotlight / Time Machine / software updates disabled
 - Background announcement emitters (Slack/Discord/Teams/Mail/Calendar/Notes/Messages/Music/Spotify) quit and removed from login items
@@ -20,12 +20,12 @@ Covers REQUIREMENTS.md CI-01 and CI-02.
 
 ## Why this exists
 
-Shoki tests need a macOS environment where VoiceOver can be driven from
-AppleScript AND the process driving it (the shoki helper bundle) has the
+Munadi tests need a macOS environment where VoiceOver can be driven from
+AppleScript AND the process driving it (the munadi helper bundle) has the
 right TCC grants AND no background apps are emitting announcements that
 leak into captures.
 
-On a fresh macOS CI runner none of these things are true. `shoki doctor`
+On a fresh macOS CI runner none of these things are true. `munadi doctor`
 will refuse to run. These pre-baked images make that whole bootstrapping
 step a no-op: consumers pull the image, run their tests, done.
 
@@ -68,24 +68,24 @@ Build the slim image:
 
 ```bash
 packer build packer/sonoma.pkr.hcl
-# ~45 min. Produces a local tart VM named `shoki-vo-ready-sonoma`.
+# ~45 min. Produces a local tart VM named `munadi-vo-ready-sonoma`.
 ```
 
 Build the `@full` variant (Xcode + simulators preserved):
 
 ```bash
-packer build -var 'full_image=true' -var 'output_name=shoki-vo-ready-sonoma-full' packer/sonoma.pkr.hcl
+packer build -var 'full_image=true' -var 'output_name=munadi-vo-ready-sonoma-full' packer/sonoma.pkr.hcl
 ```
 
 Test the image locally before publishing:
 
 ```bash
-tart run shoki-vo-ready-sonoma --no-graphics
+tart run munadi-vo-ready-sonoma --no-graphics
 # In another terminal:
-ssh admin@$(tart ip shoki-vo-ready-sonoma)
+ssh admin@$(tart ip munadi-vo-ready-sonoma)
 # Password: admin
 # Run smoke test:
-shoki doctor --json --quiet
+munadi doctor --json --quiet
 ```
 
 ## Publishing
@@ -105,15 +105,15 @@ secrets (`GHCR_TOKEN` + signing secrets from Phase 1).
 
 **Slim (default):** target <15 GB. Strips Xcode, iOS simulators, most
 developer caches. Boots fast, pulls fast. The right image for 99% of
-shoki use cases — driving VoiceOver in a web app via Playwright +
+munadi use cases — driving VoiceOver in a web app via Playwright +
 Vitest.
 
 **`@full`:** retains Xcode 16+, iOS simulators, additional dev tools.
-~50 GB. For users who want shoki to eventually drive iOS VoiceOver via
+~50 GB. For users who want munadi to eventually drive iOS VoiceOver via
 XCUITest (deferred to v2+; see `REQUIREMENTS.md` SR2-01 / PLAT-03). The
-image is published but not exercised by the shoki test matrix today.
+image is published but not exercised by the munadi test matrix today.
 
-Opt in via image tag: `ghcr.io/shoki/macos-vo-ready:sonoma@full`.
+Opt in via image tag: `ghcr.io/thejackshelton/munadi/macos-vo-ready:sonoma@full`.
 
 ## Why Packer + Ansible (not a shell script)
 
@@ -129,7 +129,7 @@ Opt in via image tag: `ghcr.io/shoki/macos-vo-ready:sonoma@full`.
 1. **TCC schema drift.** The TCC.db schema has changed across macOS
    versions. `scripts/tcc-grant.sh` probes columns and builds a
    compatible INSERT, but new macOS majors may add columns that make
-   the grant row non-functional. Symptom: `shoki doctor` reports
+   the grant row non-functional. Symptom: `munadi doctor` reports
    "Accessibility denied" on a fresh-baked image. Fix: check
    `sqlite3 TCC.db "PRAGMA table_info(access)"` and extend the script.
 
@@ -150,10 +150,10 @@ Opt in via image tag: `ghcr.io/shoki/macos-vo-ready:sonoma@full`.
 ## Testing a published image
 
 ```bash
-tart pull ghcr.io/shoki/macos-vo-ready:sonoma
-tart run shoki-vo-ready-sonoma --no-graphics &
-IP=$(tart ip shoki-vo-ready-sonoma)
-ssh -o StrictHostKeyChecking=no admin@$IP 'shoki doctor --json --quiet'
+tart pull ghcr.io/thejackshelton/munadi/macos-vo-ready:sonoma
+tart run munadi-vo-ready-sonoma --no-graphics &
+IP=$(tart ip munadi-vo-ready-sonoma)
+ssh -o StrictHostKeyChecking=no admin@$IP 'munadi doctor --json --quiet'
 ```
 
 If that returns `exit 0`, the image is healthy.
