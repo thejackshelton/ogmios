@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-04-18T03:53:33.222Z"
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-04-18T04:16:30.243Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 9
   completed_phases: 3
   total_plans: 37
-  completed_plans: 24
-  percent: 65
+  completed_plans: 26
+  percent: 70
 ---
 
 # Project State
@@ -65,6 +65,7 @@ Progress: [█░░░░░░░░░] 17%
 | Phase 07 P06 | 55m | 4 tasks | 2 files |
 | Phase 08-zig-helper-port-shokisetup-app-gui-package-consolidation P05 | 8m | 2 tasks | 65 files |
 | Phase 08 P02 | 35 minutes | 3 tasks | 13 files |
+| Phase 08-zig-helper-port-shokisetup-app-gui-package-consolidation P04 | 9m | 7 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 08-zig-helper-port-shokisetup-app-gui-package-consolidation]: Plan 08-05: @shoki/sdk absorbs cli (bin.shoki -> dist/cli/main.js) + matchers (pure fns at /matchers subpath); @shoki/vitest absorbs expect.extend wiring at /setup subpath; CLI entry split from library entry to avoid parseAsync side-effects on library import; peerDep vitest (optional) + 'import type {} from vitest' anchor required for  under TS NodeNext + composite
 - [Phase 08]: Defer XPC listener-mode block-ABI shim to Plan 04: libxpc dereferences handler via ObjC block ABI, crashes with plain C fn ptr. Plan 02 ships --version + dispatch_main parking as promised.
 - [Phase 08]: Use named shared xpc_bindings module in helper/build.zig to cross Zig 0.16 module-subtree boundaries (mirrors zig/build.zig napi_zig pattern).
+- [Phase 08-zig-helper-port-shokisetup-app-gui-package-consolidation]: Plan 08-04: launch-setup-app FixAction carries optional appPath=null; resolution happens at fix time in the executor, not at check time — keeps DoctorReport serializable and decouples check evaluation from filesystem I/O.
+- [Phase 08-zig-helper-port-shokisetup-app-gui-package-consolidation]: Plan 08-04: Block-ABI shim written in C (xpc_block_shim.c, ~60 lines) + clang -fblocks rather than hand-rolling _NSConcreteStackBlock in Zig — clang owns the block ABI layout; Zig shim would break every Xcode bump. Both runner exe AND test module compile the C file.
+- [Phase 08-zig-helper-port-shokisetup-app-gui-package-consolidation]: Plan 08-04: CI smoke runs both direct exe invocation AND open -W -n <.app> --args — the second form forces LaunchServices registration so malformed Info.plist fails CI the way a user double-click would.
 
 ### Pending Todos
 
@@ -116,6 +120,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-04-18T03:53:24.628Z
-Stopped at: Completed 08-02-PLAN.md
+Last session: 2026-04-18T04:16:20.140Z
+Stopped at: Completed 08-04-PLAN.md
 Resume file: None
