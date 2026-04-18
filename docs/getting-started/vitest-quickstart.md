@@ -12,8 +12,16 @@ The canonical example uses **Qwik** because its `renderSSR()` helper lets you as
 
 ## 1. Install the packages
 
+Local install in your test project — this is the canonical path (see [Install → Why local install](./install#why-local-install)):
+
 ```bash
-pnpm add -D shoki shoki/vitest vitest @vitest/browser playwright @qwik.dev/core vitest-browser-qwik
+npm install -D shoki vitest @vitest/browser playwright vitest-browser-qwik
+```
+
+Or the pnpm equivalent used throughout these docs:
+
+```bash
+pnpm add -D shoki vitest @vitest/browser playwright @qwik.dev/core vitest-browser-qwik
 pnpm exec playwright install chromium
 ```
 

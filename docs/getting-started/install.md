@@ -15,6 +15,8 @@ See the [Platform risk](/background/platform-risk) page for an honest discussion
 
 One package. One setup command. Done.
 
+### Quickstart
+
 ```bash
 # Install (one command, one package)
 npm install shoki
@@ -28,6 +30,31 @@ npx shoki doctor
 ```
 
 That's it. `npm install shoki` (or `pnpm add -D shoki`, or `yarn add -D shoki`) drops `shoki` on your PATH via `npx`, and `shoki setup` does the first-run download + install + permission dance once per machine.
+
+### Why local install
+
+Shoki is both a library and a CLI, but the canonical path is a **local install** inside your test project. Your test files will do `import { voiceOver } from 'shoki'`, which only resolves when shoki lives in your project's `package.json` and `node_modules/`. The `shoki` binary is available via `npx shoki …` from that same local install — no global install needed to run `setup` or `doctor`.
+
+This mirrors how Vitest and Playwright distribute: they're libraries your tests import, plus CLIs you invoke via `npx` / `pnpm exec`. Don't global-install them; don't global-install shoki as the default.
+
+### When global install makes sense
+
+A **global install** works for setup-only use cases where you're not writing test code yet:
+
+```bash
+npm install -g shoki
+shoki setup
+```
+
+Reasonable reasons to global install:
+
+- **Evaluating shoki** — you want to run `shoki setup` + `shoki doctor` on your Mac to see what the permission flow looks like before committing to a project.
+- **Pre-provisioning a dev box or CI image** — grant TCC once at the machine level so later project installs skip the prompt.
+- **Shared multi-project machines** — one TCC grant anchored on `~/Applications/Shoki.app` covers every project on that machine regardless of which `node_modules/` they use.
+
+You'll still need a local install (`npm install shoki` inside the project) to `import` shoki in test code. Global install does not give your test files access to the library.
+
+Precedent: tools like `pnpm` and `nvm` are global-by-default because they manage your environment. Shoki is closer to Vitest and Playwright — a library consumed by your tests — which is why local is the default.
 
 | Package | Purpose |
 |---------|---------|

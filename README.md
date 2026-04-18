@@ -17,25 +17,33 @@ Think of it as a more ambitious [Guidepup](https://github.com/guidepup/guidepup)
 
 ## Install
 
+Shoki is a library + CLI. The canonical path is **local install in your test project**:
+
 ```bash
-# Install (one command, one package)
 npm install shoki
-
-# First-run setup: downloads Shoki.app from GitHub Releases, installs to
-# ~/Applications/, strips quarantine, opens the macOS TCC permission flow.
 npx shoki setup
-
-# Verify everything is wired
-npx shoki doctor
 ```
 
-One command gets you `shoki` on PATH via `npx`; `shoki setup` does the first-run download + permission dance once per machine.
+Why local: your test files will `import { voiceOver } from 'shoki'`, which only resolves when shoki is in your project's `package.json`. The `shoki setup` CLI works via `npx` from a local install — no global install needed.
 
 For Vitest users:
 
 ```bash
 npm install -D shoki vitest @vitest/browser playwright
 ```
+
+`shoki setup` downloads `Shoki.app` from GitHub Releases to `~/Applications/`, strips the macOS quarantine attribute, and walks you through Accessibility + Automation permission prompts. It runs once per machine — TCC grants persist across projects because the trust anchor is `~/Applications/Shoki.app`, independent of your `node_modules/`.
+
+### Alternative: global install
+
+If you just want to grant TCC on your Mac without a project yet (evaluating shoki, pre-provisioning a dev box), global install works:
+
+```bash
+npm install -g shoki
+shoki setup
+```
+
+You'll still need a local install (`npm install shoki` inside the project) to `import` shoki in test code.
 
 See [`docs/getting-started/install.md`](docs/getting-started/install.md) for details.
 
