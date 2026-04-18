@@ -48,14 +48,14 @@ test("Submit announces", async ({ page }) => {
 ```tsx
 import { voiceOver } from "@shoki/vitest/browser";
 import { page } from "@vitest/browser/context";
-import { render } from "vitest-browser-react";
+import { render } from "vitest-browser-qwik";
 import { expect, test } from "vitest";
 import { SubmitButton } from "../src/SubmitButton";
 
 test("Submit announces", async () => {
   const session = await voiceOver.start({ mute: true });
   try {
-    render(<SubmitButton />);
+    await render(<SubmitButton />);
     await page.getByRole("button", { name: "Submit" }).click();
 
     const log = await session.awaitStable({ quietMs: 500 });

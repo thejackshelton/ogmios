@@ -5,13 +5,15 @@ The fastest way to get a real VoiceOver-backed test running. Five minutes end to
 ## Prerequisites
 
 - `shoki doctor` exits 0 — see [Install](./install) and [Permission setup](./permission-setup).
-- A project with Vitest 3.x installed.
+- A project with Vitest (3.x or 4.x) installed.
 - Playwright's Chromium available for Vitest browser mode.
+
+The canonical example uses **Qwik** because its `renderSSR()` helper lets you assert on the **server-rendered accessibility tree before JavaScript runs** — a capability other Vitest browser-mode integrations don't offer. The `@shoki/*` packages are framework-agnostic; anything you see below works with React, Solid, Svelte, or vanilla DOM too.
 
 ## 1. Install the packages
 
 ```bash
-pnpm add -D @shoki/sdk @shoki/vitest vitest @vitest/browser playwright
+pnpm add -D @shoki/sdk @shoki/vitest vitest @vitest/browser playwright @qwik.dev/core vitest-browser-qwik
 pnpm exec playwright install chromium
 ```
 
@@ -24,9 +26,11 @@ The `@shoki/binding-darwin-arm64` (or `-x64`) native package is installed automa
 ```ts
 import { defineConfig } from "vitest/config";
 import { shokiVitest } from "@shoki/vitest";
+import { qwikVite } from "@qwik.dev/core/optimizer";
+import { testSSR } from "vitest-browser-qwik/ssr-plugin";
 
 export default defineConfig({
-  plugins: [shokiVitest()],
+  plugins: [testSSR(), qwikVite(), shokiVitest()],
   test: {
     setupFiles: ["@shoki/vitest/setup"],
     browser: {
@@ -38,6 +42,8 @@ export default defineConfig({
 });
 ```
 
+The `testSSR()` plugin is what unlocks Qwik's `renderSSR()` helper — it's optional if you only need CSR tests.
+
 `@shoki/vitest/setup` runs `expect.extend(...)` for Shoki's four matchers (`toHaveAnnounced`, `toHaveAnnouncedText`, `toHaveNoAnnouncement`, `toHaveStableLog`) — the matcher implementations themselves are pure functions at `@shoki/sdk/matchers` and the setup file is the framework-specific wiring.
 
 The `shokiVitest()` plugin:
@@ -46,12 +52,35 @@ The `shokiVitest()` plugin:
 - Auto-sets `poolOptions.threads.singleThread = true` when it sees `@shoki/vitest/browser` imports — VoiceOver is a system singleton, so parallel tests would collide.
 - Throws `ShokiConcurrentTestError` at the first `test.concurrent` in a VO-scoped file, pointing you at the exact fix.
 
-## 3. Write a test
+## 3. Define a Qwik component
+
+`src/SubmitButton.tsx`:
+
+```tsx
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const SubmitButton = component$(() => {
+  const message = useSignal("");
+  const onSubmit = $(() => {
+    message.value = "";
+    queueMicrotask(() => { message.value = "Form submitted"; });
+  });
+
+  return (
+    <form preventdefault:submit onSubmit$={onSubmit}>
+      <button type="submit">Submit</button>
+      <p aria-live="polite" role="status">{message.value}</p>
+    </form>
+  );
+});
+```
+
+## 4. Write a CSR test
 
 `tests/submit-button.test.tsx`:
 
 ```tsx
-import { render } from "vitest-browser-react";
+import { render } from "vitest-browser-qwik";
 import { page } from "@vitest/browser/context";
 import { voiceOver, type ShokiBrowserSession } from "@shoki/vitest/browser";
 import { expect, test, beforeAll, afterAll, beforeEach } from "vitest";
@@ -73,7 +102,7 @@ beforeEach(async () => {
 });
 
 test("announces Submit on click", async () => {
-  render(<SubmitButton />);
+  await render(<SubmitButton />);
   await page.getByRole("button", { name: "Submit" }).click();
 
   const log = await session.awaitStable({ quietMs: 500 });
@@ -82,7 +111,28 @@ test("announces Submit on click", async () => {
 });
 ```
 
-What's happening:
+## 5. Write an SSR a11y test (Qwik-unique)
+
+`tests/submit-button-ssr.test.tsx`:
+
+```tsx
+import { renderSSR } from "vitest-browser-qwik";
+import { expect, test } from "vitest";
+import { SubmitButton } from "../src/SubmitButton";
+
+test("SSR output exposes the correct initial a11y tree", async () => {
+  const screen = await renderSSR(<SubmitButton />);
+
+  // The server-rendered HTML IS the initial accessibility tree.
+  expect(screen.container.innerHTML).toContain('role="status"');
+  expect(screen.container.innerHTML).toContain('aria-live="polite"');
+  await expect.element(screen.getByRole("button", { name: "Submit" })).toBeVisible();
+});
+```
+
+No VoiceOver gate needed — the SSR assertion runs on every host. This test proves a screen reader user won't see broken a11y before JavaScript hydrates.
+
+What's happening in the CSR test:
 
 1. **`beforeAll` → `voiceOver.start({ mute: true })`** — browser-side call dispatches over tinyRPC to the Node-side `SessionStore`, which boots VoiceOver muted. Returns a session handle. One VoiceOver session per test file is the default; the SessionStore refcounts if multiple test files in the same worker share a session.
 2. **`beforeEach` → `session.reset()`** — cheap per-test cleanup. No osascript respawn, no VO restart — only clears the ring buffer and resets the VO cursor.
@@ -91,9 +141,15 @@ What's happening:
 5. **`toHaveAnnounced({ role, name })`** — iterates the log looking for an event whose `role` and `name` match.
 6. **`afterAll` → `session.end()`** — tears VoiceOver down and restores the pre-test plist keys. `end()` is the preferred name in v1+; `stop()` remains available for back-compat.
 
-## 4. Run it
+## 6. Run the tests
 
-Locally:
+Locally (SSR + render-only, no VoiceOver):
+
+```bash
+pnpm vitest run
+```
+
+Full integration (SSR + CSR + real VoiceOver):
 
 ```bash
 SHOKI_INTEGRATION=1 pnpm vitest run
@@ -102,13 +158,15 @@ SHOKI_INTEGRATION=1 pnpm vitest run
 Expected output:
 
 ```
+ ✓ tests/submit-button-ssr.test.tsx (1)
+   ✓ SSR output exposes the correct initial a11y tree
  ✓ tests/submit-button.test.tsx (1)
    ✓ announces Submit on click
 
-Tests  1 passed (1)
+Tests  2 passed (2)
 ```
 
-Without `SHOKI_INTEGRATION=1`, a render-only smoke test runs and the VO-dependent test is skipped — this is how you can still run CI on non-darwin hosts without the test suite exploding.
+Without `SHOKI_INTEGRATION=1`, SSR tests still run (they don't need a screen reader) and the VO-dependent CSR test is skipped — this is how you can still run CI on non-darwin hosts without the test suite exploding.
 
 ## Why the gate?
 
@@ -116,9 +174,9 @@ Without `SHOKI_INTEGRATION=1`, a render-only smoke test runs and the VO-dependen
 
 - **Non-darwin CI jobs** (lint, typecheck on Ubuntu) don't have VO available.
 - **Darwin CI jobs without proper grants** would fail cryptically otherwise; the gate makes it loud when the real test is actually running.
-- **Local dev without setup** still gets the render-only smoke test passing green.
+- **Local dev without setup** still gets the SSR + render-only smoke tests passing green.
 
-The canonical [`examples/vitest-browser-react`](https://github.com/shoki/shoki/tree/main/examples/vitest-browser-react) repo uses this pattern. Copy its `vitest.config.ts` and `tests/` verbatim if you want a known-good starting point.
+The canonical [`examples/vitest-browser-qwik`](https://github.com/shoki/shoki/tree/main/examples/vitest-browser-qwik) repo uses this pattern. Copy its `vitest.config.ts` and `tests/` verbatim if you want a known-good starting point.
 
 ## What's next
 

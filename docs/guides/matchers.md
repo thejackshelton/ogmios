@@ -28,14 +28,14 @@ Asserts that the log contains at least one event matching the given **semantic s
 ```tsx
 import { voiceOver } from "@shoki/vitest/browser";
 import { page } from "@vitest/browser/context";
-import { render } from "vitest-browser-react";
+import { render } from "vitest-browser-qwik";
 import { expect, test } from "vitest";
 import { SubmitButton } from "../src/SubmitButton";
 
 test("announces the Submit button on click", async () => {
   const session = await voiceOver.start({ mute: true });
   try {
-    render(<SubmitButton />);
+    await render(<SubmitButton />);
     await page.getByRole("button", { name: "Submit" }).click();
     const log = await session.awaitStable({ quietMs: 500 });
 
@@ -190,7 +190,7 @@ announced, you may get a false positive from chrome text that VO read from
 the browser UI, not from the DOM your test actually rendered.
 
 Shoki's canonical test
-[`examples/vitest-browser-react/tests/dom-vs-chrome-url.test.tsx`](https://github.com/shoki/shoki/blob/main/examples/vitest-browser-react/tests/dom-vs-chrome-url.test.tsx)
+[`examples/vitest-browser-qwik/tests/dom-vs-chrome-url.test.tsx`](https://github.com/shoki/shoki/blob/main/examples/vitest-browser-qwik/tests/dom-vs-chrome-url.test.tsx)
 pins this invariant with a paired positive/negative test. The filter works
 on three layers:
 

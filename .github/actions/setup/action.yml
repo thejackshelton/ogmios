@@ -122,7 +122,7 @@ runs:
     # Stock macos-latest / macos-14. This is the expensive path. We CAN'T
     # insert TCC grants at runtime (SIP is on), so shoki tests run in a
     # degraded mode where only VO-AppleScript-enabled is set. This
-    # suffices for the vitest-browser-react example, which doesn't need
+    # suffices for the vitest-browser-qwik example, which doesn't need
     # the helper-app trust-anchor path (web content only).
     - name: GitHub-hosted — enable VO AppleScript
       if: steps.detect.outputs.topology == 'github-hosted'

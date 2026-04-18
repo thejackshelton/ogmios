@@ -10,7 +10,7 @@ pnpm add -D @shoki/vitest @shoki/sdk
 
 The matcher functions live inside `@shoki/sdk/matchers` (framework-agnostic) and the `expect.extend` wiring lives at `@shoki/vitest/setup`. The platform binding (`@shoki/binding-darwin-arm64` or `-x64`) is installed automatically as an `optionalDependency` of `@shoki/sdk`.
 
-See `examples/vitest-browser-react` for the canonical end-to-end setup.
+See `examples/vitest-browser-qwik` for the canonical end-to-end setup (CSR + SSR a11y tests).
 
 ## Usage
 

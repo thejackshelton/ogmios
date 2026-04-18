@@ -1,6 +1,6 @@
 # Phase 5 parity gate — CI-06.
 #
-# Runs `examples/vitest-browser-react` on all 4 supported shoki topologies
+# Runs `examples/vitest-browser-qwik` on all 4 supported shoki topologies
 # as a matrix. All 4 cells must pass for the release pipeline to proceed.
 #
 # This is the gate that closes Phase 5 SC-4 ("parity across environments").
@@ -24,13 +24,13 @@ on:
   push:
     branches: [main]
     paths:
-      - "examples/vitest-browser-react/**"
+      - "examples/vitest-browser-qwik/**"
       - ".github/actions/setup/**"
       - "infra/tart/**"
       - ".github/workflows/phase-5-parity.yml"
   pull_request:
     paths:
-      - "examples/vitest-browser-react/**"
+      - "examples/vitest-browser-qwik/**"
       - ".github/actions/setup/**"
       - "infra/tart/**"
       - ".github/workflows/phase-5-parity.yml"
@@ -62,7 +62,7 @@ jobs:
           macos-version: sonoma
       - run: pnpm install --frozen-lockfile
       - name: Run parity example
-        working-directory: examples/vitest-browser-react
+        working-directory: examples/vitest-browser-qwik
         run: pnpm test
       - name: Post-job cleanup
         if: always()
@@ -87,7 +87,7 @@ jobs:
           macos-version: sonoma
       - run: pnpm install --frozen-lockfile
       - name: Run parity example
-        working-directory: examples/vitest-browser-react
+        working-directory: examples/vitest-browser-qwik
         run: pnpm test
       - name: Post-job cleanup
         if: always()
@@ -115,7 +115,7 @@ jobs:
           macos-version: sonoma
       - run: pnpm install --frozen-lockfile
       - name: Run parity example
-        working-directory: examples/vitest-browser-react
+        working-directory: examples/vitest-browser-qwik
         run: pnpm test
       - name: Post-job cleanup
         if: always()
@@ -140,7 +140,7 @@ jobs:
           macos-version: sonoma
       - run: pnpm install --frozen-lockfile
       - name: Run parity example
-        working-directory: examples/vitest-browser-react
+        working-directory: examples/vitest-browser-qwik
         run: pnpm test
       - name: Post-job cleanup
         if: always()

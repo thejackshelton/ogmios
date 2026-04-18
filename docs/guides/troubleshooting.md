@@ -89,7 +89,7 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 - **Cause 1:** VO is running but muted at the system level in a way Shoki doesn't override (`shoki.start({ mute: true })` uses our own plist key, not the system mute).
 - **Fix 1:** Don't worry about system mute; Shoki controls capture independently of speaker output. If `phraseLog()` still returns `[]` something deeper is broken.
 - **Cause 2:** Your app isn't actually announcing (bad `aria-live`, role mismatch, etc.).
-- **Fix 2:** Test against [`examples/vitest-browser-react`](https://github.com/shoki/shoki/tree/main/examples/vitest-browser-react) first — if the canonical example works, the problem is in your app's semantics.
+- **Fix 2:** Test against [`examples/vitest-browser-qwik`](https://github.com/shoki/shoki/tree/main/examples/vitest-browser-qwik) first — if the canonical example works, the problem is in your app's semantics.
 
 ### `shoki doctor` exits 9 (HELPER_UNSIGNED)
 
