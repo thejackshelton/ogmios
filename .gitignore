@@ -11,6 +11,9 @@ dist/
 zig-out/
 zig-cache/
 .zig-cache/
+zig/zig-pkg/
+# stray tool dump
+/amp
 
 # Native addons (built locally, not committed)
 packages/binding-darwin-arm64/*.node

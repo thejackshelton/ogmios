@@ -3,9 +3,9 @@ const builtin = @import("builtin");
 const lifecycle_mod = @import("../src/drivers/voiceover/lifecycle.zig");
 const defaults_mod = @import("../src/drivers/voiceover/defaults.zig");
 
-/// Darwin-only smoke test: invoke the real SubprocessRunner against real
-/// pgrep. Doesn't require VoiceOver to be running — the point is to verify
-/// the real runner fork+exec path works end-to-end. On non-darwin we skip.
+// Darwin-only smoke test: invoke the real SubprocessRunner against real
+// pgrep. Doesn't require VoiceOver to be running — the point is to verify
+// the real runner fork+exec path works end-to-end. On non-darwin we skip.
 test "voiceover integration: real pgrep invocation via realSubprocessRunner" {
     if (builtin.target.os.tag != .macos) return error.SkipZigTest;
 

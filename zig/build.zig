@@ -8,17 +8,21 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    const napi_zig = napi_dep.module("napi_zig");
+    const napi_zig = napi_dep.module("napi");
 
-    // Shared library. napi-zig docs describe a higher-level addLib helper; if present
-    // prefer that. Otherwise the shape below is the idiomatic Zig 0.16 equivalent.
-    const lib = b.addSharedLibrary(.{
-        .name = "shoki",
-        .root_source_file = b.path("src/core/napi.zig"),
+    // Shared library (Zig 0.16 API: create Module then addLibrary).
+    const lib_mod = b.createModule(.{
+        .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
     });
-    lib.root_module.addImport("napi_zig", napi_zig);
+    lib_mod.addImport("napi_zig", napi_zig);
+
+    const lib = b.addLibrary(.{
+        .name = "shoki",
+        .linkage = .dynamic,
+        .root_module = lib_mod,
+    });
     lib.linker_allow_shlib_undefined = true; // N-API symbols resolved at load time by Node
 
     // Link against libShokiXPCClient.dylib (built by `swift build -c release`
@@ -27,35 +31,29 @@ pub fn build(b: *std.Build) void {
     // is gated on `.darwin` in the registry.
     if (target.result.os.tag == .macos) {
         const helper_build_dir = b.path("../helper/.build/release");
-        lib.addLibraryPath(helper_build_dir);
-        lib.linkSystemLibrary("ShokiXPCClient");
-        lib.addRPath(helper_build_dir);
+        lib_mod.addLibraryPath(helper_build_dir);
+        lib_mod.linkSystemLibrary("ShokiXPCClient", .{});
+        lib_mod.addRPath(helper_build_dir);
     }
 
     b.installArtifact(lib);
 
-    // Unit tests
+    // Unit tests. Zig 0.16 enforces that @import paths must be within the
+    // Module's root directory subtree. Each test file lives in `zig/test/`
+    // and imports `../src/...`, so the test Module's root is set to
+    // `zig/all_tests.zig` (which aggregates all ten test files via comptime
+    // imports). This runs all registered tests as one test binary.
     const test_step = b.step("test", "Run unit tests");
 
-    inline for (.{
-        "test/ring_buffer_test.zig",
-        "test/wire_test.zig",
-        "test/noop_driver_test.zig",
-        "test/voiceover_defaults_test.zig",
-        "test/voiceover_applescript_test.zig",
-        "test/voiceover_ax_notifications_test.zig",
-        "test/voiceover_lifecycle_test.zig",
-        "test/voiceover_driver_test.zig",
-        "test/wire_regression_test.zig",
-        "test/voiceover_integration_test.zig",
-    }) |test_path| {
-        const t = b.addTest(.{
-            .root_source_file = b.path(test_path),
-            .target = target,
-            .optimize = optimize,
-        });
-        t.root_module.addImport("napi_zig", napi_zig);
-        const run_t = b.addRunArtifact(t);
-        test_step.dependOn(&run_t.step);
-    }
+    const test_mod = b.createModule(.{
+        .root_source_file = b.path("all_tests.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    test_mod.addImport("napi_zig", napi_zig);
+    const t = b.addTest(.{
+        .root_module = test_mod,
+    });
+    const run_t = b.addRunArtifact(t);
+    test_step.dependOn(&run_t.step);
 }

@@ -318,7 +318,7 @@ pub fn restoreSettings(
         const key = catalog[i];
         switch (snapshot.entries[i]) {
             .missing => try deleteKey(allocator, runner, snapshot.domain, key.name),
-            .boolean, .integer, .string => |_| try writeKey(
+            .boolean, .integer, .string => try writeKey(
                 allocator,
                 runner,
                 snapshot.domain,
