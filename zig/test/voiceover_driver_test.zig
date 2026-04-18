@@ -407,6 +407,106 @@ test "Start sequence invokes Lifecycle → PollLoop → AxNotifications in order
     vt.deinit(ctx);
 }
 
+test "SHOKI_AX_TARGET_PID env override is honored in startImpl (Phase 7 Plan 04)" {
+    // This pins the pid-filter wiring: when SHOKI_AX_TARGET_PID is set, the AX
+    // observer MUST receive that pid (renderer pid) instead of the default
+    // VO-pid from pgrep. Regressing this silently re-admits Chrome URL-bar
+    // noise into the capture log.
+    const allocator = std.testing.allocator;
+
+    // Reuse the rich runner from the prior test — pgrep still returns 12345 as
+    // the VO-pid fallback. The env-override should WIN over that.
+    const RichRunner = struct {
+        allocator: std.mem.Allocator,
+        pgrep_call_count: u32 = 0,
+        argv_log: std.ArrayListUnmanaged([]const []const u8) = .empty,
+
+        fn runImpl(ctx: *anyopaque, alloc: std.mem.Allocator, argv: []const []const u8) anyerror!defaults_mod.RunResult {
+            const self: *@This() = @ptrCast(@alignCast(ctx));
+            const recorded = try self.allocator.alloc([]const u8, argv.len);
+            for (argv, 0..) |a, i| recorded[i] = try self.allocator.dupe(u8, a);
+            try self.argv_log.append(self.allocator, recorded);
+
+            const first = argv[0];
+            if (std.mem.eql(u8, first, "/usr/bin/pgrep")) {
+                self.pgrep_call_count += 1;
+                if (self.pgrep_call_count == 1) {
+                    return .{
+                        .stdout = try alloc.dupe(u8, ""),
+                        .stderr = try alloc.dupe(u8, ""),
+                        .exit_code = 1,
+                    };
+                }
+                return .{
+                    .stdout = try alloc.dupe(u8, "12345\n"),
+                    .stderr = try alloc.dupe(u8, ""),
+                    .exit_code = 0,
+                };
+            }
+            if (std.mem.eql(u8, first, "/usr/bin/pkill")) {
+                return .{
+                    .stdout = try alloc.dupe(u8, ""),
+                    .stderr = try alloc.dupe(u8, ""),
+                    .exit_code = 0,
+                };
+            }
+            return .{
+                .stdout = try alloc.dupe(u8, "0\n"),
+                .stderr = try alloc.dupe(u8, ""),
+                .exit_code = 0,
+            };
+        }
+        fn asRunner(self: *@This()) defaults_mod.SubprocessRunner {
+            return .{ .ctx = @ptrCast(self), .runFn = runImpl };
+        }
+        fn deinit(self: *@This()) void {
+            for (self.argv_log.items) |argv| {
+                for (argv) |a| self.allocator.free(a);
+                self.allocator.free(argv);
+            }
+            self.argv_log.deinit(self.allocator);
+        }
+    };
+
+    var rich = RichRunner{ .allocator = allocator };
+    defer rich.deinit();
+    var clock = MockClock{ .allocator = allocator };
+    var spawner = MockSpawner{ .allocator = allocator };
+    var xpc = MockXpcBackend{};
+
+    const drv = try voiceover_mod.VoiceOverDriver.create(
+        allocator,
+        rich.asRunner(),
+        clock.asClock(),
+        spawner.asSpawner(),
+        xpc.asBackend(),
+    );
+    const vt = voiceover_mod.VoiceOverDriver.vtable();
+    const ctx: *anyopaque = @ptrCast(drv);
+
+    try vt.init(ctx, .{ .allocator = allocator, .log_buffer_size = 128 });
+    drv.lifecycle.?.setDomainOverride("com.apple.VoiceOver4/default");
+
+    // Set the env override — the driver should prefer 99999 over the 12345
+    // that pgrep returns. std.c in 0.16 doesn't re-export setenv/unsetenv so
+    // we declare them locally (driver.zig's getenv lookup works against the
+    // same POSIX-layer environment).
+    const env_c = struct {
+        extern "c" fn setenv(name: [*:0]const u8, value: [*:0]const u8, overwrite: c_int) c_int;
+        extern "c" fn unsetenv(name: [*:0]const u8) c_int;
+    };
+    _ = env_c.setenv("SHOKI_AX_TARGET_PID", "99999", 1);
+    defer _ = env_c.unsetenv("SHOKI_AX_TARGET_PID");
+
+    try vt.start(ctx);
+
+    // The CRITICAL assertion — env-override wins, AX observer bound to 99999.
+    try std.testing.expectEqual(@as(i32, 99999), xpc.last_pid);
+
+    try vt.stop(ctx);
+    vt.deinit(ctx);
+}
+
 test "drainImpl transfers AX-fired event from driver ring to output ring" {
     const allocator = std.testing.allocator;
     var runner = MockSubprocessRunner.init(allocator);

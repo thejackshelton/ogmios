@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import {
   type ScreenReaderHandle,
   type ShokiEvent,
@@ -6,6 +7,41 @@ import {
 } from '@shoki/sdk';
 import type { WireShokiEvent } from './command-types.js';
 import { ShokiSessionNotFoundError } from './errors.js';
+
+/**
+ * Phase 7 Plan 04 — "DOM vs Chrome URL bar" filter support.
+ *
+ * Resolve the youngest Chromium renderer-helper child pid via `pgrep -f`.
+ * Under Vitest browser-mode with Playwright/Chromium, the parent Chromium
+ * process owns the URL bar / tab title (chrome surface); each tab runs in
+ * a renderer-helper child process. Scoping shoki's AX observer to that
+ * renderer pid keeps URL-bar announcements out of the capture log.
+ *
+ * Returns null on any error (wrong platform, no Chromium, pgrep missing) so
+ * callers can continue without the filter — the test-file-level focus-body
+ * pattern still provides defense-in-depth.
+ */
+export function resolveChromeRendererPid(): number | null {
+  if (process.platform !== 'darwin') return null;
+  try {
+    const out = execFileSync('/usr/bin/pgrep', ['-f', 'Chromium Helper (Renderer)'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    const pids = out
+      .trim()
+      .split('\n')
+      .map((s) => Number.parseInt(s, 10))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    if (pids.length === 0) return null;
+    // Most-recently-spawned is typically the Vitest-spawned tab under the
+    // headless browser-mode run. T-07-42 in the plan's threat register
+    // explicitly accepts the "multiple tabs" edge case.
+    return pids[pids.length - 1] ?? null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Abstraction over the @shoki/sdk factory so tests can inject a fake driver.
@@ -54,6 +90,20 @@ export class SessionStore {
 
   async start(driver: ShokiSdkDriver, opts: VoiceOverOptions): Promise<string> {
     if (this.handle === null) {
+      // Phase 7 Plan 04: resolve the Chromium renderer pid and expose it to
+      // the Zig driver via SHOKI_AX_TARGET_PID before the handle boots. The
+      // Zig driver reads the env var inside startImpl to scope the AX
+      // observer to the test-viewport renderer process (not the browser
+      // chrome). If resolution fails we leave the env var alone — the driver
+      // falls back to the Phase 3 VO-pid default and the per-test focus-body
+      // pattern still provides defense-in-depth.
+      if (!process.env.SHOKI_AX_TARGET_PID) {
+        const rendererPid = resolveChromeRendererPid();
+        if (rendererPid !== null) {
+          process.env.SHOKI_AX_TARGET_PID = String(rendererPid);
+        }
+      }
+
       const h = driver.create(opts);
       // DO NOT increment refcount on failure — next successful start() begins at refs=1.
       await h.start();
