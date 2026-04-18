@@ -174,6 +174,79 @@ expect(events).toHaveAnnounced({ role: "button", name: "Submit" });
 await handle.stop();
 ```
 
+## Chrome noise: how to avoid capturing URL-bar text
+
+When Vitest browser-mode opens Chromium via Playwright, VoiceOver sees the
+entire OS screen — including the URL bar, tab titles, and address-bar
+autofill. If your assertion naively checks that a specific string was
+announced, you may get a false positive from chrome text that VO read from
+the browser UI, not from the DOM your test actually rendered.
+
+Shoki's canonical test
+[`examples/vitest-browser-react/tests/dom-vs-chrome-url.test.tsx`](https://github.com/shoki/shoki/blob/main/examples/vitest-browser-react/tests/dom-vs-chrome-url.test.tsx)
+pins this invariant with a paired positive/negative test. The filter works
+on three layers:
+
+### 1. Scope AX capture to the renderer process
+
+Shoki honors the `SHOKI_AX_TARGET_PID` environment variable as the pid its
+AX observer binds to (via `AXUIElementCreateApplication(pid)` on the helper
+side). When set, AX notifications from the parent Chromium process — which
+owns the URL bar, tab bar, and window chrome — are excluded from capture.
+
+Under `@shoki/vitest`, the plugin resolves the renderer pid automatically
+just before booting VoiceOver. You can set it yourself for custom flows:
+
+```ts
+import { execFileSync } from "node:child_process";
+
+const out = execFileSync(
+  "/usr/bin/pgrep",
+  ["-f", "Chromium Helper (Renderer)"],
+  { encoding: "utf8" },
+);
+process.env.SHOKI_AX_TARGET_PID = out.trim().split("\n").pop()!;
+```
+
+The Zig SDK also exposes `resolveChromeRendererPid` in
+`zig/src/drivers/voiceover/driver.zig` for in-process callers that want to
+resolve + set the env var without shelling out from TS.
+
+### 2. Focus the page viewport before capture
+
+VoiceOver's AppleScript "last phrase" capture path follows VO cursor — which
+doesn't respect process boundaries the same way AX notifications do. Before
+your assertion, focus an element inside the DOM so VO cursor lands on page
+content, not the browser chrome:
+
+```ts
+await page.getByRole("button", { name: "Click me" }).click();
+await session.reset();
+// Now perform your action and assert.
+```
+
+### 3. Use `toHaveAnnounced({ role, name })` instead of string-matching
+
+Structured matchers are immune to most chrome noise because the parent
+Chromium process's URL-bar elements don't have the same `(role, name)` shape
+as a `<button>Submit</button>` in the DOM:
+
+```ts
+expect(log).toHaveAnnounced({ role: "button", name: "Submit" });
+```
+
+### Verifying your setup works
+
+Replicate the paired-test pattern from the canonical example:
+
+- Navigate to a URL whose path contains a magic marker string not present
+  in your rendered component.
+- Drive a page-content announcement.
+- Assert `expect(haystack).not.toContain(magicString)`.
+
+If that assertion ever fails, one of the three layers above has regressed
+— URL-bar text is leaking into your capture log.
+
 ## Caveats
 
 - **RegExp flags matter** — `/submit/i` matches "Submit" and "SUBMIT"; `/submit/` does not.

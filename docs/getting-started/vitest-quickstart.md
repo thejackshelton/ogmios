@@ -118,7 +118,7 @@ The canonical [`examples/vitest-browser-react`](https://github.com/shoki/shoki/t
 
 ## What's next
 
-- [Matchers guide](/guides/matchers) — the 4 matchers in depth with worked examples.
+- [Matchers guide](/guides/matchers) — the 4 matchers in depth with worked examples. For the full pattern that keeps Chrome URL-bar / tab-title text out of your captured log, see [Matchers § Chrome noise](/guides/matchers#chrome-noise-how-to-avoid-capturing-url-bar-text).
 - [CI quickstart](./ci-quickstart) — run this same test in GitHub Actions.
 - [Migration from Guidepup](/guides/migration-from-guidepup) if you're porting an existing Guidepup suite.
 
