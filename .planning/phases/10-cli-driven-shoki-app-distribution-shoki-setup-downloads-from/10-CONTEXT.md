@@ -9,7 +9,9 @@
 
 Ship the download-and-install flow so consumers run `npx shoki setup` and never visit GitHub Releases manually. Move `ShokiRunner.app` + `ShokiSetup.app` out of the npm binding tarballs and onto GitHub Releases as a unified `Shoki.app.zip` artifact. `shoki setup` handles fetch + checksum verify + quarantine strip + install + launch.
 
-This is the final piece that makes shoki actually consumable. Current install flow breaks on Gatekeeper + wrong-file-location + TCC grants on npm-transient paths. After this phase, install is: `npm install @shoki/sdk` → `npx shoki setup` → click through dialogs once → done.
+**Also rename the core npm package `@shoki/sdk` → `shoki`** (confirmed available on npmjs.com). Ecosystem packages (`@shoki/vitest`, `@shoki/binding-darwin-arm64`, `@shoki/binding-darwin-x64`) stay scoped — matches the `vitest` / `@vitest/browser` precedent.
+
+This is the final piece that makes shoki actually consumable. Current install flow breaks on Gatekeeper + wrong-file-location + TCC grants on npm-transient paths. After this phase, install is: `npm install shoki` → `npx shoki setup` → click through dialogs once → done.
 
 Out of scope: Dev ID signing (kept optional for later), a dedicated homebrew cask (nice-to-have v1.1).
 
@@ -17,6 +19,35 @@ Out of scope: Dev ID signing (kept optional for later), a dedicated homebrew cas
 
 <decisions>
 ## Implementation Decisions
+
+### Core package rename: `@shoki/sdk` → `shoki`
+
+Matches ecosystem precedent for the "core package unscoped, plugins scoped" pattern. Users type `npm i shoki`, which mirrors the CLI they'll also invoke (`npx shoki setup`, `npx shoki doctor`).
+
+**Final npm namespace shape:**
+
+| Package | Install cmd | Who uses it |
+|---------|-------------|-------------|
+| `shoki` | `npm i shoki` | every consumer — core SDK + CLI |
+| `@shoki/vitest` | `npm i -D @shoki/vitest` | Vitest users only |
+| `@shoki/binding-darwin-arm64` | (auto via `optionalDependencies`) | transparent to consumers |
+| `@shoki/binding-darwin-x64` | (auto via `optionalDependencies`) | transparent to consumers |
+
+**Mechanical changes:**
+
+- `packages/sdk/package.json` → `"name": "shoki"` (was `@shoki/sdk`)
+- Subpath exports unchanged: `shoki`, `shoki/matchers`, `shoki/cli`
+- `packages/vitest/src/**` — import sweeps: `@shoki/sdk/matchers` → `shoki/matchers`
+- `examples/vitest-browser-qwik/**` — import sweeps: `@shoki/sdk` → `shoki`
+- `examples/vitest-browser-qwik/package.json` — `"shoki": "workspace:*"` in deps
+- `docs/**/*.md` — all `from '@shoki/sdk'` → `from 'shoki'`, all `npm add @shoki/sdk` → `npm add shoki`
+- `README.md` — install block
+- `CHANGELOG.md` — "Core package renamed `@shoki/sdk` → `shoki`" under [Unreleased]
+- CI workflows — `pnpm --filter @shoki/sdk ...` → `pnpm --filter shoki ...`
+- `optionalDependencies` inside `shoki/package.json` — still reference `@shoki/binding-*` (bindings stay scoped)
+- `packages/vitest/package.json` `peerDependencies` — `"shoki": "*"` (was `"@shoki/sdk"`)
+
+**Future ecosystem packages** (`@shoki/playwright`, `@shoki/xctest`, `@shoki/storybook`) all stay scoped.
 
 ### Distribution: unified `Shoki.app.zip` per platform
 
