@@ -154,7 +154,7 @@ Plans:
 - [x] 07-02-PLAN.md — Close known stubs: realAppleScriptSpawner via std.process.Child + libShokiXPCClient.dylib link path in zig/build.zig [Wave 2]
 - [x] 07-03-PLAN.md — API reshape: end() alias + top-level voiceOver.start/end singleton + cheap-reset test + docs update [Wave 2]
 - [ ] 07-04-PLAN.md — DOM-content-vs-URL-bar test: scope AX observer to Chromium renderer pid + paired positive/negative magic-marker tests [Wave 3]
-- [ ] 07-05-PLAN.md — Settings restore SIGKILL verification + shoki restore-vo-settings CLI escape hatch + permission-setup docs [Wave 2]
+- [x] 07-05-PLAN.md — Settings restore SIGKILL verification + shoki restore-vo-settings CLI escape hatch + permission-setup docs [Wave 2]
 - [ ] 07-06-PLAN.md — End-to-end verification + QA-REPORT.md with all 15 CONTEXT.md checklist items + human-verify checkpoint [Wave 4]
 
 ---
