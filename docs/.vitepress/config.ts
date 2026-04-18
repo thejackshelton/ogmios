@@ -13,8 +13,8 @@ export default defineConfig({
 	description:
 		"Run real screen readers — VoiceOver, NVDA, and more — in any test framework and any CI environment.",
 
-	// Dark-mode-default theme.
-	appearance: "dark",
+	// Force the navy/coral palette — light mode is not supported.
+	appearance: "force-dark",
 
 	// Deployed at /shoki/ on GitHub Pages; override via DOCS_BASE env var for custom domains.
 	base: process.env.DOCS_BASE ?? "/shoki/",
@@ -24,7 +24,7 @@ export default defineConfig({
 
 	head: [
 		["link", { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" }],
-		["meta", { name: "theme-color", content: "#646cff" }],
+		["meta", { name: "theme-color", content: "#fc8277" }],
 	],
 
 	themeConfig: {

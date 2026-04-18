@@ -6,8 +6,8 @@ hero:
   text: Real screen readers in your tests.
   tagline: Run VoiceOver (and later NVDA, Orca) from any test framework. Capture announcements as structured events. Assert semantically. Locally and in CI.
   image:
-    src: /logo.svg
-    alt: Shoki
+    src: /ear.png
+    alt: Shoki — a dotwork illustration of a human ear in coral on deep navy
   actions:
     - theme: brand
       text: Get started
