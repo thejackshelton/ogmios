@@ -88,9 +88,7 @@ function voiceOverFactory(opts: VoiceOverOptions = {}): ScreenReaderHandle {
 let singletonHandle: ScreenReaderHandle | null = null;
 let singletonRefcount = 0;
 
-async function startSingleton(
-  opts: VoiceOverOptions = {},
-): Promise<ScreenReaderHandle> {
+async function startSingleton(opts: VoiceOverOptions = {}): Promise<ScreenReaderHandle> {
   if (process.platform !== 'darwin') {
     throw new VoiceOverUnsupportedPlatformError(process.platform);
   }

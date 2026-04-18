@@ -5,10 +5,13 @@ import { SessionStore, type ShokiSdkDriver, toWireEvent } from '../src/session-s
 
 function makeMockHandle() {
   const eventsOnNextDrain: ShokiEvent[][] = [];
+  const stop = vi.fn(async () => {});
   const handle: ScreenReaderHandle = {
     name: 'mock',
     start: vi.fn(async () => {}),
-    stop: vi.fn(async () => {}),
+    stop,
+    // Phase 7 API reshape: end() aliases stop() — point both at the same mock.
+    end: stop,
     deinit: vi.fn(async () => {}),
     drain: vi.fn(async () => eventsOnNextDrain.shift() ?? []),
     reset: vi.fn(async () => {}),

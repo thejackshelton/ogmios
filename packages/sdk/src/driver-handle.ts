@@ -2,11 +2,7 @@ import { loadBinding } from './binding-loader.js';
 import { DriverNotFoundError, ShokiError } from './errors.js';
 import { LogStore } from './handle-internals.js';
 import { listenImpl } from './listen.js';
-import type {
-  AwaitStableLogOptions,
-  ScreenReaderHandle,
-  ShokiEvent,
-} from './screen-reader.js';
+import type { AwaitStableLogOptions, ScreenReaderHandle, ShokiEvent } from './screen-reader.js';
 import { decodeEvents } from './wire.js';
 
 export interface CreateDriverHandleOptions {

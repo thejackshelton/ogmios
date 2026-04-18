@@ -1,11 +1,11 @@
 import { commands } from '@vitest/browser/context';
-import { ShokiConcurrentTestError } from './errors.js';
 import type {
   ShokiAwaitStableArgs,
   ShokiStartArgs,
   ShokiStartResult,
   WireShokiEvent,
 } from './command-types.js';
+import { ShokiConcurrentTestError } from './errors.js';
 
 /**
  * Typed re-view of the generic `commands` object exposed by `@vitest/browser/context`.
@@ -32,6 +32,11 @@ const rpc = commands as unknown as ShokiRpc;
 export interface ShokiBrowserSession {
   readonly sessionId: string;
   stop(): Promise<{ stopped: boolean; remainingRefs: number }>;
+  /**
+   * Alias for {@link ShokiBrowserSession.stop}. Preferred in v1+ for symmetry
+   * with `voiceOver.start()`; both names call the same command over tinyRPC.
+   */
+  end(): Promise<{ stopped: boolean; remainingRefs: number }>;
   drain(): Promise<WireShokiEvent[]>;
   listen(sinceMs?: number): Promise<WireShokiEvent[]>;
   phraseLog(): Promise<string[]>;
@@ -65,9 +70,13 @@ export const voiceOver = {
       throw new ShokiConcurrentTestError();
     }
     const { sessionId } = await rpc.shokiStart(args);
+    // Phase 7 API reshape: end() aliases stop() — both call the same tinyRPC
+    // command so SessionStore refcount semantics are identical either way.
+    const stop = () => rpc.shokiStop({ sessionId });
     return {
       sessionId,
-      stop: () => rpc.shokiStop({ sessionId }),
+      stop,
+      end: stop,
       drain: () => rpc.shokiDrain({ sessionId }),
       listen: (sinceMs) => rpc.shokiListen({ sessionId, sinceMs }),
       phraseLog: () => rpc.shokiPhraseLog({ sessionId }),

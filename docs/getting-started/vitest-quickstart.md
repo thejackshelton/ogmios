@@ -49,20 +49,26 @@ The `shokiVitest()` plugin:
 ```tsx
 import { render } from "vitest-browser-react";
 import { page } from "@vitest/browser/context";
-import { voiceOver } from "@shoki/vitest/browser";
-import { expect, test, afterEach } from "vitest";
+import { voiceOver, type ShokiBrowserSession } from "@shoki/vitest/browser";
+import { expect, test, beforeAll, afterAll, beforeEach } from "vitest";
 import { SubmitButton } from "../src/SubmitButton";
 
-let session: Awaited<ReturnType<typeof voiceOver.start>> | undefined;
+let session: ShokiBrowserSession;
 
-afterEach(async () => {
-  await session?.stop();
-  session = undefined;
+beforeAll(async () => {
+  session = await voiceOver.start({ mute: true });
+}, 30_000);
+
+afterAll(async () => {
+  await session?.end();
+});
+
+beforeEach(async () => {
+  // Cheap: clears the ring buffer + resets the VO cursor, no osascript respawn.
+  await session.reset();
 });
 
 test("announces Submit on click", async () => {
-  session = await voiceOver.start({ mute: true });
-
   render(<SubmitButton />);
   await page.getByRole("button", { name: "Submit" }).click();
 
@@ -74,10 +80,12 @@ test("announces Submit on click", async () => {
 
 What's happening:
 
-1. `voiceOver.start({ mute: true })` — browser-side call dispatches over tinyRPC to the Node-side `SessionStore`, which boots VoiceOver muted. Returns a session handle.
-2. `render(...)` + Playwright `.click()` — standard Vitest browser-mode. Shoki never drives the page.
-3. `awaitStable({ quietMs: 500 })` — polls until VO has been silent for 500ms, then returns the accumulated event log.
-4. `toHaveAnnounced({ role, name })` — iterates the log looking for an event whose `role` and `name` match.
+1. **`beforeAll` → `voiceOver.start({ mute: true })`** — browser-side call dispatches over tinyRPC to the Node-side `SessionStore`, which boots VoiceOver muted. Returns a session handle. One VoiceOver session per test file is the default; the SessionStore refcounts if multiple test files in the same worker share a session.
+2. **`beforeEach` → `session.reset()`** — cheap per-test cleanup. No osascript respawn, no VO restart — only clears the ring buffer and resets the VO cursor.
+3. **`render(...)` + Playwright `.click()`** — standard Vitest browser-mode. Shoki never drives the page.
+4. **`awaitStable({ quietMs: 500 })`** — polls until VO has been silent for 500ms, then returns the accumulated event log.
+5. **`toHaveAnnounced({ role, name })`** — iterates the log looking for an event whose `role` and `name` match.
+6. **`afterAll` → `session.end()`** — tears VoiceOver down and restores the pre-test plist keys. `end()` is the preferred name in v1+; `stop()` remains available for back-compat.
 
 ## 4. Run it
 

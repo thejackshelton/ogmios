@@ -5,10 +5,13 @@ import { ShokiConcurrentTestError } from '../src/errors.js';
 import { SessionStore, type ShokiSdkDriver } from '../src/session-store.js';
 
 function makeMockHandle(): ScreenReaderHandle {
+  const stop = vi.fn(async () => {});
   return {
     name: 'mock',
     start: vi.fn(async () => {}),
-    stop: vi.fn(async () => {}),
+    stop,
+    // Phase 7 API reshape: end() aliases stop() — point both at the same mock.
+    end: stop,
     deinit: vi.fn(async () => {}),
     drain: vi.fn(async () => [] as ShokiEvent[]),
     reset: vi.fn(async () => {}),

@@ -6,10 +6,14 @@ import { SessionStore, type ShokiSdkDriver } from '../src/session-store.js';
 
 function makeMockHandle() {
   const queue: ShokiEvent[][] = [];
+  const stop = vi.fn(async () => {});
   const h: ScreenReaderHandle = {
     name: 'mock',
     start: vi.fn(async () => {}),
-    stop: vi.fn(async () => {}),
+    stop,
+    // Phase 7 API reshape: end() aliases stop() — point both at the same mock
+    // so call counts remain symmetric across the two names.
+    end: stop,
     deinit: vi.fn(async () => {}),
     drain: vi.fn(async () => queue.shift() ?? []),
     reset: vi.fn(async () => {}),

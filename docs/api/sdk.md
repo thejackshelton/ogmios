@@ -16,6 +16,35 @@ Creates a VoiceOver `ScreenReaderHandle`. Does **not** boot VoiceOver; call `.st
 function voiceOver(options?: ScreenReaderOptions): ScreenReaderHandle;
 ```
 
+`voiceOver` is callable (factory) **and** a namespace — it also exposes the top-level [`voiceOver.start()` / `voiceOver.end()`](#top-level-convenience-start--end) convenience API that manages a process-singleton handle for the common one-session-per-test-file case.
+
+### Top-level convenience: `start()` / `end()`
+
+Use these when you want ONE VoiceOver session scoped to a test file (the most common shape). They manage a refcounted process-singleton internally — you don't thread a handle through `beforeAll`/`afterAll` yourself.
+
+```ts
+import { voiceOver } from "@shoki/sdk";
+import { beforeAll, afterAll, beforeEach } from "vitest";
+
+beforeAll(async () => {
+  await voiceOver.start({ mute: true });
+}, 30_000);
+
+afterAll(async () => {
+  await voiceOver.end();
+});
+
+// Between tests — cheap ring-clear + VO-cursor reset, no respawn:
+beforeEach(async () => {
+  const handle = await voiceOver.start(); // reuses singleton
+  await handle.reset();
+});
+```
+
+- `voiceOver.start(opts?)` — boots VoiceOver on first call; subsequent calls return the same handle reference and bump a refcount. Throws `VoiceOverUnsupportedPlatformError` on non-darwin.
+- `voiceOver.end()` — decrements the refcount; on the last `end()`, stops VoiceOver and deinits the handle. **No-op** (does not throw) if no singleton is active — safe to call in `afterAll` even when `beforeAll` was skipped.
+- Need multiple concurrent handles? Call `voiceOver(opts)` as a factory — that form is always available and sidesteps the singleton entirely.
+
 ### `ScreenReaderOptions`
 
 ```ts
@@ -51,6 +80,7 @@ Uniform lifecycle + capture interface. Implemented by the VoiceOver driver today
 interface ScreenReaderHandle {
   start(): Promise<void>;
   stop(): Promise<void>;
+  end(): Promise<void>; // v1+: alias for stop()
   reset(): Promise<void>;
   clear(): Promise<void>;
 
@@ -83,9 +113,15 @@ Decrements the refcount. Last stop:
 - Verifies `pgrep -x VoiceOver` is empty.
 - Drops exit hooks.
 
+### `end()`
+
+**Preferred in v1+.** Identical to `stop()` — both names call the same underlying implementation. Use `end()` for symmetry with `start()`; `stop()` remains available indefinitely for back-compat.
+
 ### `reset()`
 
 Returns VO to a clean state **without** restarting. Clears the ring buffer and the phrase log. Cheaper than stop + start between tests.
+
+**Cheap.** Does NOT respawn `osascript` or restart VoiceOver — only clears the native event ring buffer and sends a single AppleScript command to move the VO cursor to the first item of window 1 down the **existing** shell process. Safe to call in `beforeEach` across a long test file.
 
 ### `clear()`
 

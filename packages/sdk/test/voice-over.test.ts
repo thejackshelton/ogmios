@@ -49,9 +49,7 @@ describe('voiceOver() factory', () => {
 
   it('throws VoiceOverUnsupportedPlatformError on linux', async () => {
     await withPlatform('linux', async () => {
-      const { voiceOver, VoiceOverUnsupportedPlatformError } = await import(
-        '../src/voice-over.js'
-      );
+      const { voiceOver, VoiceOverUnsupportedPlatformError } = await import('../src/voice-over.js');
       expect(() => voiceOver({})).toThrow(VoiceOverUnsupportedPlatformError);
       expect(() => voiceOver({})).toThrow(/macOS-only/);
     });
@@ -59,9 +57,7 @@ describe('voiceOver() factory', () => {
 
   it('throws VoiceOverUnsupportedPlatformError on win32', async () => {
     await withPlatform('win32', async () => {
-      const { voiceOver, VoiceOverUnsupportedPlatformError } = await import(
-        '../src/voice-over.js'
-      );
+      const { voiceOver, VoiceOverUnsupportedPlatformError } = await import('../src/voice-over.js');
       expect(() => voiceOver()).toThrow(VoiceOverUnsupportedPlatformError);
     });
   });
