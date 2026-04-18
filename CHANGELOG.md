@@ -5,10 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Phase 8 (v1.1 prep)
+## [Unreleased] — Phase 8 (v1.1 prep) + Phase 9
 
 ### Changed
 
+- **BREAKING** (example only, not API): the canonical example repo
+  switched from React to Qwik. `examples/vitest-browser-react` is gone;
+  `examples/vitest-browser-qwik` takes its place, using
+  [`vitest-browser-qwik`](https://github.com/thejackshelton/vitest-browser-qwik)
+  + `@qwik.dev/core` v2. The move unlocks a capability no other
+  Vitest-browser-mode integration offers: **testing the a11y tree before
+  JavaScript runs** via `renderSSR()` — the server-rendered HTML IS the
+  initial accessibility tree, assertable directly without a screen
+  reader. axe-playwright and similar tools only test post-render state.
+  All docs code snippets (Vitest quickstart, Matchers guide, Guidepup
+  migration, Troubleshooting) updated to Qwik. CI reference workflows
+  (`phase-5-parity.yml`, the 4 `shoki-*.yml` topology examples) now
+  target the Qwik example path. (Phase 9 Plans 01-04)
+- **`@shoki/vitest` peer range widened** to `vitest ^3.0.0 || ^4.0.0`
+  and `@vitest/browser ^3.0.0 || ^4.0.0` so the Qwik example can use
+  Vitest 4 (required by `vitest-browser-qwik@0.3+`) while the rest of
+  the monorepo stays on Vitest 3. (Phase 9 Plan 01)
 - **Helper ported from Swift to Zig** — `helper/` is now single-language Zig.
   `ShokiRunner.app` is Zig-compiled with hand-written XPC + AX + CoreFoundation
   externs; `libShokiXPCClient.dylib` exposes the same 5 `_shoki_xpc_*` C-ABI

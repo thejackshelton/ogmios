@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 08-06-PLAN.md (Phase 8 GREEN)
-last_updated: "2026-04-18T04:36:09.842Z"
+stopped_at: Completed Phase 9 (Qwik example + docs switch) — 09-SUMMARY.md written
+last_updated: "2026-04-18T05:02:14.646Z"
 last_activity: 2026-04-18
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 37
-  completed_plans: 27
-  percent: 73
+  completed_plans: 28
+  percent: 76
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 Phase: 1 of 6 (Foundations)
 Plan: 6 of 6 in current phase
 Status: Phase complete — ready for verification
-Last activity: 2026-04-18 - Completed quick task 260417-wl1: style VitePress docs with ear-image palette
+Last activity: 2026-04-18
 
 Progress: [█░░░░░░░░░] 17%
 
@@ -67,6 +67,7 @@ Progress: [█░░░░░░░░░] 17%
 | Phase 08 P02 | 35 minutes | 3 tasks | 13 files |
 | Phase 08-zig-helper-port-shokisetup-app-gui-package-consolidation P04 | 9m | 7 tasks | 22 files |
 | Phase 08 P06 | 13m | 4 tasks | 16 files |
+| Phase 09 Pall | ~19min | 4 tasks | 27 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 08-zig-helper-port-shokisetup-app-gui-package-consolidation]: Plan 08-04: Block-ABI shim written in C (xpc_block_shim.c, ~60 lines) + clang -fblocks rather than hand-rolling _NSConcreteStackBlock in Zig — clang owns the block ABI layout; Zig shim would break every Xcode bump. Both runner exe AND test module compile the C file.
 - [Phase 08-zig-helper-port-shokisetup-app-gui-package-consolidation]: Plan 08-04: CI smoke runs both direct exe invocation AND open -W -n <.app> --args — the second form forces LaunchServices registration so malformed Info.plist fails CI the way a user double-click would.
 - [Phase 08]: Plan 08-06: --ignore-workspace required for docs standalone install because docs/ is a sibling of the repo-root pnpm-workspace.yaml (pnpm walks up from cwd and treats docs as 'inside workspace but not a member')
+- [Phase 09]: Hard-replaced examples/vitest-browser-react with vitest-browser-qwik to gain pre-hydration SSR a11y testing via renderSSR()
+- [Phase 09]: Widened @shoki/vitest peer range to vitest ^3 || ^4; Qwik example runs Vitest 4, rest of monorepo stays on Vitest 3
 
 ### Pending Todos
 
@@ -128,6 +131,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-04-18T04:36:09.839Z
-Stopped at: Completed 08-06-PLAN.md (Phase 8 GREEN)
+Last session: 2026-04-18T05:02:14.644Z
+Stopped at: Completed Phase 9 (Qwik example + docs switch) — 09-SUMMARY.md written
 Resume file: None
