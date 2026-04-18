@@ -115,7 +115,7 @@ jobs:
       - name: Run SDK tests with native binding
         env:
           SHOKI_NATIVE_BUILT: "1"
-        run: pnpm --filter @shoki/sdk test
+        run: pnpm --filter shoki test
       - name: Post-job background-app quiesce
         if: always()
         run: .github/actions/setup/kill-background-apps.sh

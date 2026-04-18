@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it, vi } from 'vitest';
-import { detectVoiceOverImports, shokiVitest } from '../src/plugin.js';
+import { detectVoiceOverImports, shokiVitest } from '../../src/vitest/plugin.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const FIXTURES = resolve(__dirname, './fixtures');
@@ -10,11 +10,11 @@ const FIXTURES = resolve(__dirname, './fixtures');
 type AnyConfig = any;
 
 describe('detectVoiceOverImports', () => {
-  it('returns true when a test file imports @shoki/vitest/browser', async () => {
+  it('returns true when a test file imports shoki/vitest/browser', async () => {
     expect(await detectVoiceOverImports(resolve(FIXTURES, 'has-import'))).toBe(true);
   });
 
-  it('returns false when no test file imports @shoki/vitest/browser', async () => {
+  it('returns false when no test file imports shoki/vitest/browser', async () => {
     expect(await detectVoiceOverImports(resolve(FIXTURES, 'no-import'))).toBe(false);
   });
 });
@@ -44,7 +44,7 @@ describe('shokiVitest plugin config hook', () => {
     await (p.config as AnyConfig)(cfg);
     expect(cfg.test.poolOptions.threads.singleThread).toBe(false);
     expect(spy).toHaveBeenCalledOnce();
-    expect(spy.mock.calls[0]?.[0]).toContain('[@shoki/vitest]');
+    expect(spy.mock.calls[0]?.[0]).toContain('[shoki/vitest]');
     spy.mockRestore();
   });
 

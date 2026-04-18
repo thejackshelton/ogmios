@@ -4,7 +4,7 @@ import {
   type ShokiEvent,
   voiceOver,
   type VoiceOverOptions,
-} from '@shoki/sdk';
+} from '../index.js';
 import type { WireShokiEvent } from './command-types.js';
 import { ShokiSessionNotFoundError } from './errors.js';
 
@@ -44,7 +44,7 @@ export function resolveChromeRendererPid(): number | null {
 }
 
 /**
- * Abstraction over the @shoki/sdk factory so tests can inject a fake driver.
+ * Abstraction over the shoki factory so tests can inject a fake driver.
  */
 export interface ShokiSdkDriver {
   create(opts: VoiceOverOptions): ScreenReaderHandle;

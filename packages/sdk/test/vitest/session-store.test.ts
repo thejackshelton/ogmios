@@ -1,7 +1,11 @@
-import type { ScreenReaderHandle, ShokiEvent } from '@shoki/sdk';
+import type { ScreenReaderHandle, ShokiEvent } from '../../src/index.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ShokiSessionNotFoundError } from '../src/errors.js';
-import { SessionStore, type ShokiSdkDriver, toWireEvent } from '../src/session-store.js';
+import { ShokiSessionNotFoundError } from '../../src/vitest/errors.js';
+import {
+  SessionStore,
+  type ShokiSdkDriver,
+  toWireEvent,
+} from '../../src/vitest/session-store.js';
 
 function makeMockHandle() {
   const eventsOnNextDrain: ShokiEvent[][] = [];

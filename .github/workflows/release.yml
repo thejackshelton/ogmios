@@ -6,7 +6,7 @@ on:
 
 # OIDC trusted publishing — no NPM_TOKEN secret required.
 # Requires npm trusted publishers configured for each of:
-#   @shoki/sdk, @shoki/binding-darwin-arm64, @shoki/binding-darwin-x64
+#   shoki, @shoki/binding-darwin-arm64, @shoki/binding-darwin-x64
 # See docs/release-setup.md for one-time setup.
 
 permissions:

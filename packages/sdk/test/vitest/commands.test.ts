@@ -1,8 +1,8 @@
-import type { ScreenReaderHandle, ShokiEvent } from '@shoki/sdk';
+import type { ScreenReaderHandle, ShokiEvent } from '../../src/index.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createCommands } from '../src/commands/index.js';
-import { ShokiSessionNotFoundError } from '../src/errors.js';
-import { SessionStore, type ShokiSdkDriver } from '../src/session-store.js';
+import { createCommands } from '../../src/vitest/commands/index.js';
+import { ShokiSessionNotFoundError } from '../../src/vitest/errors.js';
+import { SessionStore, type ShokiSdkDriver } from '../../src/vitest/session-store.js';
 
 function makeMockHandle() {
   const queue: ShokiEvent[][] = [];

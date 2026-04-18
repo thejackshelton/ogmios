@@ -7,16 +7,16 @@ import { SessionStore } from './session-store.js';
 export interface ShokiVitestPluginOptions {
   /** Auto-set poolOptions.threads.singleThread=true when VO imports are detected. Default true. */
   autoSingleThread?: boolean;
-  /** Scan test files for @shoki/vitest/browser imports during the config hook. Default true. */
+  /** Scan test files for shoki/vitest/browser imports during the config hook. Default true. */
   detectVoiceOverImports?: boolean;
 }
 
-const IMPORT_NEEDLE = '@shoki/vitest/browser';
+const IMPORT_NEEDLE = 'shoki/vitest/browser';
 const TEST_EXTS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.mjs']);
 
 /**
  * Walk a project tree looking for any JS/TS file that imports
- * `@shoki/vitest/browser`. Skips node_modules, .git, dist, and dotfiles.
+ * `shoki/vitest/browser`. Skips node_modules, .git, dist, and dotfiles.
  * Bounded by test-file count; safe against read errors.
  */
 export async function detectVoiceOverImports(rootDir: string): Promise<boolean> {
@@ -65,7 +65,7 @@ export function shokiVitest(opts: ShokiVitestPluginOptions = {}): Plugin {
   const sessionStore = new SessionStore();
 
   return {
-    name: '@shoki/vitest',
+    name: 'shoki/vitest',
     config: async (cfg) => {
       const commands = createCommands({ sessionStore });
 
@@ -86,7 +86,7 @@ export function shokiVitest(opts: ShokiVitestPluginOptions = {}): Plugin {
           const existing = c.test.poolOptions.threads.singleThread;
           if (existing === false) {
             console.warn(
-              "[@shoki/vitest] Detected `import ... from '@shoki/vitest/browser'` in test files, " +
+              "[shoki/vitest] Detected `import ... from 'shoki/vitest/browser'` in test files, " +
                 'but poolOptions.threads.singleThread is explicitly `false`. VoiceOver is a system singleton; ' +
                 'cross-test interference is likely. Remove the override or set `shokiVitest({ autoSingleThread: false })`.',
             );
