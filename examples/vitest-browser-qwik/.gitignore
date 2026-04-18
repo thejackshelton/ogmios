@@ -1,0 +1,7 @@
+# Qwik / Vite build artifacts
+dist/
+node_modules/
+
+# Vitest browser-mode runtime output
+.vitest-attachments/
+tests/__screenshots__/
