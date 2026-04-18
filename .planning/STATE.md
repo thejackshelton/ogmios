@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 Phase: 1 of 6 (Foundations)
 Plan: 6 of 6 in current phase
 Status: Phase complete — ready for verification
-Last activity: 2026-04-18 - Completed quick task 260418-f0a: Rename npm package shoki -> @shoki/core (npm anti-typosquatting workaround)
+Last activity: 2026-04-18 - Completed quick task 260418-lfz: Rename npm package @shoki/core -> dicta + CLI bin shoki -> dicta
 
 Progress: [█░░░░░░░░░] 17%
 
@@ -130,6 +130,7 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260417-wl1 | Style VitePress docs with ear-image palette (#092036/#fc8277) + hero swap | 2026-04-18 | 740d3de | [260417-wl1-style-vitepress-docs-with-ear-image-pale](./quick/260417-wl1-style-vitepress-docs-with-ear-image-pale/) |
 | 260418-f0a | Rename npm package shoki -> @shoki/core (npm anti-typosquatting workaround) | 2026-04-18 | a229e8a | [260418-f0a-rename-to-shoki-core](./quick/260418-f0a-rename-to-shoki-core/) |
+| 260418-lfz | Rename npm package @shoki/core -> dicta + CLI bin shoki -> dicta (third pivot; @shoki org creation denied) | 2026-04-18 | c162962 | [260418-lfz-rename-to-dicta](./quick/260418-lfz-rename-to-dicta/) |
 
 ## Deferred Items
 
