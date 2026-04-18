@@ -79,9 +79,9 @@ test "parseMacOSVersion trims whitespace" {
 const MockSubprocessRunner = struct {
     allocator: std.mem.Allocator,
     /// Owned copies of each argv array passed to run(). index 0 = first call.
-    argv_log: std.ArrayListUnmanaged([]const []const u8) = .{},
+    argv_log: std.ArrayListUnmanaged([]const []const u8) = .empty,
     /// Pre-programmed responses, consumed FIFO. Each entry is (stdout, stderr, exit).
-    responses: std.ArrayListUnmanaged(Response) = .{},
+    responses: std.ArrayListUnmanaged(Response) = .empty,
     call_count: usize = 0,
 
     const Response = struct { stdout: []const u8, stderr: []const u8, exit_code: u8 };

@@ -23,29 +23,77 @@ pub fn encodedSize(entries: []const Entry) usize {
     return total;
 }
 
+/// Minimal manual little-endian writer. Zig 0.16 moved the writer/reader APIs
+/// behind an `Io` interface; for a straightforward fixed-buffer encode/decode
+/// we just pack bytes directly.
 pub fn encode(entries: []const Entry, buf: []u8) !usize {
     if (buf.len < encodedSize(entries)) return error.BufferTooSmall;
-    var w = std.io.fixedBufferStream(buf);
-    const out = w.writer();
+    var pos: usize = 0;
 
-    try out.writeInt(u32, WIRE_VERSION, .little);
-    try out.writeInt(u32, @intCast(entries.len), .little);
+    pos += writeU32LE(buf[pos..], WIRE_VERSION);
+    pos += writeU32LE(buf[pos..], @intCast(entries.len));
 
     for (entries) |e| {
-        try out.writeInt(u64, e.ts_nanos, .little);
-        try out.writeByte(@intFromEnum(e.source));
-        try out.writeByte(e.flags);
-        try out.writeInt(u16, @intCast(e.phrase.len), .little);
-        try out.writeAll(e.phrase);
-        const role_bytes = if (e.role) |r| r else "";
-        try out.writeInt(u16, @intCast(role_bytes.len), .little);
-        try out.writeAll(role_bytes);
-        const name_bytes = if (e.name) |n| n else "";
-        try out.writeInt(u16, @intCast(name_bytes.len), .little);
-        try out.writeAll(name_bytes);
+        pos += writeU64LE(buf[pos..], e.ts_nanos);
+        buf[pos] = @intFromEnum(e.source);
+        pos += 1;
+        buf[pos] = e.flags;
+        pos += 1;
+
+        pos += writeU16LE(buf[pos..], @intCast(e.phrase.len));
+        @memcpy(buf[pos .. pos + e.phrase.len], e.phrase);
+        pos += e.phrase.len;
+
+        const role_bytes: []const u8 = if (e.role) |r| r else "";
+        pos += writeU16LE(buf[pos..], @intCast(role_bytes.len));
+        @memcpy(buf[pos .. pos + role_bytes.len], role_bytes);
+        pos += role_bytes.len;
+
+        const name_bytes: []const u8 = if (e.name) |n| n else "";
+        pos += writeU16LE(buf[pos..], @intCast(name_bytes.len));
+        @memcpy(buf[pos .. pos + name_bytes.len], name_bytes);
+        pos += name_bytes.len;
     }
 
-    return w.pos;
+    return pos;
+}
+
+fn writeU16LE(buf: []u8, v: u16) usize {
+    buf[0] = @intCast(v & 0xff);
+    buf[1] = @intCast((v >> 8) & 0xff);
+    return 2;
+}
+fn writeU32LE(buf: []u8, v: u32) usize {
+    buf[0] = @intCast(v & 0xff);
+    buf[1] = @intCast((v >> 8) & 0xff);
+    buf[2] = @intCast((v >> 16) & 0xff);
+    buf[3] = @intCast((v >> 24) & 0xff);
+    return 4;
+}
+fn writeU64LE(buf: []u8, v: u64) usize {
+    var i: usize = 0;
+    while (i < 8) : (i += 1) {
+        buf[i] = @intCast((v >> @as(u6, @intCast(i * 8))) & 0xff);
+    }
+    return 8;
+}
+
+fn readU16LE(buf: []const u8) u16 {
+    return @as(u16, buf[0]) | (@as(u16, buf[1]) << 8);
+}
+fn readU32LE(buf: []const u8) u32 {
+    return @as(u32, buf[0]) |
+        (@as(u32, buf[1]) << 8) |
+        (@as(u32, buf[2]) << 16) |
+        (@as(u32, buf[3]) << 24);
+}
+fn readU64LE(buf: []const u8) u64 {
+    var v: u64 = 0;
+    var i: usize = 0;
+    while (i < 8) : (i += 1) {
+        v |= @as(u64, buf[i]) << @as(u6, @intCast(i * 8));
+    }
+    return v;
 }
 
 pub const Decoded = struct {
@@ -64,31 +112,53 @@ pub const Decoded = struct {
 };
 
 pub fn decode(allocator: std.mem.Allocator, buf: []const u8) !Decoded {
-    var r = std.io.fixedBufferStream(buf);
-    const reader = r.reader();
+    if (buf.len < 8) return error.BufferTooSmall;
+    var pos: usize = 0;
 
-    const version = try reader.readInt(u32, .little);
-    const count = try reader.readInt(u32, .little);
+    const version = readU32LE(buf[pos..]);
+    pos += 4;
+    const count = readU32LE(buf[pos..]);
+    pos += 4;
+
     var entries = try allocator.alloc(Entry, count);
     errdefer allocator.free(entries);
 
     for (0..count) |i| {
-        const ts = try reader.readInt(u64, .little);
-        const src_raw = try reader.readByte();
-        const flags = try reader.readByte();
-        const phrase_len = try reader.readInt(u16, .little);
+        if (pos + 10 > buf.len) return error.BufferTooSmall;
+        const ts = readU64LE(buf[pos..]);
+        pos += 8;
+        const src_raw = buf[pos];
+        pos += 1;
+        const flags = buf[pos];
+        pos += 1;
+
+        if (pos + 2 > buf.len) return error.BufferTooSmall;
+        const phrase_len = readU16LE(buf[pos..]);
+        pos += 2;
+        if (pos + phrase_len > buf.len) return error.BufferTooSmall;
         const phrase = try allocator.alloc(u8, phrase_len);
-        _ = try reader.readAll(phrase);
-        const role_len = try reader.readInt(u16, .little);
+        @memcpy(phrase, buf[pos .. pos + phrase_len]);
+        pos += phrase_len;
+
+        if (pos + 2 > buf.len) return error.BufferTooSmall;
+        const role_len = readU16LE(buf[pos..]);
+        pos += 2;
         const role: ?[]const u8 = if (role_len > 0) blk: {
+            if (pos + role_len > buf.len) return error.BufferTooSmall;
             const b = try allocator.alloc(u8, role_len);
-            _ = try reader.readAll(b);
+            @memcpy(b, buf[pos .. pos + role_len]);
+            pos += role_len;
             break :blk b;
         } else null;
-        const name_len = try reader.readInt(u16, .little);
+
+        if (pos + 2 > buf.len) return error.BufferTooSmall;
+        const name_len = readU16LE(buf[pos..]);
+        pos += 2;
         const name: ?[]const u8 = if (name_len > 0) blk: {
+            if (pos + name_len > buf.len) return error.BufferTooSmall;
             const b = try allocator.alloc(u8, name_len);
-            _ = try reader.readAll(b);
+            @memcpy(b, buf[pos .. pos + name_len]);
+            pos += name_len;
             break :blk b;
         } else null;
 

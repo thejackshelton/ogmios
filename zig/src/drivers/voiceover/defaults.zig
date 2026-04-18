@@ -1,5 +1,7 @@
 const std = @import("std");
 const opts_mod = @import("../../core/options.zig");
+const subprocess = @import("../../core/subprocess.zig");
+const c = std.c;
 
 pub const InitOptions = opts_mod.InitOptions;
 
@@ -27,24 +29,18 @@ pub fn parseMacOSVersion(s: []const u8) !MacOSVersion {
 /// Shell `sw_vers -productVersion` and parse the result. Allocator is used
 /// internally for the subprocess output buffer; the returned struct is by-value.
 pub fn detectMacOSVersion(allocator: std.mem.Allocator) !MacOSVersion {
-    var child = std.process.Child.init(&[_][]const u8{ "/usr/bin/sw_vers", "-productVersion" }, allocator);
-    child.stdout_behavior = .Pipe;
-    child.stderr_behavior = .Ignore;
-    try child.spawn();
-    const stdout_reader = child.stdout.?.reader();
-    var buf: [64]u8 = undefined;
-    const n = try stdout_reader.read(&buf);
-    _ = try child.wait();
-    return parseMacOSVersion(buf[0..n]);
+    const argv = [_][]const u8{ "/usr/bin/sw_vers", "-productVersion" };
+    var result = try subprocess.runCollect(allocator, &argv);
+    defer result.deinit(allocator);
+    return parseMacOSVersion(result.stdout);
 }
 
 /// Detect the user's HOME directory via the environment. Production callers use
 /// this; tests pass an explicit home_dir to `resolvePlistDomain` instead.
 pub fn detectHomeDir(allocator: std.mem.Allocator) ![]const u8 {
-    return std.process.getEnvVarOwned(allocator, "HOME") catch |err| switch (err) {
-        error.EnvironmentVariableNotFound => error.NoHomeDir,
-        else => err,
-    };
+    const ptr = c.getenv("HOME") orelse return error.NoHomeDir;
+    const slice = std.mem.span(@as([*:0]const u8, ptr));
+    return allocator.dupe(u8, slice);
 }
 
 /// Return the `defaults`-CLI domain string for the running macOS version.
@@ -137,48 +133,19 @@ pub const SubprocessRunner = struct {
     }
 };
 
-/// Real SubprocessRunner that spawns a child process via std.process.Child.
-/// Used at runtime; tests inject a MockSubprocessRunner instead.
+/// Real SubprocessRunner that spawns a child process via our raw-POSIX
+/// wrapper (see src/core/subprocess.zig). Used at runtime; tests inject a
+/// MockSubprocessRunner instead.
 fn realRun(ctx: *anyopaque, allocator: std.mem.Allocator, argv: []const []const u8) anyerror!RunResult {
     _ = ctx;
-    var child = std.process.Child.init(argv, allocator);
-    child.stdout_behavior = .Pipe;
-    child.stderr_behavior = .Pipe;
-    try child.spawn();
-
-    // Collect output to EOF (no deadlock because we don't write to stdin).
-    var stdout_list = std.ArrayListUnmanaged(u8){};
-    defer stdout_list.deinit(allocator);
-    var stderr_list = std.ArrayListUnmanaged(u8){};
-    defer stderr_list.deinit(allocator);
-
-    if (child.stdout) |so| {
-        var buf: [4096]u8 = undefined;
-        while (true) {
-            const n = so.read(&buf) catch 0;
-            if (n == 0) break;
-            try stdout_list.appendSlice(allocator, buf[0..n]);
-        }
-    }
-    if (child.stderr) |se| {
-        var buf: [4096]u8 = undefined;
-        while (true) {
-            const n = se.read(&buf) catch 0;
-            if (n == 0) break;
-            try stderr_list.appendSlice(allocator, buf[0..n]);
-        }
-    }
-
-    const term = try child.wait();
-    const exit_code: u8 = switch (term) {
-        .Exited => |c| @intCast(c),
-        else => 255,
-    };
-
+    const sp_result = try subprocess.runCollect(allocator, argv);
+    // RunResult owns the slices; transfer ownership by rewrapping. The
+    // `subprocess.RunResult` layout is identical but lives in a different
+    // module — moving the fields avoids a copy.
     return RunResult{
-        .stdout = try stdout_list.toOwnedSlice(allocator),
-        .stderr = try stderr_list.toOwnedSlice(allocator),
-        .exit_code = exit_code,
+        .stdout = sp_result.stdout,
+        .stderr = sp_result.stderr,
+        .exit_code = sp_result.exit_code,
     };
 }
 

@@ -4,6 +4,16 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    // Helper Swift-built dylib directory. Swift's `swift build` puts the
+    // product under `helper/.build/{debug,release}/`; callers can override
+    // via `-Dhelper-dylib-dir=<path>` so a debug-mode helper build links
+    // cleanly against a debug-mode Zig binding for CI.
+    const helper_dylib_dir_opt = b.option(
+        []const u8,
+        "helper-dylib-dir",
+        "Path to the directory containing libShokiXPCClient.dylib (from `swift build`). Default: ../helper/.build/release",
+    ) orelse "../helper/.build/release";
+
     const napi_dep = b.dependency("napi_zig", .{
         .target = target,
         .optimize = optimize,
@@ -25,15 +35,15 @@ pub fn build(b: *std.Build) void {
     });
     lib.linker_allow_shlib_undefined = true; // N-API symbols resolved at load time by Node
 
-    // Link against libShokiXPCClient.dylib (built by `swift build -c release`
-    // in helper/). Plan 04 produces the dylib; Plan 05 adds the link step.
-    // On non-darwin targets this whole step is skipped — the voiceover driver
-    // is gated on `.darwin` in the registry.
+    // Link against libShokiXPCClient.dylib (built by `swift build` in helper/).
+    // On non-darwin targets the whole step is skipped — the voiceover driver
+    // is gated on `.darwin` in the registry so Linux/Windows CI builds won't
+    // reach this symbol.
     if (target.result.os.tag == .macos) {
-        const helper_build_dir = b.path("../helper/.build/release");
-        lib_mod.addLibraryPath(helper_build_dir);
+        const helper_path = b.path(helper_dylib_dir_opt);
+        lib_mod.addLibraryPath(helper_path);
         lib_mod.linkSystemLibrary("ShokiXPCClient", .{});
-        lib_mod.addRPath(helper_build_dir);
+        lib_mod.addRPath(helper_path);
     }
 
     b.installArtifact(lib);
@@ -51,6 +61,15 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     test_mod.addImport("napi_zig", napi_zig);
+    // Tests transitively import ax_notifications.zig which declares
+    // `extern "c" fn shoki_xpc_*` — link the helper dylib here too so the
+    // test binary resolves those symbols.
+    if (target.result.os.tag == .macos) {
+        const helper_path = b.path(helper_dylib_dir_opt);
+        test_mod.addLibraryPath(helper_path);
+        test_mod.linkSystemLibrary("ShokiXPCClient", .{});
+        test_mod.addRPath(helper_path);
+    }
     const t = b.addTest(.{
         .root_module = test_mod,
     });

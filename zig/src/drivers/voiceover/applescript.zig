@@ -1,6 +1,9 @@
 const std = @import("std");
 const opts_mod = @import("../../core/options.zig");
 const rb_mod = @import("../../core/ring_buffer.zig");
+const sync_mod = @import("../../core/sync.zig");
+const clock_mod = @import("../../core/clock.zig");
+const subprocess = @import("../../core/subprocess.zig");
 
 pub const Entry = opts_mod.Entry;
 pub const SourceTag = opts_mod.SourceTag;
@@ -99,7 +102,7 @@ pub const OsascriptShell = struct {
         defer self.allocator.free(wrapped);
         try self.child.writeStdin(wrapped);
 
-        var body = std.ArrayListUnmanaged(u8){};
+        var body: std.ArrayListUnmanaged(u8) = .empty;
         defer body.deinit(self.allocator);
 
         while (true) {
@@ -155,10 +158,10 @@ pub const Clock = struct {
 };
 
 fn realNowNanos(_: *anyopaque) u64 {
-    return @intCast(std.time.nanoTimestamp());
+    return clock_mod.nanoTimestamp();
 }
 fn realSleepMs(_: *anyopaque, ms: u32) void {
-    std.Thread.sleep(@as(u64, ms) * std.time.ns_per_ms);
+    clock_mod.sleepMs(ms);
 }
 
 // A static dummy opaque for real implementations that don't need context.

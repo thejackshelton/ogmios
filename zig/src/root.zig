@@ -5,11 +5,13 @@
 // that reference `../drivers/...` work under Zig 0.16's stricter module path
 // enforcement.
 //
-// The original core/napi.zig contents are inlined here verbatim with imports
-// rewritten to be relative to src/.
+// This file uses napi-zig 0.1.0's Standard Mode bridge: functions declared
+// here with `(env: napi.Env, ...args) -> !napi.Val` or plain zig types are
+// auto-converted to N-API callbacks by `napi.module(@This())`. For raw control
+// (Buffer creation), the function takes an Env and manually builds the Val.
 
 const std = @import("std");
-const napi = @import("napi_zig").napi;
+const napi = @import("napi_zig");
 const registry = @import("core/registry.zig");
 const driver_mod = @import("core/driver.zig");
 const rb_mod = @import("core/ring_buffer.zig");
@@ -26,20 +28,18 @@ fn allocator() std.mem.Allocator {
 pub const SHOKI_VERSION: []const u8 = "0.0.0";
 
 // --- Trivial surface ---
+// Standard Mode: napi-zig auto-converts `[]const u8` to JS string and `u32` to Number.
 
-pub fn ping(env: napi.Env) !napi.Val {
-    _ = env;
-    return napi.Val.fromString("pong");
+pub fn ping() []const u8 {
+    return "pong";
 }
 
-pub fn version(env: napi.Env) !napi.Val {
-    _ = env;
-    return napi.Val.fromString(SHOKI_VERSION);
+pub fn version() []const u8 {
+    return SHOKI_VERSION;
 }
 
-pub fn wireVersion(env: napi.Env) !napi.Val {
-    _ = env;
-    return napi.Val.fromU32(wire.WIRE_VERSION);
+pub fn wireVersion() u32 {
+    return wire.WIRE_VERSION;
 }
 
 // --- Driver surface ---
@@ -61,9 +61,8 @@ fn ensureSlots() !void {
     }
 }
 
-/// createDriver(name: string, log_buffer_size: number) -> number (handle id)
-pub fn createDriver(env: napi.Env, name: []const u8, log_buffer_size: u32) !napi.Val {
-    _ = env;
+/// createDriver(name: string, log_buffer_size: number) -> bigint (handle id)
+pub fn createDriver(name: []const u8, log_buffer_size: u32) !u64 {
     try ensureSlots();
 
     const entry = registry.findByName(name) orelse return error.DriverNotFound;
@@ -82,7 +81,7 @@ pub fn createDriver(env: napi.Env, name: []const u8, log_buffer_size: u32) !napi
     next_id += 1;
     try slots.put(id, slot);
 
-    return napi.Val.fromU64(id);
+    return id;
 }
 
 fn getSlot(id: u64) !*DriverSlot {
@@ -90,29 +89,27 @@ fn getSlot(id: u64) !*DriverSlot {
     return slot;
 }
 
-pub fn driverStart(env: napi.Env, id: u64) !napi.Val {
-    _ = env;
+pub fn driverStart(id: u64) !bool {
     const slot = try getSlot(id);
     try slot.handle.vtable.start(slot.handle.ctx);
-    return napi.Val.fromBool(true);
+    return true;
 }
 
-pub fn driverStop(env: napi.Env, id: u64) !napi.Val {
-    _ = env;
+pub fn driverStop(id: u64) !bool {
     const slot = try getSlot(id);
     try slot.handle.vtable.stop(slot.handle.ctx);
-    return napi.Val.fromBool(true);
+    return true;
 }
 
-pub fn driverReset(env: napi.Env, id: u64) !napi.Val {
-    _ = env;
+pub fn driverReset(id: u64) !bool {
     const slot = try getSlot(id);
     try slot.handle.vtable.reset(slot.handle.ctx);
     slot.ring.clear();
-    return napi.Val.fromBool(true);
+    return true;
 }
 
 /// driverDrain(id) -> Buffer (wire-format encoded entries accumulated since last drain)
+/// Raw mode: takes the Env directly because we need to allocate a Node.js Buffer.
 pub fn driverDrain(env: napi.Env, id: u64) !napi.Val {
     const slot = try getSlot(id);
     _ = try slot.handle.vtable.drain(slot.handle.ctx, &slot.ring);
@@ -124,29 +121,25 @@ pub fn driverDrain(env: napi.Env, id: u64) !napi.Val {
     _ = slot.ring.drain(entries);
 
     const size = wire.encodedSize(entries);
-    const buf = try allocator().alloc(u8, size);
-    defer allocator().free(buf);
-    _ = try wire.encode(entries, buf);
-
-    return napi.Val.fromBuffer(env, buf);
+    const result = try env.createBuffer(size);
+    _ = try wire.encode(entries, result.data);
+    return result.val;
 }
 
-pub fn driverDeinit(env: napi.Env, id: u64) !napi.Val {
-    _ = env;
+pub fn driverDeinit(id: u64) !bool {
     const slot = try getSlot(id);
     slot.handle.vtable.deinit(slot.handle.ctx);
     allocator().destroy(@constCast(slot.handle.vtable));
     slot.ring.deinit();
     allocator().destroy(slot);
     _ = slots.remove(id);
-    return napi.Val.fromBool(true);
+    return true;
 }
 
-/// droppedCount(id) -> u64
-pub fn droppedCount(env: napi.Env, id: u64) !napi.Val {
-    _ = env;
+/// droppedCount(id) -> bigint
+pub fn droppedCount(id: u64) !u64 {
     const slot = try getSlot(id);
-    return napi.Val.fromU64(slot.ring.droppedCount);
+    return slot.ring.droppedCount;
 }
 
 comptime {

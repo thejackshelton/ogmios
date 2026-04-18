@@ -11,9 +11,9 @@ const opts_mod = @import("../src/core/options.zig");
 const MockChildProcess = struct {
     allocator: std.mem.Allocator,
     /// Owned copies of every stdin write.
-    writes: std.ArrayListUnmanaged([]u8) = .{},
+    writes: std.ArrayListUnmanaged([]u8) = .empty,
     /// Programmed stdout lines, consumed FIFO by readStdoutLine.
-    queued_lines: std.ArrayListUnmanaged([]u8) = .{},
+    queued_lines: std.ArrayListUnmanaged([]u8) = .empty,
     /// If > 0, the next readStdoutLine returns error.Timeout.
     stall_remaining: u32 = 0,
     killed: bool = false,
@@ -87,6 +87,11 @@ const MockSpawner = struct {
     /// cleared.
     preseeded: ?*MockChildProcess = null,
     spawn_count: usize = 0,
+    /// Stall carry-over for tests that exercise respawn-after-stall. If set,
+    /// every fresh (non-preseeded) spawn inherits this stall_remaining value so
+    /// tickOnce() sees consistent timeout behavior even after PollLoop respawns
+    /// the osascript shell.
+    respawn_stall: u32 = 0,
 
     fn spawnImpl(ctx: *anyopaque, allocator: std.mem.Allocator, argv: []const []const u8) anyerror!*applescript.ChildProcess {
         _ = argv;
@@ -97,6 +102,7 @@ const MockSpawner = struct {
             return &child.child;
         }
         const fresh = try MockChildProcess.init(allocator);
+        fresh.stall_remaining = self.respawn_stall;
         return &fresh.child;
     }
 
@@ -112,7 +118,7 @@ const MockSpawner = struct {
 const MockClock = struct {
     allocator: std.mem.Allocator,
     virtual_ns: u64 = 1_000_000,
-    sleep_log: std.ArrayListUnmanaged(u32) = .{},
+    sleep_log: std.ArrayListUnmanaged(u32) = .empty,
 
     fn nowNanosImpl(ctx: *anyopaque) u64 {
         const self: *MockClock = @ptrCast(@alignCast(ctx));
@@ -313,9 +319,10 @@ test "PollLoop changes push a new Entry (dedup does not block changed phrases)" 
 
 test "PollLoop consecutive_stalls flips degraded_flag after max_consecutive_stalls" {
     const allocator = std.testing.allocator;
-    var spawner = MockSpawner{ .allocator = allocator };
+    var spawner = MockSpawner{ .allocator = allocator, .respawn_stall = 9999 };
     const child = try MockChildProcess.init(allocator);
-    // Stall on every read for 3 attempts.
+    // Stall on every read for 3 attempts. Respawned shells inherit the stall
+    // via spawner.respawn_stall (see MockSpawner.spawnImpl).
     child.setStall(9999);
     spawner.preseeded = child;
 
@@ -344,13 +351,18 @@ test "PollLoop consecutive_stalls flips degraded_flag after max_consecutive_stal
 
 test "PollLoop successful tick resets consecutive_stalls to 0" {
     const allocator = std.testing.allocator;
+    // After the first stall, PollLoop.tickOnce() respawns the shell — the old
+    // child is gone. The respawned child (spawned fresh by the mock) carries
+    // no stall and no programmed lines by default. To make the second tick
+    // succeed cleanly we program the mock via `next_preseeded` so the second
+    // spawn returns a child with the "hello" reply queued.
     var spawner = MockSpawner{ .allocator = allocator };
-    const child = try MockChildProcess.init(allocator);
-    // Stall once, then succeed.
-    child.setStall(1);
-    try child.queueLine("hello");
-    try child.queueLine(applescript.SENTINEL);
-    spawner.preseeded = child;
+
+    // First spawn (initial OsascriptShell.init): a child that stalls once and
+    // has no reply lines. PollLoop.tickOnce() stalls → respawns.
+    const first = try MockChildProcess.init(allocator);
+    first.setStall(1);
+    spawner.preseeded = first;
 
     var shell = try applescript.OsascriptShell.init(allocator, spawner.asSpawner());
     defer shell.deinit();
@@ -364,8 +376,25 @@ test "PollLoop successful tick resets consecutive_stalls to 0" {
     var loop = applescript.PollLoop.init(allocator, &shell, &ring, clock.asClock(), .{});
     defer loop.deinit();
 
+    // First tick: stalls.
     try loop.tickOnce();
     try std.testing.expectEqual(@as(u32, 1), loop.consecutive_stalls);
+
+    // Before the second tick, preseed the next-spawned child with the reply
+    // lines so the respawned shell (which the mock's spawnImpl otherwise
+    // creates bare) has "hello" + SENTINEL queued.
+    const second = try MockChildProcess.init(allocator);
+    try second.queueLine("hello");
+    try second.queueLine(applescript.SENTINEL);
+    // The respawn performed during the first tickOnce already happened, so
+    // we need the current `shell.child` to reflect this. Swap it via a
+    // third-spawn round: PollLoop will keep using the existing child unless
+    // another stall forces another respawn. The working order is:
+    //   - install `second` as the NEXT preseeded,
+    //   - call respawn manually to move the shell to `second`.
+    spawner.preseeded = second;
+    try shell.respawn();
+
     try loop.tickOnce();
     try std.testing.expectEqual(@as(u32, 0), loop.consecutive_stalls);
 
@@ -403,7 +432,7 @@ test "PollLoop.stop signals the thread and join completes within an interval" {
 
     try loop.start();
     // Let the thread run for a few scheduling slots, then stop.
-    std.Thread.sleep(5 * std.time.ns_per_ms);
+    @import("../src/core/clock.zig").sleepMs(5);
     loop.stop();
     // If join worked, stop returned without blocking forever. Verify thread handle cleared.
     try std.testing.expect(loop.thread == null);

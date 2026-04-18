@@ -12,10 +12,10 @@ const opts_mod = @import("../src/core/options.zig");
 const MockSubprocessRunner = struct {
     allocator: std.mem.Allocator,
     /// Owned copies of each argv array passed to run(), for assertions.
-    argv_log: std.ArrayListUnmanaged([]const []const u8) = .{},
+    argv_log: std.ArrayListUnmanaged([]const []const u8) = .empty,
     /// Pattern → response queue. First argv token is the key; we pop responses
     /// off the front as calls land.
-    responses: std.StringHashMapUnmanaged(std.ArrayListUnmanaged(Response)) = .{},
+    responses: std.StringHashMapUnmanaged(std.ArrayListUnmanaged(Response)) = .empty,
     /// Default response used when no pattern matches — usually exit=1 for pgrep
     /// (no match) or exit=0 for defaults (benign no-op).
     default_response: Response = .{ .stdout = "", .stderr = "", .exit_code = 0 },
@@ -52,7 +52,7 @@ const MockSubprocessRunner = struct {
         const gop = try self.responses.getOrPut(self.allocator, prefix);
         if (!gop.found_existing) {
             gop.key_ptr.* = try self.allocator.dupe(u8, prefix);
-            gop.value_ptr.* = .{};
+            gop.value_ptr.* = .empty;
         }
         try gop.value_ptr.*.append(self.allocator, .{
             .stdout = stdout,
@@ -108,7 +108,7 @@ const MockSubprocessRunner = struct {
 const MockClock = struct {
     allocator: std.mem.Allocator,
     virtual_ns: u64 = 1_000_000,
-    sleep_log: std.ArrayListUnmanaged(u32) = .{},
+    sleep_log: std.ArrayListUnmanaged(u32) = .empty,
 
     fn nowNanosImpl(ctx: *anyopaque) u64 {
         const self: *MockClock = @ptrCast(@alignCast(ctx));
@@ -139,8 +139,8 @@ const MockClock = struct {
 
 const MockChildProcess = struct {
     allocator: std.mem.Allocator,
-    writes: std.ArrayListUnmanaged([]u8) = .{},
-    queued_lines: std.ArrayListUnmanaged([]u8) = .{},
+    writes: std.ArrayListUnmanaged([]u8) = .empty,
+    queued_lines: std.ArrayListUnmanaged([]u8) = .empty,
     child: applescript_mod.ChildProcess = undefined,
 
     const vtable: applescript_mod.ChildProcess.VTable = .{
@@ -194,7 +194,7 @@ const MockChildProcess = struct {
 
 const MockSpawner = struct {
     allocator: std.mem.Allocator,
-    preseeded_queue: std.ArrayListUnmanaged(*MockChildProcess) = .{},
+    preseeded_queue: std.ArrayListUnmanaged(*MockChildProcess) = .empty,
     spawn_count: usize = 0,
 
     fn spawnImpl(ctx: *anyopaque, allocator: std.mem.Allocator, _: []const []const u8) anyerror!*applescript_mod.ChildProcess {

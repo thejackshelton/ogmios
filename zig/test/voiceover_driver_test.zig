@@ -16,7 +16,7 @@ const opts_mod = @import("../src/core/options.zig");
 
 const MockSubprocessRunner = struct {
     allocator: std.mem.Allocator,
-    argv_log: std.ArrayListUnmanaged([]const []const u8) = .{},
+    argv_log: std.ArrayListUnmanaged([]const []const u8) = .empty,
     /// Default "not running / write ok / kill ok" response. pgrep always returns
     /// exit 1 (not running) unless caller overrides.
     pgrep_returns_running: bool = false,
@@ -106,8 +106,8 @@ const MockClock = struct {
 
 const MockChildProcess = struct {
     allocator: std.mem.Allocator,
-    writes: std.ArrayListUnmanaged([]u8) = .{},
-    queued_lines: std.ArrayListUnmanaged([]u8) = .{},
+    writes: std.ArrayListUnmanaged([]u8) = .empty,
+    queued_lines: std.ArrayListUnmanaged([]u8) = .empty,
     child: applescript_mod.ChildProcess = undefined,
 
     const vtable: applescript_mod.ChildProcess.VTable = .{
@@ -319,7 +319,7 @@ test "Start sequence invokes Lifecycle → PollLoop → AxNotifications in order
     const RichRunner = struct {
         allocator: std.mem.Allocator,
         pgrep_call_count: u32 = 0,
-        argv_log: std.ArrayListUnmanaged([]const []const u8) = .{},
+        argv_log: std.ArrayListUnmanaged([]const []const u8) = .empty,
 
         fn runImpl(ctx: *anyopaque, alloc: std.mem.Allocator, argv: []const []const u8) anyerror!defaults_mod.RunResult {
             const self: *@This() = @ptrCast(@alignCast(ctx));

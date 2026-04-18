@@ -1,6 +1,7 @@
 const std = @import("std");
 const driver_mod = @import("../../core/driver.zig");
 const opts_mod = @import("../../core/options.zig");
+const clock_mod = @import("../../core/clock.zig");
 
 pub const NoopDriver = struct {
     allocator: std.mem.Allocator,
@@ -44,7 +45,7 @@ pub const NoopDriver = struct {
         self.drain_count += 1;
         // One synthetic entry per drain so Phase 1 round-trip tests see data flowing.
         const entry = opts_mod.Entry{
-            .ts_nanos = @intCast(std.time.nanoTimestamp()),
+            .ts_nanos = clock_mod.nanoTimestamp(),
             .source = .noop,
             .flags = 0,
             .phrase = "noop-ping",

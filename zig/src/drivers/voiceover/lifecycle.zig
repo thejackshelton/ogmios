@@ -2,6 +2,9 @@ const std = @import("std");
 const defaults_mod = @import("defaults.zig");
 const applescript_mod = @import("applescript.zig");
 const opts_mod = @import("../../core/options.zig");
+const sync_mod = @import("../../core/sync.zig");
+const clock_mod = @import("../../core/clock.zig");
+const c = std.c;
 
 pub const SubprocessRunner = defaults_mod.SubprocessRunner;
 
@@ -25,10 +28,10 @@ pub const Clock = struct {
 };
 
 fn realNowNanos(_: *anyopaque) u64 {
-    return @intCast(std.time.nanoTimestamp());
+    return clock_mod.nanoTimestamp();
 }
 fn realSleepMs(_: *anyopaque, ms: u32) void {
-    std.Thread.sleep(@as(u64, ms) * std.time.ns_per_ms);
+    clock_mod.sleepMs(ms);
 }
 
 var real_clock_ctx_sentinel: u8 = 0;
@@ -123,7 +126,7 @@ pub const Lifecycle = struct {
     refcount: u32 = 0,
     snapshot: ?defaults_mod.PlistSnapshot = null,
     shell: ?*applescript_mod.OsascriptShell = null,
-    mutex: std.Thread.Mutex = .{},
+    mutex: sync_mod.Mutex = .init,
     /// Test seam: override the plist domain so tests don't need to shell out to sw_vers.
     domain_override: ?[]const u8 = null,
     /// Test observable — flipped true by crashRestore when the exit hooks fire.
@@ -328,7 +331,7 @@ var prev_sigint: std.c.Sigaction = undefined;
 var prev_sigterm: std.c.Sigaction = undefined;
 var prev_sighup: std.c.Sigaction = undefined;
 
-fn signalHandler(sig: c_int) callconv(.c) void {
+fn signalHandler(sig: std.c.SIG) callconv(.c) void {
     const maybe = active_lifecycle.load(.acquire);
     if (maybe) |lc| lc.crashRestore();
     // Re-raise with default disposition so the process actually dies.
@@ -354,9 +357,9 @@ pub fn installExitHooks(lc: *Lifecycle) void {
         .flags = 0,
     };
 
-    _ = std.c.sigaction(std.c.SIG.INT, &sa, &prev_sigint);
-    _ = std.c.sigaction(std.c.SIG.TERM, &sa, &prev_sigterm);
-    _ = std.c.sigaction(std.c.SIG.HUP, &sa, &prev_sighup);
+    _ = std.c.sigaction(.INT, &sa, &prev_sigint);
+    _ = std.c.sigaction(.TERM, &sa, &prev_sigterm);
+    _ = std.c.sigaction(.HUP, &sa, &prev_sighup);
 
     hooks_installed.store(true, .release);
 }
@@ -365,9 +368,9 @@ pub fn installExitHooks(lc: *Lifecycle) void {
 /// and clear the active_lifecycle pointer. Idempotent.
 pub fn uninstallExitHooks() void {
     if (hooks_installed.load(.acquire)) {
-        _ = std.c.sigaction(std.c.SIG.INT, &prev_sigint, null);
-        _ = std.c.sigaction(std.c.SIG.TERM, &prev_sigterm, null);
-        _ = std.c.sigaction(std.c.SIG.HUP, &prev_sighup, null);
+        _ = std.c.sigaction(.INT, &prev_sigint, null);
+        _ = std.c.sigaction(.TERM, &prev_sigterm, null);
+        _ = std.c.sigaction(.HUP, &prev_sighup, null);
         hooks_installed.store(false, .release);
     }
     active_lifecycle.store(null, .release);

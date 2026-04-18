@@ -1,6 +1,7 @@
 const std = @import("std");
 const opts_mod = @import("../../core/options.zig");
 const rb_mod = @import("../../core/ring_buffer.zig");
+const sync_mod = @import("../../core/sync.zig");
 
 pub const Entry = opts_mod.Entry;
 pub const SourceTag = opts_mod.SourceTag;
@@ -104,7 +105,7 @@ pub const AxNotifications = struct {
     backend: XpcBackend,
     handle: ?XpcHandle = null,
     started: bool = false,
-    mutex: std.Thread.Mutex = .{},
+    mutex: sync_mod.Mutex = .init,
 
     pub fn init(allocator: std.mem.Allocator, ring: *RingBuffer, backend: XpcBackend) AxNotifications {
         return .{ .allocator = allocator, .ring = ring, .backend = backend };

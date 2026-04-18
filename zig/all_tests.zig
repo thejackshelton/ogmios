@@ -3,8 +3,8 @@
 // containing Module's root directory is `zig/`. Rather than wire each test
 // file as its own Module (which would require one aggregator per file, since
 // a Module cannot have multiple root source files), we aggregate by
-// `comptime _ = @import(...)` so std.testing's `refAllDeclsRecursive` picks
-// up every test block.
+// `comptime _ = @import(...)` so Zig's test runner picks up every test block
+// via transitive comptime reference.
 
 comptime {
     _ = @import("test/ring_buffer_test.zig");
@@ -20,5 +20,5 @@ comptime {
 }
 
 test {
-    @import("std").testing.refAllDeclsRecursive(@This());
+    @import("std").testing.refAllDecls(@This());
 }
