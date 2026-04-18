@@ -1,6 +1,6 @@
 name: Build Zig binding
 description: >-
-  Installs Zig 0.16.0 via mlugg/setup-zig, fetches napi-zig, builds shoki.node
+  Installs Zig 0.16.0 via mlugg/setup-zig, fetches napi-zig, builds ogmios.node
   for the requested target triple, and places it into the matching platform
   binding package directory.
 
@@ -9,7 +9,7 @@ inputs:
     description: "Zig target triple: aarch64-macos or x86_64-macos"
     required: true
   binding-package-dir:
-    description: "Path to the @shoki/binding-<os>-<arch> package directory"
+    description: "Path to the @ogmios/binding-<os>-<arch> package directory"
     required: true
   run-tests:
     description: "Run zig build test after the build"
@@ -59,9 +59,9 @@ runs:
       working-directory: zig
       run: |
         set -euo pipefail
-        # The produced shared library name depends on Zig's default (libshoki.dylib on macOS).
-        # Rename to shoki.node for the N-API loader.
-        OUT=$(find zig-out/lib -name "libshoki.dylib" -o -name "shoki.dylib" | head -n1)
+        # The produced shared library name depends on Zig's default (libogmios.dylib on macOS).
+        # Rename to ogmios.node for the N-API loader.
+        OUT=$(find zig-out/lib -name "libogmios.dylib" -o -name "ogmios.dylib" | head -n1)
         if [[ -z "$OUT" ]]; then
             echo "error: built shared library not found under zig-out/lib" >&2
             ls -la zig-out/lib || true
@@ -69,8 +69,8 @@ runs:
         fi
         TARGET_DIR="$GITHUB_WORKSPACE/${{ inputs.binding-package-dir }}"
         mkdir -p "$TARGET_DIR"
-        cp "$OUT" "$TARGET_DIR/shoki.node"
-        ls -la "$TARGET_DIR/shoki.node"
+        cp "$OUT" "$TARGET_DIR/ogmios.node"
+        ls -la "$TARGET_DIR/ogmios.node"
 
     - name: Verify .node loads
       shell: bash
@@ -89,4 +89,4 @@ runs:
             echo "host=$HOST_ARCH target=${{ inputs.target }}; skipping dlopen smoke test"
             exit 0
         fi
-        node -e "const b=require('./shoki.node'); if(b.ping()!=='pong'){process.exit(1)}; console.log('ping round-trip: ok')"
+        node -e "const b=require('./ogmios.node'); if(b.ping()!=='pong'){process.exit(1)}; console.log('ping round-trip: ok')"

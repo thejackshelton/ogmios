@@ -8,7 +8,7 @@ pub const RingBuffer = rb_mod.RingBuffer;
 
 /// Frozen vtable per CONTEXT.md Driver Interface D-10.
 /// DO NOT extend without a wire-format version bump. EXT-01 depends on stability.
-pub const MunadiDriver = struct {
+pub const OgmiosDriver = struct {
     init: *const fn (ctx: *anyopaque, opts: InitOptions) anyerror!void,
     start: *const fn (ctx: *anyopaque) anyerror!void,
     stop: *const fn (ctx: *anyopaque) anyerror!void,
@@ -21,5 +21,5 @@ pub const MunadiDriver = struct {
 
 pub const DriverHandle = struct {
     ctx: *anyopaque,
-    vtable: *const MunadiDriver,
+    vtable: *const OgmiosDriver,
 };

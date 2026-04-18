@@ -1,13 +1,13 @@
 # Phase 5 parity gate — CI-06.
 #
-# Runs `examples/vitest-browser-qwik` on all 4 supported shoki topologies
+# Runs `examples/vitest-browser-qwik` on all 4 supported ogmios topologies
 # as a matrix. All 4 cells must pass for the release pipeline to proceed.
 #
 # This is the gate that closes Phase 5 SC-4 ("parity across environments").
 #
 # Notes on the matrix cells:
 #   - `tart`: requires a self-hosted runner with the `tart` label + the
-#     pre-baked shoki image pulled locally. In this repo we skip the tart
+#     pre-baked ogmios image pulled locally. In this repo we skip the tart
 #     cell on fork PRs because forks don't have access to our self-hosted
 #     pool; maintainers exercise it on main branch pushes and tag builds.
 #   - `cirrus`: requires the Cirrus Runners GitHub App installed.
@@ -46,7 +46,7 @@ jobs:
     # on "pending runner" forever.
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     env:
-      SHOKI_TART: "1"
+      OGMIOS_TART: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

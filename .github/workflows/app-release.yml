@@ -1,11 +1,11 @@
-# App release — publishes Shoki.app + Shoki Setup.app bundles to GitHub Releases.
+# App release — publishes Ogmios.app + Ogmios Setup.app bundles to GitHub Releases.
 #
 # This workflow is DECOUPLED from .github/workflows/release.yml (SDK / npm publish).
-# - `v*` tags  -> release.yml        -> publishes shoki + @shoki/binding-* to npm
+# - `v*` tags  -> release.yml        -> publishes ogmios + @ogmios/binding-* to npm
 # - `app-v*` tags -> app-release.yml -> publishes helper bundles to GitHub Releases
 #
-# Phase 10-02's `shoki setup` CLI downloads from
-#   https://github.com/<owner>/shoki/releases/download/app-v<VERSION>/shoki-<platform>.zip
+# Phase 10-02's `ogmios setup` CLI downloads from
+#   https://github.com/<owner>/ogmios/releases/download/app-v<VERSION>/ogmios-<platform>.zip
 # so the tag, filenames, and sha256 sidecar format published here are a
 # wire-level contract with that consumer.
 #
@@ -78,7 +78,7 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
         run: |
           set -euo pipefail
-          for app in .build/ShokiRunner.app .build/ShokiSetup.app; do
+          for app in .build/OgmiosRunner.app .build/OgmiosSetup.app; do
             ./scripts/sign-and-notarize.sh "$app"
           done
 
@@ -91,8 +91,8 @@ jobs:
         run: |
           set -euo pipefail
           cd .build
-          actual=$(shasum -a 256 shoki-darwin-arm64.zip | awk '{print $1}')
-          expected=$(awk '{print $1}' shoki-darwin-arm64.zip.sha256)
+          actual=$(shasum -a 256 ogmios-darwin-arm64.zip | awk '{print $1}')
+          expected=$(awk '{print $1}' ogmios-darwin-arm64.zip.sha256)
           if [[ "$actual" != "$expected" ]]; then
             echo "error: sha mismatch — zip=$actual sidecar=$expected" >&2
             exit 1
@@ -103,8 +103,8 @@ jobs:
         with:
           name: app-darwin-arm64
           path: |
-            helper/.build/shoki-darwin-arm64.zip
-            helper/.build/shoki-darwin-arm64.zip.sha256
+            helper/.build/ogmios-darwin-arm64.zip
+            helper/.build/ogmios-darwin-arm64.zip.sha256
 
   build-x64:
     name: Build darwin-x64 bundles (cross-compile)
@@ -142,7 +142,7 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
         run: |
           set -euo pipefail
-          for app in .build/ShokiRunner.app .build/ShokiSetup.app; do
+          for app in .build/OgmiosRunner.app .build/OgmiosSetup.app; do
             ./scripts/sign-and-notarize.sh "$app"
           done
 
@@ -155,8 +155,8 @@ jobs:
         run: |
           set -euo pipefail
           cd .build
-          actual=$(shasum -a 256 shoki-darwin-x64.zip | awk '{print $1}')
-          expected=$(awk '{print $1}' shoki-darwin-x64.zip.sha256)
+          actual=$(shasum -a 256 ogmios-darwin-x64.zip | awk '{print $1}')
+          expected=$(awk '{print $1}' ogmios-darwin-x64.zip.sha256)
           if [[ "$actual" != "$expected" ]]; then
             echo "error: sha mismatch — zip=$actual sidecar=$expected" >&2
             exit 1
@@ -167,8 +167,8 @@ jobs:
         with:
           name: app-darwin-x64
           path: |
-            helper/.build/shoki-darwin-x64.zip
-            helper/.build/shoki-darwin-x64.zip.sha256
+            helper/.build/ogmios-darwin-x64.zip
+            helper/.build/ogmios-darwin-x64.zip.sha256
 
   publish-release:
     name: Publish GitHub Release
@@ -216,9 +216,9 @@ jobs:
           set -euo pipefail
           gh release create "${{ steps.tag.outputs.tag }}" \
             --target "${{ github.sha }}" \
-            --title "Shoki.app ${{ steps.tag.outputs.tag }}" \
-            --notes "Native helper bundles for the shoki SDK. Install via \`npx shoki setup\` — manual download is not required." \
-            dist/app-darwin-arm64/shoki-darwin-arm64.zip \
-            dist/app-darwin-arm64/shoki-darwin-arm64.zip.sha256 \
-            dist/app-darwin-x64/shoki-darwin-x64.zip \
-            dist/app-darwin-x64/shoki-darwin-x64.zip.sha256
+            --title "Ogmios.app ${{ steps.tag.outputs.tag }}" \
+            --notes "Native helper bundles for the ogmios SDK. Install via \`npx ogmios setup\` — manual download is not required." \
+            dist/app-darwin-arm64/ogmios-darwin-arm64.zip \
+            dist/app-darwin-arm64/ogmios-darwin-arm64.zip.sha256 \
+            dist/app-darwin-x64/ogmios-darwin-x64.zip \
+            dist/app-darwin-x64/ogmios-darwin-x64.zip.sha256

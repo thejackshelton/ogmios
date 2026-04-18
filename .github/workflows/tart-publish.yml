@@ -2,7 +2,7 @@
 #
 # Tag-triggered. One parallel job per macOS version. Each job runs on a
 # self-hosted macOS-arm64 runner with tart + packer installed, builds the
-# corresponding image, and pushes to ghcr.io/shoki/macos-vo-ready:<ver>.
+# corresponding image, and pushes to ghcr.io/thejackshelton/ogmios/macos-vo-ready:<ver>.
 #
 # REQUIRED SECRETS (see docs/release-setup.md § 6):
 #   GHCR_USERNAME, GHCR_TOKEN — for ghcr.io push
@@ -101,35 +101,35 @@ jobs:
           set -euo pipefail
           packer build \
             -var "full_image=false" \
-            -var "output_name=shoki-vo-ready-${{ matrix.macos }}" \
+            -var "output_name=ogmios-vo-ready-${{ matrix.macos }}" \
             "packer/${{ matrix.macos }}.pkr.hcl"
 
       - name: Smoke test (slim)
         shell: bash
         run: |
           set -euo pipefail
-          tart run shoki-vo-ready-${{ matrix.macos }} --no-graphics &
+          tart run ogmios-vo-ready-${{ matrix.macos }} --no-graphics &
           TART_PID=$!
           # Wait up to 120s for SSH.
           for i in $(seq 1 60); do
-            IP=$(tart ip shoki-vo-ready-${{ matrix.macos }} 2>/dev/null || true)
+            IP=$(tart ip ogmios-vo-ready-${{ matrix.macos }} 2>/dev/null || true)
             if [[ -n "$IP" ]] && nc -z "$IP" 22 2>/dev/null; then break; fi
             sleep 2
           done
           [[ -n "$IP" ]] || { echo "failed to get VM IP"; exit 1; }
           # Basic health: can we ssh and read the marker?
           sshpass -p admin ssh -o StrictHostKeyChecking=no admin@"$IP" \
-            'cat /etc/shoki-image && node --version && pnpm --version'
+            'cat /etc/ogmios-image && node --version && pnpm --version'
           # Shut down cleanly.
-          tart stop shoki-vo-ready-${{ matrix.macos }} || kill $TART_PID || true
+          tart stop ogmios-vo-ready-${{ matrix.macos }} || kill $TART_PID || true
           wait $TART_PID 2>/dev/null || true
 
       - name: Push (slim)
         shell: bash
         run: |
           set -euo pipefail
-          tart push "shoki-vo-ready-${{ matrix.macos }}" \
-            "ghcr.io/shoki/macos-vo-ready:${{ matrix.macos }}"
+          tart push "ogmios-vo-ready-${{ matrix.macos }}" \
+            "ghcr.io/thejackshelton/ogmios/macos-vo-ready:${{ matrix.macos }}"
 
       # ---- @full build (opt-in) ----
       - name: Packer build (@full)
@@ -140,7 +140,7 @@ jobs:
           set -euo pipefail
           packer build \
             -var "full_image=true" \
-            -var "output_name=shoki-vo-ready-${{ matrix.macos }}-full" \
+            -var "output_name=ogmios-vo-ready-${{ matrix.macos }}-full" \
             "packer/${{ matrix.macos }}.pkr.hcl"
 
       - name: Push (@full)
@@ -148,13 +148,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tart push "shoki-vo-ready-${{ matrix.macos }}-full" \
-            "ghcr.io/shoki/macos-vo-ready:${{ matrix.macos }}@full"
+          tart push "ogmios-vo-ready-${{ matrix.macos }}-full" \
+            "ghcr.io/thejackshelton/ogmios/macos-vo-ready:${{ matrix.macos }}@full"
 
       # ---- cleanup ----
       - name: Clean up VMs
         if: always()
         shell: bash
         run: |
-          tart delete "shoki-vo-ready-${{ matrix.macos }}" 2>/dev/null || true
-          tart delete "shoki-vo-ready-${{ matrix.macos }}-full" 2>/dev/null || true
+          tart delete "ogmios-vo-ready-${{ matrix.macos }}" 2>/dev/null || true
+          tart delete "ogmios-vo-ready-${{ matrix.macos }}-full" 2>/dev/null || true

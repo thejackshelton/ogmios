@@ -12,29 +12,29 @@ pub const SubprocessRunner = defaults_mod.SubprocessRunner;
 // Snapshot file on-disk format (Plan 07-05)
 //
 // After snapshotSettings() captures the 9 plist keys into Lifecycle.snapshot,
-// we ALSO write them to ~/.munadi/vo-snapshot.plist (or $MUNADI_SNAPSHOT_PATH).
+// we ALSO write them to ~/.ogmios/vo-snapshot.plist (or $OGMIOS_SNAPSHOT_PATH).
 // This is the SIGKILL-recovery escape hatch: even if the process dies without
-// running any exit hooks (SIGKILL, power loss, OOM killer), `munadi restore-vo-
+// running any exit hooks (SIGKILL, power loss, OOM killer), `ogmios restore-vo-
 // settings` can read this file and re-apply the original values via
 // `defaults write`.
 //
-// Format: Apple plist XML 1.0 with the 9 VO keys + three `_munadi_*` metadata
+// Format: Apple plist XML 1.0 with the 9 VO keys + three `_ogmios_*` metadata
 // keys (version magic, pid, timestamp). The restore CLI uses the version
 // magic to refuse unrecognized files and the timestamp to enforce a 7-day TTL.
 // ---------------------------------------------------------------------------
 
 pub const SNAPSHOT_VERSION: u32 = 1;
 
-/// Resolve the snapshot-file path: $MUNADI_SNAPSHOT_PATH if set, else
-/// $HOME/.munadi/vo-snapshot.plist. Caller owns the returned string.
+/// Resolve the snapshot-file path: $OGMIOS_SNAPSHOT_PATH if set, else
+/// $HOME/.ogmios/vo-snapshot.plist. Caller owns the returned string.
 pub fn resolveSnapshotPath(allocator: std.mem.Allocator) ![]u8 {
-    if (c.getenv("MUNADI_SNAPSHOT_PATH")) |ptr| {
+    if (c.getenv("OGMIOS_SNAPSHOT_PATH")) |ptr| {
         const slice = std.mem.span(@as([*:0]const u8, ptr));
         if (slice.len > 0) return allocator.dupe(u8, slice);
     }
     const home_ptr = c.getenv("HOME") orelse return error.HomeNotSet;
     const home = std.mem.span(@as([*:0]const u8, home_ptr));
-    return std.fmt.allocPrint(allocator, "{s}/.munadi/vo-snapshot.plist", .{home});
+    return std.fmt.allocPrint(allocator, "{s}/.ogmios/vo-snapshot.plist", .{home});
 }
 
 /// Escape a string for safe inclusion inside a plist `<string>` element.
@@ -78,7 +78,7 @@ fn appendPlistEntry(
             // Emit a distinct marker so the restore CLI can round-trip
             // `.missing` → `defaults delete`. Plist has no native "absent"
             // value so we use an empty string wrapped in a sentinel dict.
-            try buf.appendSlice(allocator, "    <string>__MUNADI_MISSING__</string>\n");
+            try buf.appendSlice(allocator, "    <string>__OGMIOS_MISSING__</string>\n");
         },
     }
 }
@@ -98,7 +98,7 @@ fn appendPlistMetaInt(
     try buf.appendSlice(allocator, "</integer>\n");
 }
 
-/// Serialize a PlistSnapshot to plist XML with munadi metadata keys.
+/// Serialize a PlistSnapshot to plist XML with ogmios metadata keys.
 /// Pure fn — no I/O — for ease of testing.
 pub fn serializeSnapshot(
     allocator: std.mem.Allocator,
@@ -117,9 +117,9 @@ pub fn serializeSnapshot(
         \\
     );
 
-    // Write the domain the snapshot came from so `munadi restore-vo-settings`
+    // Write the domain the snapshot came from so `ogmios restore-vo-settings`
     // writes back to the same place (Sonoma vs Sequoia+ Group Container path).
-    try buf.appendSlice(allocator, "    <key>_munadi_snapshot_domain</key>\n    <string>");
+    try buf.appendSlice(allocator, "    <key>_ogmios_snapshot_domain</key>\n    <string>");
     try appendEscapedXml(allocator, &buf, snap.domain);
     try buf.appendSlice(allocator, "</string>\n");
 
@@ -129,9 +129,9 @@ pub fn serializeSnapshot(
         try appendPlistEntry(allocator, &buf, catalog[i].name, snap.entries[i]);
     }
 
-    try appendPlistMetaInt(allocator, &buf, "_munadi_snapshot_version", @intCast(SNAPSHOT_VERSION));
-    try appendPlistMetaInt(allocator, &buf, "_munadi_snapshot_pid", pid);
-    try appendPlistMetaInt(allocator, &buf, "_munadi_snapshot_ts_unix", ts_unix);
+    try appendPlistMetaInt(allocator, &buf, "_ogmios_snapshot_version", @intCast(SNAPSHOT_VERSION));
+    try appendPlistMetaInt(allocator, &buf, "_ogmios_snapshot_pid", pid);
+    try appendPlistMetaInt(allocator, &buf, "_ogmios_snapshot_ts_unix", ts_unix);
 
     try buf.appendSlice(allocator, "</dict>\n</plist>\n");
     return buf.toOwnedSlice(allocator);
@@ -216,7 +216,7 @@ pub fn writeSnapshotFile(
 }
 
 /// Delete the snapshot file if it exists. Called on clean stopHandle — a
-/// stale file means the last munadi run crashed without running cleanup.
+/// stale file means the last ogmios run crashed without running cleanup.
 pub fn deleteSnapshotFile(path: []const u8) void {
     // Best-effort — absent is fine.
     var pathbuf: [std.posix.PATH_MAX]u8 = undefined;
@@ -429,7 +429,7 @@ pub const Lifecycle = struct {
         const dom = try self.resolveDomain();
         self.domain = dom;
 
-        // 3. Snapshot current plist values BEFORE writing munadi defaults.
+        // 3. Snapshot current plist values BEFORE writing ogmios defaults.
         self.snapshot = try defaults_mod.snapshotSettings(self.allocator, self.runner, dom);
 
         // 3b. Persist snapshot to disk for SIGKILL recovery (Plan 07-05).
@@ -445,7 +445,7 @@ pub const Lifecycle = struct {
             }
         }
 
-        // 4. Write munadi defaults.
+        // 4. Write ogmios defaults.
         try defaults_mod.configureSettings(self.allocator, self.runner, dom, self.options);
 
         // 5. Spawn the long-lived osascript shell.

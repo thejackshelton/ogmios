@@ -1,7 +1,7 @@
-# SDK release (shoki + @shoki/binding-darwin-*). Helper apps (Shoki.app,
-# Shoki Setup.app) are shipped via .github/workflows/app-release.yml on
+# SDK release (ogmios + @ogmios/binding-darwin-*). Helper apps (Ogmios.app,
+# Ogmios Setup.app) are shipped via .github/workflows/app-release.yml on
 # app-v* tags, NOT from this workflow. Phase 10-04 split the two channels:
-# npm tarballs contain only shoki.node, helper bundles live on GitHub Releases.
+# npm tarballs contain only ogmios.node, helper bundles live on GitHub Releases.
 name: Release
 
 on:
@@ -10,7 +10,7 @@ on:
 
 # OIDC trusted publishing — no NPM_TOKEN secret required.
 # Requires npm trusted publishers configured for each of:
-#   shoki, @shoki/binding-darwin-arm64, @shoki/binding-darwin-x64
+#   ogmios, @ogmios/binding-darwin-arm64, @ogmios/binding-darwin-x64
 # See docs/release-setup.md for one-time setup.
 
 permissions:
@@ -45,11 +45,11 @@ jobs:
           binding-package-dir: packages/binding-darwin-arm64
       - name: Verify signatures
         run: |
-          codesign -dvvv packages/binding-darwin-arm64/shoki.node || echo "shoki.node is not independently signed (helper app is the TCC trust anchor)"
+          codesign -dvvv packages/binding-darwin-arm64/ogmios.node || echo "ogmios.node is not independently signed (helper app is the TCC trust anchor)"
       - uses: actions/upload-artifact@v4
         with:
           name: binding-darwin-arm64
-          path: packages/binding-darwin-arm64/shoki.node
+          path: packages/binding-darwin-arm64/ogmios.node
 
   build-darwin-x64:
     name: Build darwin-x64 binding (cross-compile from macos-14)
@@ -71,11 +71,11 @@ jobs:
           binding-package-dir: packages/binding-darwin-x64
       - name: Verify signatures
         run: |
-          codesign -dvvv packages/binding-darwin-x64/shoki.node || echo "shoki.node is not independently signed (helper app is the TCC trust anchor)"
+          codesign -dvvv packages/binding-darwin-x64/ogmios.node || echo "ogmios.node is not independently signed (helper app is the TCC trust anchor)"
       - uses: actions/upload-artifact@v4
         with:
           name: binding-darwin-x64
-          path: packages/binding-darwin-x64/shoki.node
+          path: packages/binding-darwin-x64/ogmios.node
 
   publish:
     name: Publish to npm via OIDC

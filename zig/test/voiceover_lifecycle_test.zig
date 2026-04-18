@@ -816,7 +816,7 @@ fn readFileAllLibc(allocator: std.mem.Allocator, path: [:0]const u8) ![]u8 {
 /// Build a unique tempfile path under /tmp. Doesn't create the file.
 fn makeTempPath(allocator: std.mem.Allocator, name: []const u8) ![:0]u8 {
     const ts: u64 = clock_mod.nanoTimestamp();
-    const path = try std.fmt.allocPrintSentinel(allocator, "/tmp/munadi-test-{s}-{d}.plist", .{ name, ts }, 0);
+    const path = try std.fmt.allocPrintSentinel(allocator, "/tmp/ogmios-test-{s}-{d}.plist", .{ name, ts }, 0);
     return path;
 }
 
@@ -838,11 +838,11 @@ test "writeSnapshotFile writes a parseable plist" {
     try std.testing.expect(std.mem.indexOf(u8, contents, "<?xml version=\"1.0\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, contents, "<plist version=\"1.0\">") != null);
     try std.testing.expect(std.mem.indexOf(u8, contents, "<key>SCREnableAppleScript</key>") != null);
-    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>_munadi_snapshot_version</key>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>_ogmios_snapshot_version</key>") != null);
     try std.testing.expect(std.mem.indexOf(u8, contents, "<integer>1</integer>") != null); // version magic
-    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>_munadi_snapshot_pid</key>") != null);
-    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>_munadi_snapshot_ts_unix</key>") != null);
-    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>_munadi_snapshot_domain</key>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>_ogmios_snapshot_pid</key>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>_ogmios_snapshot_ts_unix</key>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contents, "<key>_ogmios_snapshot_domain</key>") != null);
     try std.testing.expect(std.mem.indexOf(u8, contents, "com.apple.VoiceOver4/default") != null);
     // Voice string rendered as <string>…</string>.
     try std.testing.expect(std.mem.indexOf(u8, contents, "com.apple.speech.synthesis.voice.Alex") != null);
@@ -882,7 +882,7 @@ test "writeSnapshotFile creates the parent directory if missing" {
     const ts: u64 = clock_mod.nanoTimestamp();
     const path = try std.fmt.allocPrintSentinel(
         allocator,
-        "/tmp/munadi-test-mkpath-{d}/sub/dir/vo-snapshot.plist",
+        "/tmp/ogmios-test-mkpath-{d}/sub/dir/vo-snapshot.plist",
         .{ts},
         0,
     );
@@ -907,17 +907,17 @@ test "deleteSnapshotFile is idempotent when the file is absent" {
     lifecycle.deleteSnapshotFile(path); // twice — still fine.
 }
 
-test "resolveSnapshotPath honors MUNADI_SNAPSHOT_PATH env override" {
+test "resolveSnapshotPath honors OGMIOS_SNAPSHOT_PATH env override" {
     // We can only test the env-override branch without mutating the user's
     // HOME. The override path is reached via c.getenv; in Zig's test runner
     // we can't setenv portably on every stdlib version. Skip the setenv path
     // and just verify the default HOME-based branch produces a path ending
-    // in ".munadi/vo-snapshot.plist".
+    // in ".ogmios/vo-snapshot.plist".
     const allocator = std.testing.allocator;
     const path = lifecycle.resolveSnapshotPath(allocator) catch |err| switch (err) {
         error.HomeNotSet => return, // Test env without HOME — skip.
         else => return err,
     };
     defer allocator.free(path);
-    try std.testing.expect(std.mem.endsWith(u8, path, ".munadi/vo-snapshot.plist"));
+    try std.testing.expect(std.mem.endsWith(u8, path, ".ogmios/vo-snapshot.plist"));
 }

@@ -58,30 +58,30 @@ jobs:
       - name: zig build test
         working-directory: helper
         run: zig build test --summary all
-      - name: ShokiRunner --version smoke
+      - name: OgmiosRunner --version smoke
         working-directory: helper
-        run: ./.build/ShokiRunner.app/Contents/MacOS/ShokiRunner --version
-      - name: ShokiSetup --self-test smoke
+        run: ./.build/OgmiosRunner.app/Contents/MacOS/OgmiosRunner --version
+      - name: OgmiosSetup --self-test smoke
         working-directory: helper
-        run: ./.build/ShokiSetup.app/Contents/MacOS/ShokiSetup --self-test
-      - name: LaunchServices registration smoke — ShokiRunner
+        run: ./.build/OgmiosSetup.app/Contents/MacOS/OgmiosSetup --self-test
+      - name: LaunchServices registration smoke — OgmiosRunner
         working-directory: helper
         # `open -W -n` waits for the bundle to exit; --args --version forces
         # the binary down the fast-path instead of parking on dispatch_main.
         # This catches Info.plist / LaunchServices rejection that a plain
         # exe invocation would miss.
-        run: open -W -n .build/ShokiRunner.app --args --version
-      - name: LaunchServices registration smoke — ShokiSetup
+        run: open -W -n .build/OgmiosRunner.app --args --version
+      - name: LaunchServices registration smoke — OgmiosSetup
         working-directory: helper
-        run: open -W -n .build/ShokiSetup.app --args --self-test
+        run: open -W -n .build/OgmiosSetup.app --args --self-test
       - name: Bundle structure verify
         working-directory: helper
         run: |
-          test -f .build/ShokiRunner.app/Contents/Info.plist
-          test -f .build/ShokiSetup.app/Contents/Info.plist
-          test -x .build/ShokiRunner.app/Contents/MacOS/ShokiRunner
-          test -x .build/ShokiSetup.app/Contents/MacOS/ShokiSetup
-          test -f .build/libShokiXPCClient.dylib
+          test -f .build/OgmiosRunner.app/Contents/Info.plist
+          test -f .build/OgmiosSetup.app/Contents/Info.plist
+          test -x .build/OgmiosRunner.app/Contents/MacOS/OgmiosRunner
+          test -x .build/OgmiosSetup.app/Contents/MacOS/OgmiosSetup
+          test -f .build/libOgmiosXPCClient.dylib
 
   sdk-test-native:
     name: SDK tests with native binding (darwin-arm64)
@@ -98,7 +98,7 @@ jobs:
           cache: pnpm
       # Phase 5: setup-action quiesces background apps before the SDK tests
       # so VoiceOver-dispatched announcements aren't polluted by Slack etc.
-      # skip-doctor because shoki CLI isn't built yet in this flow.
+      # skip-doctor because ogmios CLI isn't built yet in this flow.
       - uses: ./.github/actions/setup
         with:
           topology: github-hosted
@@ -113,8 +113,8 @@ jobs:
           sign: "false"
       - name: Run SDK tests with native binding
         env:
-          SHOKI_NATIVE_BUILT: "1"
-        run: pnpm --filter shoki test
+          OGMIOS_NATIVE_BUILT: "1"
+        run: pnpm --filter ogmios test
       - name: Post-job background-app quiesce
         if: always()
         run: .github/actions/setup/kill-background-apps.sh

@@ -3,7 +3,7 @@
 // Zig 0.16 removed `std.Thread.Mutex` / `std.Thread.Condition` in favor of the
 // new `std.Io.Mutex` / `std.Io.Condition` API that requires an `Io` instance
 // to be threaded through every call. Rather than propagate that API surface
-// through munadi's driver code, we wrap pthreads directly here. The surface
+// through ogmios's driver code, we wrap pthreads directly here. The surface
 // intentionally mirrors the old std.Thread.Mutex API shape so call sites
 // remain one-liners.
 //

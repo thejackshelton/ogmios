@@ -1,4 +1,4 @@
-# Munadi driver contract
+# Ogmios driver contract
 
 A screen reader ships as one directory under `src/drivers/<name>/` containing `driver.zig`.
 
@@ -6,10 +6,10 @@ A screen reader ships as one directory under `src/drivers/<name>/` containing `d
 
 Your driver must:
 
-1. Implement the `MunadiDriver` vtable from `src/core/driver.zig`:
+1. Implement the `OgmiosDriver` vtable from `src/core/driver.zig`:
 
    ```zig
-   pub const MunadiDriver = struct {
+   pub const OgmiosDriver = struct {
        init: *const fn (ctx: *anyopaque, opts: InitOptions) anyerror!void,
        start: *const fn (ctx: *anyopaque) anyerror!void,
        stop: *const fn (ctx: *anyopaque) anyerror!void,
@@ -22,7 +22,7 @@ Your driver must:
    ```
 
 2. Expose a `pub fn create(allocator) !*Self` constructor.
-3. Expose a `pub fn vtable() MunadiDriver` filled with your method pointers.
+3. Expose a `pub fn vtable() OgmiosDriver` filled with your method pointers.
 
 ## Registering
 
@@ -39,7 +39,7 @@ And a matching `make<YourDriver>` factory following the `makeNoop` shape.
 
 ## What you MUST NOT change (EXT-01)
 
-- The `MunadiDriver` struct shape in `src/core/driver.zig`
+- The `OgmiosDriver` struct shape in `src/core/driver.zig`
 - The wire format in `src/core/wire.zig`
 - The N-API surface in `src/core/napi.zig`
 
@@ -47,7 +47,7 @@ If your driver needs data outside the vtable, raise a plan — EXT-01 depends on
 
 ## New platform bindings
 
-Each triple needs a `@munadi/binding-<os>-<arch>` package and a CI build target.
+Each triple needs a `@ogmios/binding-<os>-<arch>` package and a CI build target.
 See `packages/binding-darwin-arm64/package.json`. Add the triple to `.github/workflows/release.yml` matrix.
 
 ## Reference

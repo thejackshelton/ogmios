@@ -1,6 +1,6 @@
-# munadi — Zig core
+# ogmios — Zig core
 
-N-API native core for Munadi. Compiles to `munadi.node` per platform and is loaded in-process by `munadi`.
+N-API native core for Ogmios. Compiles to `ogmios.node` per platform and is loaded in-process by `ogmios`.
 
 ## Pinned versions (do not drift — see PITFALLS.md Pitfall 10)
 
@@ -27,12 +27,12 @@ zig build -Dtarget=x86_64-macos     # Intel
 zig build test                      # run unit tests
 ```
 
-The resulting `munadi.node` is copied into `../packages/binding-darwin-<arch>/munadi.node` by the CI workflow (see `.github/workflows/release.yml` — plan 05).
+The resulting `ogmios.node` is copied into `../packages/binding-darwin-<arch>/ogmios.node` by the CI workflow (see `.github/workflows/release.yml` — plan 05).
 
 ## Layout
 
 - `src/core/napi.zig` — single N-API export surface (all `pub fn` exposed to JS)
-- `src/core/driver.zig` — `MunadiDriver` vtable definition
+- `src/core/driver.zig` — `OgmiosDriver` vtable definition
 - `src/core/registry.zig` — comptime driver registry (add a driver = one import + one array entry)
 - `src/core/ring_buffer.zig` — bounded ring buffer with `droppedCount`
 - `src/core/wire.zig` — versioned binary wire format

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # kill-background-apps.sh
 #
-# Quit any macOS app whose announcements might leak into shoki VO captures.
-# Runs as both pre-job and post-job hook in every shoki CI workflow (CI-05).
+# Quit any macOS app whose announcements might leak into ogmios VO captures.
+# Runs as both pre-job and post-job hook in every ogmios CI workflow (CI-05).
 #
 # Design:
 #   - `osascript … quit` is the polite path (apps get to clean up state).
@@ -28,7 +28,7 @@ APPS=(
   "FaceTime"
 )
 
-echo "shoki: quitting background announcement emitters"
+echo "ogmios: quitting background announcement emitters"
 for app in "${APPS[@]}"; do
   osascript -e "tell application \"$app\" to quit" 2>/dev/null || true
   pkill -f "$app" 2>/dev/null || true
@@ -42,5 +42,5 @@ launchctl unload -w /System/Library/LaunchAgents/com.apple.notificationcenterui.
 # Instead, enable it defensively if we can detect stock default.
 defaults write com.apple.ncprefs dnd_prefs -data 62706c697374303000 2>/dev/null || true
 
-echo "shoki: background app quiesce complete"
+echo "ogmios: background app quiesce complete"
 exit 0

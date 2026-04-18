@@ -1,4 +1,4 @@
-// Root entry point for the munadi shared library.
+// Root entry point for the ogmios shared library.
 //
 // Declaring the root at `src/root.zig` (rather than `src/core/napi.zig`)
 // makes `src/` the module root directory so imports like `core/registry.zig`
@@ -25,7 +25,7 @@ fn allocator() std.mem.Allocator {
     return gpa.allocator();
 }
 
-pub const MUNADI_VERSION: []const u8 = "0.0.0";
+pub const OGMIOS_VERSION: []const u8 = "0.0.0";
 
 // --- Trivial surface ---
 // Standard Mode: napi-zig auto-converts `[]const u8` to JS string and `u32` to Number.
@@ -35,7 +35,7 @@ pub fn ping() []const u8 {
 }
 
 pub fn version() []const u8 {
-    return MUNADI_VERSION;
+    return OGMIOS_VERSION;
 }
 
 pub fn wireVersion() u32 {

@@ -18,14 +18,14 @@ pub const RegisteredDriver = struct {
 
 fn makeNoop(allocator: std.mem.Allocator) anyerror!driver_mod.DriverHandle {
     const instance = try noop_mod.NoopDriver.create(allocator);
-    const vt_slot = try allocator.create(driver_mod.MunadiDriver);
+    const vt_slot = try allocator.create(driver_mod.OgmiosDriver);
     vt_slot.* = noop_mod.NoopDriver.vtable();
     return .{ .ctx = @ptrCast(instance), .vtable = vt_slot };
 }
 
 /// voiceover driver factory — wires real backends (real subprocess runner,
 /// real clock, real osascript spawner, real XPC backend which forwards to
-/// libMunadiXPCClient.dylib). Tests construct VoiceOverDriver directly with mocks.
+/// libOgmiosXPCClient.dylib). Tests construct VoiceOverDriver directly with mocks.
 fn makeVoiceOver(allocator: std.mem.Allocator) anyerror!driver_mod.DriverHandle {
     const instance = try voiceover_mod.VoiceOverDriver.create(
         allocator,
@@ -34,7 +34,7 @@ fn makeVoiceOver(allocator: std.mem.Allocator) anyerror!driver_mod.DriverHandle 
         applescript_mod.realSpawner(),
         ax_mod.realXpcBackend,
     );
-    const vt_slot = try allocator.create(driver_mod.MunadiDriver);
+    const vt_slot = try allocator.create(driver_mod.OgmiosDriver);
     vt_slot.* = voiceover_mod.VoiceOverDriver.vtable();
     return .{ .ctx = @ptrCast(instance), .vtable = vt_slot };
 }

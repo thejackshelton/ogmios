@@ -1,6 +1,6 @@
 name: Build helper apps
 description: >-
-  Builds ShokiRunner.app + ShokiSetup.app via helper/scripts/build-app-bundle.sh
+  Builds OgmiosRunner.app + OgmiosSetup.app via helper/scripts/build-app-bundle.sh
   (zig build) and optionally signs + notarizes both when Apple secrets are
   present. Used by the `helper-smoke` CI job and by .github/workflows/app-release.yml
   (Plan 10-03). Does NOT bundle the .apps into npm binding packages — Phase 10
@@ -35,7 +35,7 @@ runs:
       run: |
         set -euo pipefail
         ./scripts/build-app-bundle.sh
-        ls -la .build/ShokiRunner.app .build/ShokiSetup.app
+        ls -la .build/OgmiosRunner.app .build/OgmiosSetup.app
 
     - name: Sign + notarize both bundles
       if: inputs.sign == 'true'
@@ -48,7 +48,7 @@ runs:
             exit 0
         fi
         export APPLE_DEVELOPER_ID_APP="${APPLE_DEVELOPER_ID_APP:-$DEVELOPER_ID_IDENTITY}"
-        for app in .build/ShokiRunner.app .build/ShokiSetup.app; do
+        for app in .build/OgmiosRunner.app .build/OgmiosSetup.app; do
             ./scripts/sign-and-notarize.sh "$app"
         done
 

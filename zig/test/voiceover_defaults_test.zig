@@ -15,14 +15,14 @@ test "keyCatalog entry 0 is SCREnableAppleScript bool=true" {
     const catalog = defaults.keyCatalog();
     try std.testing.expectEqualStrings("SCREnableAppleScript", catalog[0].name);
     try std.testing.expectEqual(defaults.PlistValueType.boolean, catalog[0].value_type);
-    try std.testing.expectEqual(true, catalog[0].munadi_default.boolean);
+    try std.testing.expectEqual(true, catalog[0].ogmios_default.boolean);
 }
 
 test "keyCatalog entry 7 is SpeakChannel = voice.Alex" {
     const catalog = defaults.keyCatalog();
     try std.testing.expectEqualStrings("SCRCategories_SCRCategoryVoices_SCRSpeakChannel", catalog[7].name);
     try std.testing.expectEqual(defaults.PlistValueType.string, catalog[7].value_type);
-    try std.testing.expectEqualStrings("com.apple.speech.synthesis.voice.Alex", catalog[7].munadi_default.string);
+    try std.testing.expectEqualStrings("com.apple.speech.synthesis.voice.Alex", catalog[7].ogmios_default.string);
 }
 
 test "resolvePlistDomain for Sonoma (14.x) returns legacy domain" {

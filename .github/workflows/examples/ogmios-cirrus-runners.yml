@@ -2,7 +2,7 @@
 #
 # Recommended managed option. Cirrus Runners are tart-powered on their side,
 # so the VM layer is handled for you; you just pick the base image tag
-# and the shoki setup action does the rest.
+# and the ogmios setup action does the rest.
 #
 # One-time setup:
 #   1. Install the Cirrus Runners GitHub App on your org:
@@ -17,7 +17,7 @@
 #   - `runs-on:` image tag (see Cirrus Runners docs)
 #   - test command
 
-name: Shoki tests (Cirrus Runners)
+name: Ogmios tests (Cirrus Runners)
 
 on:
   push:
@@ -25,10 +25,10 @@ on:
   pull_request:
 
 jobs:
-  shoki-tests:
-    name: Shoki — Cirrus Runners
+  ogmios-tests:
+    name: Ogmios — Cirrus Runners
     # See https://cirrus-runners.app/#supported-platforms for current tags.
-    # Cirrus injects CIRRUS_CI=1 which `shoki/setup-action` auto-detects.
+    # Cirrus injects CIRRUS_CI=1 which `ogmios/setup-action` auto-detects.
     runs-on: ghcr.io/cirruslabs/macos-runner:sonoma
 
     steps:
@@ -50,7 +50,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Run shoki + vitest-browser-qwik example
+      - name: Run ogmios + vitest-browser-qwik example
         working-directory: examples/vitest-browser-qwik
         run: pnpm test
 

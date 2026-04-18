@@ -14,7 +14,7 @@ pub const NoopDriver = struct {
         return self;
     }
 
-    pub fn vtable() driver_mod.MunadiDriver {
+    pub fn vtable() driver_mod.OgmiosDriver {
         return .{
             .init = initImpl,
             .start = startImpl,

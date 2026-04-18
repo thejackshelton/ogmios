@@ -1,15 +1,15 @@
-name: shoki/setup-action
+name: ogmios/setup-action
 description: >-
-  Prepare a macOS runner for shoki tests. Handles 4 topologies:
+  Prepare a macOS runner for ogmios tests. Handles 4 topologies:
   self-hosted tart, Cirrus Runners, GetMac, and stock GitHub-hosted.
-  Runs `shoki doctor` as the final gate.
+  Runs `ogmios doctor` as the final gate.
 
 inputs:
   topology:
     description: >-
       One of: tart | cirrus | getmac | github-hosted | auto.
       `auto` (default) detects from env vars: CIRRUS_CI -> cirrus,
-      GETMAC -> getmac, SHOKI_TART -> tart, otherwise github-hosted.
+      GETMAC -> getmac, OGMIOS_TART -> tart, otherwise github-hosted.
     required: false
     default: "auto"
   macos-version:
@@ -18,7 +18,7 @@ inputs:
     default: "sonoma"
   helper-path:
     description: >-
-      Path to a pre-built signed ShokiRunner.app bundle. If empty,
+      Path to a pre-built signed OgmiosRunner.app bundle. If empty,
       the setup action expects a downstream step to build the helper;
       the TCC grants in the pre-baked image key off bundle ID, not
       binary identity, so the build-and-install-locally path works.
@@ -26,8 +26,8 @@ inputs:
     default: ""
   skip-doctor:
     description: >-
-      If 'true', skip the final `shoki doctor` health gate. Useful
-      when the shoki binary isn't installed yet (e.g. first-run
+      If 'true', skip the final `ogmios doctor` health gate. Useful
+      when the ogmios binary isn't installed yet (e.g. first-run
       bootstrap workflows). Default is 'false'.
     required: false
     default: "false"
@@ -48,7 +48,7 @@ runs:
         REQUESTED="${{ inputs.topology }}"
         if [[ "$REQUESTED" != "auto" ]]; then
           echo "topology=$REQUESTED" >> "$GITHUB_OUTPUT"
-          echo "shoki-setup: using explicit topology=$REQUESTED"
+          echo "ogmios-setup: using explicit topology=$REQUESTED"
           exit 0
         fi
 
@@ -57,15 +57,15 @@ runs:
           echo "topology=cirrus" >> "$GITHUB_OUTPUT"
         elif [[ -n "${GETMAC:-}" ]]; then
           echo "topology=getmac" >> "$GITHUB_OUTPUT"
-        elif [[ -n "${SHOKI_TART:-}" ]]; then
+        elif [[ -n "${OGMIOS_TART:-}" ]]; then
           echo "topology=tart" >> "$GITHUB_OUTPUT"
-        elif [[ -f "/etc/shoki-image" ]]; then
+        elif [[ -f "/etc/ogmios-image" ]]; then
           # We're already running inside a pre-baked tart VM.
           echo "topology=tart" >> "$GITHUB_OUTPUT"
         else
           echo "topology=github-hosted" >> "$GITHUB_OUTPUT"
         fi
-        echo "shoki-setup: auto-detected topology=$(cat $GITHUB_OUTPUT | grep topology | cut -d= -f2)"
+        echo "ogmios-setup: auto-detected topology=$(cat $GITHUB_OUTPUT | grep topology | cut -d= -f2)"
 
     - name: Kill background apps (pre-test)
       shell: bash
@@ -73,19 +73,19 @@ runs:
 
     # ---- topology: tart ----
     # Self-hosted Mac mini / Mac Studio with tart installed. The job runs
-    # inside a pre-baked shoki image, so most provisioning is a no-op —
+    # inside a pre-baked ogmios image, so most provisioning is a no-op —
     # we just verify the image marker exists and the expected toolchain
     # is on PATH.
-    - name: Tart — verify pre-baked shoki image
+    - name: Tart — verify pre-baked ogmios image
       if: steps.detect.outputs.topology == 'tart'
       shell: bash
       run: |
         set -euo pipefail
-        if [[ ! -f "/etc/shoki-image" ]]; then
-          echo "::warning::running on topology=tart but /etc/shoki-image is missing; image may not be pre-baked" 1>&2
+        if [[ ! -f "/etc/ogmios-image" ]]; then
+          echo "::warning::running on topology=tart but /etc/ogmios-image is missing; image may not be pre-baked" 1>&2
         else
-          echo "=== /etc/shoki-image ==="
-          cat /etc/shoki-image
+          echo "=== /etc/ogmios-image ==="
+          cat /etc/ogmios-image
         fi
         # Version checks — fail loud if the image isn't what we expect.
         node --version
@@ -120,7 +120,7 @@ runs:
 
     # ---- topology: github-hosted ----
     # Stock macos-latest / macos-14. This is the expensive path. We CAN'T
-    # insert TCC grants at runtime (SIP is on), so shoki tests run in a
+    # insert TCC grants at runtime (SIP is on), so ogmios tests run in a
     # degraded mode where only VO-AppleScript-enabled is set. This
     # suffices for the vitest-browser-qwik example, which doesn't need
     # the helper-app trust-anchor path (web content only).
@@ -130,10 +130,10 @@ runs:
       run: |
         set -euo pipefail
         sudo defaults write com.apple.VoiceOver4/default SCREnableAppleScript -bool YES
-        echo "::notice::Running on GitHub-hosted macos-latest. TCC grants cannot be applied at runtime (SIP is on). Consider upgrading to a pre-baked tart runner for the full shoki capability."
+        echo "::notice::Running on GitHub-hosted macos-latest. TCC grants cannot be applied at runtime (SIP is on). Consider upgrading to a pre-baked tart runner for the full ogmios capability."
 
     # ---- install helper app (all topologies) ----
-    - name: Install ShokiRunner.app (if provided)
+    - name: Install OgmiosRunner.app (if provided)
       if: inputs.helper-path != ''
       shell: bash
       run: |
@@ -142,18 +142,18 @@ runs:
           echo "::error::helper-path=${{ inputs.helper-path }} does not exist or is not a directory"
           exit 1
         fi
-        sudo rm -rf /Applications/ShokiRunner.app
-        sudo cp -R "${{ inputs.helper-path }}" /Applications/ShokiRunner.app
-        codesign -dvvv /Applications/ShokiRunner.app || echo "::warning::helper is not signed"
+        sudo rm -rf /Applications/OgmiosRunner.app
+        sudo cp -R "${{ inputs.helper-path }}" /Applications/OgmiosRunner.app
+        codesign -dvvv /Applications/OgmiosRunner.app || echo "::warning::helper is not signed"
 
     # ---- final health gate ----
-    - name: shoki doctor (final health gate)
+    - name: ogmios doctor (final health gate)
       if: inputs.skip-doctor != 'true'
       shell: bash
       run: |
         set -euo pipefail
-        if ! command -v shoki >/dev/null 2>&1; then
-          echo "::warning::`shoki` CLI not on PATH; skipping doctor. Install @shoki/cli before this step to gate on health."
+        if ! command -v ogmios >/dev/null 2>&1; then
+          echo "::warning::`ogmios` CLI not on PATH; skipping doctor. Install @ogmios/cli before this step to gate on health."
           exit 0
         fi
-        shoki doctor --json --quiet
+        ogmios doctor --json --quiet
