@@ -5,7 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased] — Phase 8 (v1.1 prep)
+
+### Changed
+
+- **Helper ported from Swift to Zig** — `helper/` is now single-language Zig.
+  `ShokiRunner.app` is Zig-compiled with hand-written XPC + AX + CoreFoundation
+  externs; `libShokiXPCClient.dylib` exposes the same 5 `_shoki_xpc_*` C-ABI
+  symbols, so Zig core linkage is byte-for-byte unchanged. No Swift toolchain
+  is required to build shoki from source. (Phase 8 Plans 01, 02, 04)
+- **Package consolidation (7 → 4):** `@shoki/doctor` and `@shoki/matchers`
+  have been merged into `@shoki/sdk`.
+  - The CLI is now exposed via `@shoki/sdk`'s `bin: { "shoki": "./dist/cli/main.js" }`
+    entry. Subcommands: `doctor`, `setup`, `info`, `restore-vo-settings`.
+  - Matcher *functions* (pure assertion logic) live at the subpath
+    `@shoki/sdk/matchers` — framework-agnostic, Jest-compatible
+    `{ pass, message }` return shape.
+  - CLI library exports live at `@shoki/sdk/cli` (side-effect-free).
+  - Framework wiring (`expect.extend`) is owned by `@shoki/vitest` at the
+    subpath `@shoki/vitest/setup`. (Phase 8 Plan 05)
+- **Docs out of the pnpm workspace:** `docs/` is no longer a workspace member.
+  It builds standalone via `cd docs && pnpm install --ignore-workspace &&
+  pnpm build`. Root-level `pnpm -r {typecheck,test,build}` no longer traverses
+  docs. CI workflow `.github/workflows/docs.yml` updated accordingly.
+  (Phase 8 Plan 06)
+- **CI rewired for single-language Zig:** `helper-test` (which ran `swift test`)
+  replaced with `helper-smoke` — `mlugg/setup-zig@v2` + `zig build` + direct
+  exe smoke tests + `open -W -n <.app>` LaunchServices smoke tests for both
+  bundles. Release workflow verifies codesign on both `ShokiRunner.app` and
+  `ShokiSetup.app` per arch. (Phase 8 Plan 04)
+
+### Added
+
+- **`ShokiSetup.app`** — a minimal Zig-compiled macOS GUI bundle shipped
+  alongside `ShokiRunner.app` in every `@shoki/binding-darwin-*` tarball.
+  Double-clicking it (or running `shoki setup`) triggers the Accessibility +
+  Automation TCC prompts cleanly on first launch — replacing the manual
+  System Settings walkthrough. (Phase 8 Plan 03)
+- **`shoki setup` CLI subcommand** — launches the bundled `ShokiSetup.app`
+  with a resolver chain (`$SHOKI_SETUP_APP_PATH` > `node_modules/@shoki/
+  binding-<arch>/helper/ShokiSetup.app` > dev path). `--dry-run` prints
+  the resolved path without opening. (Phase 8 Plan 04)
+- **`shoki doctor --fix` emits `launch-setup-app`** ahead of the legacy
+  `open-system-settings` deep link when TCC grants are missing — `--fix`
+  picks the GUI path automatically. (Phase 8 Plan 04)
+- **Block-ABI XPC listener shim** — `helper/src/runner/xpc_block_shim.c`
+  (clang `-fblocks`, ~60 lines) bridges libxpc's block-ABI handler to Zig's
+  C-ABI callback. Resolves the Plan 02 deferred item.
+  (Phase 8 Plan 04)
+
+### Breaking
+
+- Imports from `@shoki/matchers` must migrate to `@shoki/sdk/matchers`.
+- Imports from `@shoki/doctor` must migrate to `@shoki/sdk` (CLI binary) or
+  `@shoki/sdk/cli` (library exports).
+- `@shoki/matchers/setup` is now `@shoki/vitest/setup`.
+- The `@shoki/doctor` and `@shoki/matchers` npm packages will no longer
+  receive updates after v0.1.x.
+
+## [0.1.0-prev-phase-8] — unreleased notes carried over from pre-Phase-8
 
 ### Added
 
