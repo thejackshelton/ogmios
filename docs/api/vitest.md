@@ -1,6 +1,10 @@
 # `@shoki/vitest`
 
-Vitest browser-mode integration. A Vitest plugin + browser-side API that bridges browser tests to the Node-side `@shoki/sdk` over Vitest's tinyRPC.
+Vitest browser-mode integration. Three pieces:
+
+- **`shokiVitest()`** plugin factory — Vitest config plugin that registers BrowserCommands + auto-sets `singleThread`.
+- **`@shoki/vitest/browser`** — browser-safe API (`voiceOver.start()`, `session.awaitStable()`).
+- **`@shoki/vitest/setup`** — `expect.extend(...)` setup file wiring Shoki's matchers (from `@shoki/sdk/matchers`) into Vitest's `expect`.
 
 For a narrative introduction see [Vitest quickstart](/getting-started/vitest-quickstart). This page is the API reference.
 
@@ -110,7 +114,7 @@ interface WireShokiEvent {
 }
 ```
 
-All four `@shoki/matchers` matchers accept `WireShokiEvent[]` transparently, so test code stays uniform across browser and Node contexts.
+All four Shoki matchers (at `@shoki/sdk/matchers`, wired through `@shoki/vitest/setup`) accept `WireShokiEvent[]` transparently, so test code stays uniform across browser and Node contexts.
 
 ## BrowserCommands
 
@@ -168,4 +172,4 @@ This lets a full Vitest run share a single VO boot across dozens of test files �
 
 - [Vitest quickstart](/getting-started/vitest-quickstart)
 - [`@shoki/sdk`](/api/sdk) — the Node-side API this wraps.
-- [`@shoki/matchers`](/api/matchers) — the assertions you build on top.
+- [Matchers API](/api/matchers) — `@shoki/sdk/matchers` (pure fns) + `@shoki/vitest/setup` (wiring).

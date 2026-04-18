@@ -14,18 +14,19 @@ See the [Platform risk](/background/platform-risk) page for an honest discussion
 ## Install the packages
 
 ```bash
-pnpm add -D @shoki/sdk @shoki/vitest @shoki/matchers
+pnpm add -D @shoki/sdk @shoki/vitest
 ```
 
-What each one does:
+Two user-installed packages cover every use case. What each one does:
 
 | Package | Purpose |
 |---------|---------|
-| `@shoki/sdk` | Core TypeScript API. `voiceOver()` factory, `ScreenReaderHandle`, event types. Loads the platform-specific binding via `optionalDependencies`. |
-| `@shoki/vitest` | Vitest browser-mode plugin. Registers 10 `BrowserCommand`s and auto-configures `poolOptions.threads.singleThread = true`. |
-| `@shoki/matchers` | `expect(log)` matchers — `toHaveAnnounced({ role, name })`, `toHaveAnnouncedText(pattern)`, `toHaveNoAnnouncement()`, `toHaveStableLog({ quietMs })`. |
+| `@shoki/sdk` | Core TypeScript API + CLI + matcher functions. `voiceOver()` factory, `ScreenReaderHandle`, event types, `shoki` CLI (bin entry), and framework-agnostic matcher functions at the subpath `@shoki/sdk/matchers`. Loads the platform-specific binding via `optionalDependencies`. |
+| `@shoki/vitest` | Vitest browser-mode plugin + matcher wiring. Registers 10 `BrowserCommand`s, auto-configures `poolOptions.threads.singleThread = true`, and exposes `@shoki/vitest/setup` which `expect.extend`s Shoki's matchers (`toHaveAnnounced`, `toHaveAnnouncedText`, `toHaveNoAnnouncement`, `toHaveStableLog`). |
 
 The platform-specific binding (`@shoki/binding-darwin-arm64` or `@shoki/binding-darwin-x64`) is an **optional** dependency of `@shoki/sdk` — pnpm picks the right one for your OS + CPU at install time. No postinstall scripts, no `node-gyp`.
+
+> **Heads up (v1.1):** prior versions shipped `@shoki/doctor` and `@shoki/matchers` as separate packages. They were merged into `@shoki/sdk` in the consolidation. The `shoki` CLI is now the `bin` entry of `@shoki/sdk`; matcher functions live at `@shoki/sdk/matchers`; and framework wiring (`expect.extend`) lives at `@shoki/vitest/setup`. See [CHANGELOG](https://github.com/shoki/shoki/blob/main/CHANGELOG.md) for the migration.
 
 ## Run the pre-flight check
 
@@ -39,6 +40,13 @@ What it does:
 - Checks that VoiceOver is AppleScript-controllable (`com.apple.VoiceOver4.local.plist` → `SCREnableAppleScriptEnabled`).
 - Checks that the ShokiRunner helper app has the Accessibility + Automation TCC grants it needs.
 - Flags stale grants from prior binary signatures.
+
+If TCC grants are missing, `shoki doctor --fix` emits a `LAUNCH_SETUP_APP` action and `shoki setup` launches the bundled **ShokiSetup.app** — a minimal GUI that triggers the Accessibility + Automation prompts cleanly on first run. One double-click replaces the multi-step System Settings walkthrough.
+
+```bash
+npx shoki setup        # launch ShokiSetup.app (opens TCC prompts)
+npx shoki doctor --fix # auto-launch when grants are detected missing
+```
 
 If everything is green, you're ready to write a test. See [Permission setup](./permission-setup) for what to do if it isn't.
 
@@ -59,12 +67,13 @@ On a fresh macOS arm64 machine this also loads the native binding into memory; a
 - [Vitest quickstart](./vitest-quickstart) — write your first test in under 5 minutes.
 - [CI quickstart](./ci-quickstart) — pick a runner topology and copy a workflow.
 
-## Why so many packages?
+## Why just two packages?
 
-Each package is a deliberately small surface:
+Shoki ships **4 packages** total — 2 you install directly, and 2 platform bindings pulled in automatically as `optionalDependencies`:
 
-- The **SDK** can be used without Vitest (e.g. from a standalone Node script, Playwright Test, or XCUITest harness).
-- The **matchers** don't depend on the SDK or the binding — they work against anything shaped like `ShokiEvent[]`.
-- The **Vitest plugin** doesn't force you to ship matchers in your prod bundle.
+- `@shoki/sdk` — core API, CLI (`bin: shoki`), and matcher functions at `@shoki/sdk/matchers`.
+- `@shoki/vitest` — Vitest browser-mode plugin + `@shoki/vitest/setup` for `expect.extend`.
+- `@shoki/binding-darwin-arm64` — platform binary (Zig-compiled `.node` + signed helper apps). Not installed by hand.
+- `@shoki/binding-darwin-x64` — platform binary for Intel macs. Not installed by hand.
 
-If you only need the capture core, `pnpm add -D @shoki/sdk` is enough. Matchers and the Vitest plugin are ergonomic sugar over the event stream.
+If you only need the capture core without Vitest ergonomics, `pnpm add -D @shoki/sdk` is enough — the matcher functions at `@shoki/sdk/matchers` are framework-agnostic and usable from Playwright Test, XCUITest, or a plain Node script.

@@ -11,7 +11,7 @@ If you're here, you've used [Guidepup](https://github.com/guidepup/guidepup) —
 | **API surface** | VO driver (keyPress, rotor nav, interact) + capture | Capture only |
 | **Data shape** | `string[]` of phrases | `ShokiEvent[]` — `{ phrase, ts, source, role?, name?, interrupt? }` |
 | **Test framework** | Playwright-first | Vitest-first (Playwright and XCUITest composable) |
-| **Trust anchor** | Grants TCC to Node (re-prompts on every upgrade) | Grants TCC to a signed Swift helper (stable) |
+| **Trust anchor** | Grants TCC to Node (re-prompts on every upgrade) | Grants TCC to a signed Zig-compiled helper (stable) |
 | **CI story** | Rolled-your-own per provider | Four reference topologies + reusable action |
 | **Matchers** | None — users build their own | Semantic matchers shipped with the library |
 | **Platform risk stance** | Implicit | Explicit disclosure of CVE-2025-43530 and AX-notifications hedge |

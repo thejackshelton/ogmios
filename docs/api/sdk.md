@@ -1,6 +1,13 @@
 # `@shoki/sdk`
 
-Core TypeScript SDK. Public API surface for booting a screen reader and reading structured events.
+Core TypeScript SDK. Public API surface for booting a screen reader, reading structured events, and running the `shoki` CLI. Ships three entry points:
+
+| Entry | Import | Purpose |
+|-------|--------|---------|
+| **Root** | `@shoki/sdk` | `voiceOver()` factory, `ScreenReaderHandle`, event types. |
+| **Matchers** | `@shoki/sdk/matchers` | Framework-agnostic matcher functions (pure assertion logic). See [Matchers API](/api/matchers). |
+| **CLI library** | `@shoki/sdk/cli` | Library exports for `shoki` CLI internals (`runDoctor`, `applyFixActions`, report types). See [CLI API](/api/cli). |
+| **Binary** | `bin: shoki` | CLI entry (`./dist/cli/main.js`). Installed on PATH via `npx shoki …`. |
 
 ```ts
 import { voiceOver } from "@shoki/sdk";
@@ -229,6 +236,7 @@ All shoki errors extend `ShokiError`.
 
 ## See also
 
-- [`@shoki/matchers`](/api/matchers) — `expect` matchers over `ShokiEvent[]`.
+- [Matchers API](/api/matchers) — `expect` matchers at `@shoki/sdk/matchers` (pure fns) + `@shoki/vitest/setup` (wiring).
 - [`@shoki/vitest`](/api/vitest) — Vitest browser-mode integration.
+- [`shoki` CLI](/api/cli) — doctor / setup / info / restore-vo-settings subcommands.
 - [Adding a screen reader driver](/background/adding-a-driver) — the same `ScreenReaderHandle` interface is reused.

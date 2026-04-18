@@ -39,16 +39,16 @@ Shoki solves those piece by piece.
 └──────────┬───────────┘
            │
 ┌──────────▼───────────┐
-│   @shoki/sdk (TS)    │   Public API surface
+│   @shoki/sdk (TS)    │   Public API + `shoki` CLI + matcher fns
 └──────────┬───────────┘
            │ N-API
 ┌──────────▼───────────┐
 │   shoki.node (Zig)   │   Native core — 50ms VO poll loop, ring buffer, wire format
 └──────────┬───────────┘
-           │ XPC
+           │ XPC (libShokiXPCClient.dylib)
 ┌──────────▼───────────┐
-│   ShokiRunner.app    │   Signed helper — holds the stable TCC trust anchor
-│   (Swift)            │
+│   ShokiRunner.app    │   Signed Zig-compiled helper — holds the stable TCC trust anchor
+│   ShokiSetup.app     │   Zig-compiled GUI — one-click TCC prompt on first run
 └──────────┬───────────┘
            │ AppleScript + AX notifications
 ┌──────────▼───────────┐
@@ -56,7 +56,14 @@ Shoki solves those piece by piece.
 └──────────────────────┘
 ```
 
-See [`docs/background/architecture.md`](docs/background/architecture.md) for the full story (signed-wrapper-app rationale, wire format spec, driver extensibility).
+Shoki ships **4 npm packages**:
+
+- `@shoki/sdk` — TypeScript API, `shoki` CLI (`bin`), and matcher functions at `@shoki/sdk/matchers`.
+- `@shoki/vitest` — Vitest browser-mode plugin + `@shoki/vitest/setup` for `expect.extend`.
+- `@shoki/binding-darwin-arm64` — platform binary (Zig `.node` + signed `ShokiRunner.app` + `ShokiSetup.app`).
+- `@shoki/binding-darwin-x64` — same for Intel Macs.
+
+The helper apps are **single-language Zig** — no Swift, no Objective-C sources. See [`docs/background/architecture.md`](docs/background/architecture.md) for the full story (signed-wrapper-app rationale, wire format spec, driver extensibility).
 
 ## Not yet
 

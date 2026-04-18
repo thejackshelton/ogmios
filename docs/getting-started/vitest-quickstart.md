@@ -11,9 +11,11 @@ The fastest way to get a real VoiceOver-backed test running. Five minutes end to
 ## 1. Install the packages
 
 ```bash
-pnpm add -D @shoki/sdk @shoki/vitest @shoki/matchers vitest @vitest/browser playwright
+pnpm add -D @shoki/sdk @shoki/vitest vitest @vitest/browser playwright
 pnpm exec playwright install chromium
 ```
+
+The `@shoki/binding-darwin-arm64` (or `-x64`) native package is installed automatically as an `optionalDependency` of `@shoki/sdk`.
 
 ## 2. Configure Vitest
 
@@ -26,7 +28,7 @@ import { shokiVitest } from "@shoki/vitest";
 export default defineConfig({
   plugins: [shokiVitest()],
   test: {
-    setupFiles: ["@shoki/matchers/setup"],
+    setupFiles: ["@shoki/vitest/setup"],
     browser: {
       enabled: true,
       provider: "playwright",
@@ -35,6 +37,8 @@ export default defineConfig({
   },
 });
 ```
+
+`@shoki/vitest/setup` runs `expect.extend(...)` for Shoki's four matchers (`toHaveAnnounced`, `toHaveAnnouncedText`, `toHaveNoAnnouncement`, `toHaveStableLog`) — the matcher implementations themselves are pure functions at `@shoki/sdk/matchers` and the setup file is the framework-specific wiring.
 
 The `shokiVitest()` plugin:
 

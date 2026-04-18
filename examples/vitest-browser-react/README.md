@@ -13,7 +13,7 @@ This example is the v1 success target (VITEST-07). Every other Phase 4 package e
   3. Clicks the Submit button with Playwright's built-in locator.
   4. Waits for announcements to settle (`session.awaitStable({ quietMs: 500 })`).
   5. Asserts `expect(log).toHaveAnnounced({ role: 'button', name: 'Submit' })`.
-- `vitest.config.ts` — Wires the `shokiVitest()` plugin + `@shoki/matchers/setup` in setupFiles.
+- `vitest.config.ts` — Wires the `shokiVitest()` plugin + `@shoki/vitest/setup` in setupFiles.
 
 ## Prerequisites
 
@@ -79,7 +79,7 @@ Tests  2 passed (2)
 2. **`voiceOver.start()` in the test** (browser side) dispatches `commands.shokiStart()` over Vitest's tinyRPC WebSocket to the Node-side `SessionStore`, which boots VoiceOver via `@shoki/sdk` and returns a `sessionId`.
 3. **`page.getByRole('button', { name: 'Submit' }).click()`** is pure Playwright — shoki doesn't drive the page, it only observes.
 4. **`session.awaitStable({ quietMs: 500 })`** polls `shokiAwaitStable` over tinyRPC until VoiceOver has been silent for 500ms, then returns the full event log.
-5. **`expect(log).toHaveAnnounced({ role: 'button', name: 'Submit' })`** (from `@shoki/matchers`) iterates the log and matches on event shape.
+5. **`expect(log).toHaveAnnounced({ role: 'button', name: 'Submit' })`** — matcher functions come from `@shoki/sdk/matchers`, wired onto Vitest's `expect` via `@shoki/vitest/setup`.
 6. **`session.stop()`** decrements the refcount. The last stop kills VO and restores the 9-key plist snapshot (CAP-03).
 
 ## Why the test is gated

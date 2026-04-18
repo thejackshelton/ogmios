@@ -1,14 +1,16 @@
 # @shoki/vitest
 
-Vitest browser-mode integration for Shoki. Registers BrowserCommands that bridge browser tests to `@shoki/sdk` over tinyRPC.
+Vitest browser-mode integration for Shoki. Registers BrowserCommands that bridge browser tests to `@shoki/sdk` over tinyRPC, and exposes `@shoki/vitest/setup` which wires Shoki's matchers (from `@shoki/sdk/matchers`) into Vitest's `expect` via `expect.extend`.
 
 ## Install
 
 ```sh
-pnpm add -D @shoki/vitest @shoki/sdk @shoki/matchers
+pnpm add -D @shoki/vitest @shoki/sdk
 ```
 
-See `examples/vitest-browser-react` (Plan 04-04) for the canonical end-to-end setup.
+The matcher functions live inside `@shoki/sdk/matchers` (framework-agnostic) and the `expect.extend` wiring lives at `@shoki/vitest/setup`. The platform binding (`@shoki/binding-darwin-arm64` or `-x64`) is installed automatically as an `optionalDependency` of `@shoki/sdk`.
+
+See `examples/vitest-browser-react` for the canonical end-to-end setup.
 
 ## Usage
 
@@ -20,6 +22,7 @@ import { shokiVitest } from '@shoki/vitest';
 export default defineConfig({
   plugins: [shokiVitest()],
   test: {
+    setupFiles: ['@shoki/vitest/setup'],
     browser: {
       enabled: true,
       provider: 'playwright',
@@ -33,7 +36,6 @@ export default defineConfig({
 // test.tsx
 import { voiceOver } from '@shoki/vitest/browser';
 import { page } from '@vitest/browser/context';
-import '@shoki/matchers/setup';
 import { expect, test } from 'vitest';
 
 test('submit announces', async () => {

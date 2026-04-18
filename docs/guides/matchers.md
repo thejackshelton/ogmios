@@ -1,6 +1,6 @@
 # Matchers — semantic assertions
 
-`@shoki/matchers` adds four Vitest `expect` matchers over `ShokiEvent[]` logs. All four work against both Node-side events (`tsNanos: bigint`) and browser-side RPC payloads (`tsMs: number`). Negation is supported via `.not.*` on every matcher.
+Shoki ships four Vitest `expect` matchers over `ShokiEvent[]` logs. The pure matcher functions live at **`@shoki/sdk/matchers`** (framework-agnostic); Vitest wiring (`expect.extend`) lives at **`@shoki/vitest/setup`**. All four work against both Node-side events (`tsNanos: bigint`) and browser-side RPC payloads (`tsMs: number`). Negation is supported via `.not.*` on every matcher.
 
 ## Setup
 
@@ -10,7 +10,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    setupFiles: ["@shoki/matchers/setup"],
+    setupFiles: ["@shoki/vitest/setup"],
   },
 });
 ```
@@ -160,19 +160,26 @@ Most tests will prefer `session.awaitStable({ quietMs })` which returns the stab
 
 ## Working against raw event logs
 
-If you're not using `@shoki/vitest`, the matchers still work against any `ShokiEvent[]` or `WireShokiEvent[]`:
+If you're not using `@shoki/vitest`, you can pull the pure matcher functions from `@shoki/sdk/matchers` and either wire them into your framework's own `expect.extend` or call them directly:
 
 ```ts
 import { voiceOver } from "@shoki/sdk";
+import { toHaveAnnounced } from "@shoki/sdk/matchers";
 
 const handle = voiceOver();
 await handle.start({ mute: true });
 // ... trigger work ...
 const log = handle.phraseLog();  // string[] convenience
 const events = await handle.drain();  // structured
-expect(events).toHaveAnnounced({ role: "button", name: "Submit" });
+
+// Direct call — returns { pass, message } (Jest-compatible shape):
+const result = toHaveAnnounced(events, { role: "button", name: "Submit" });
+if (!result.pass) throw new Error(result.message());
+
 await handle.stop();
 ```
+
+When using `@shoki/vitest/setup` the same matcher functions are registered on Vitest's `expect` — you write `expect(events).toHaveAnnounced(...)` and the setup file handles `expect.extend`.
 
 ## Chrome noise: how to avoid capturing URL-bar text
 
@@ -256,4 +263,4 @@ If that assertion ever fails, one of the three layers above has regressed
 
 ## Full API reference
 
-See the [Matchers API reference](/api/matchers) for type signatures and all options.
+See the [Matchers API reference](/api/matchers) for type signatures and all options. For the framework-wiring subpath see the [`@shoki/vitest` API reference](/api/vitest).

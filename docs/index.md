@@ -25,7 +25,7 @@ features:
     details: Shoki never clicks, types, or navigates. Your Playwright / XCUITest / framework drives the app; Shoki captures what the screen reader says about it.
   - icon: 🔒
     title: Stable TCC trust anchor
-    details: Signed Swift helper app holds the Accessibility + Automation grants. TCC doesn't break every time Node updates.
+    details: Signed Zig-compiled helper app holds the Accessibility + Automation grants. TCC doesn't break every time Node updates. One-click GUI setup (ShokiSetup.app) triggers first-run prompts.
   - icon: 🏗️
     title: CI-first
     details: Four reference topologies — self-hosted tart, Cirrus Runners, GetMac, stock macos-latest. Pre-baked tart images with VoiceOver-AppleScript-enabled and permissions granted.
@@ -40,8 +40,10 @@ features:
 ## Quick install
 
 ```bash
-pnpm add -D @shoki/sdk @shoki/vitest @shoki/matchers
+pnpm add -D @shoki/sdk @shoki/vitest
 npx shoki doctor
+# If TCC is missing, one-click setup via the bundled GUI:
+npx shoki setup
 ```
 
 Then follow the [Vitest quickstart](/getting-started/vitest-quickstart) — a complete working test in under 5 minutes.

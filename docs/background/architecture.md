@@ -10,9 +10,10 @@ This document captures the load-bearing design decisions for Shoki. Before chang
 │  @shoki/sdk (TS)       │
 │  shoki.node (N-API)    │  ← Zig compiled to .node addon
 └────────────┬───────────┘
-             │ XPC (NSXPCConnection)
+             │ XPC (libShokiXPCClient.dylib)
 ┌────────────▼───────────┐
-│  ShokiRunner.app       │  ← Swift, signed helper
+│  ShokiRunner.app       │  ← Zig-compiled, signed helper
+│  ShokiSetup.app        │  ← Zig-compiled GUI — triggers first-run TCC prompts
 └────────────┬───────────┘
              │ AppleScript + AX notifications
 ┌────────────▼───────────┐
@@ -20,9 +21,9 @@ This document captures the load-bearing design decisions for Shoki. Before chang
 └────────────────────────┘
 ```
 
-- **SDK layer** (`@shoki/sdk`, TypeScript) — public API. `voiceOver.listen()`, semantic matchers, event types.
-- **Core layer** (`shoki.node`, Zig via napi-zig) — in-process N-API addon. Owns the 50ms VO poll loop, the ring buffer, the wire format. Never spawns a subprocess for hot-path reads.
-- **Helper layer** (`ShokiRunner.app`, Swift) — signed helper app that holds the **stable TCC trust anchor**. When the Zig core needs to call into TCC-protected VO APIs, it routes via XPC through the helper.
+- **SDK layer** (`@shoki/sdk`, TypeScript) — public API. `voiceOver.listen()`, `shoki` CLI, matcher functions at `@shoki/sdk/matchers`, event types.
+- **Core layer** (`shoki.node`, Zig via napi-zig) — in-process N-API addon. Owns the 50ms VO poll loop, the ring buffer, the wire format. Never spawns a subprocess for hot-path reads. Links `libShokiXPCClient.dylib` (also Zig-compiled) as the XPC client surface.
+- **Helper layer** (`ShokiRunner.app`, Zig) — signed helper app that holds the **stable TCC trust anchor**. When the Zig core needs to call into TCC-protected VO APIs, it routes via XPC through the helper. Shipped alongside `ShokiSetup.app` — a minimal Zig-compiled GUI whose sole purpose is to trigger the Accessibility + Automation TCC prompts cleanly on first run (replaces the multi-step System Settings walkthrough).
 
 ### Why N-API in-process, not a daemon or spawned CLI
 
@@ -41,14 +42,14 @@ macOS's TCC (Transparency, Consent, Control) framework gates Accessibility and A
 - Users must re-approve permissions after every npm/Node upgrade.
 - `tccutil reset` doesn't cleanly remove stale entries.
 
-**Chosen solution:** grant TCC to a small, stable, Developer ID-signed Swift helper app (`ShokiRunner.app`) that lives inside the `@shoki/binding-<os>-<arch>` npm package. The Zig core talks to the helper via XPC; TCC sees the helper's stable bundle identity, not `node`'s or the addon's.
+**Chosen solution:** grant TCC to a small, stable, Developer ID-signed helper app (`ShokiRunner.app`) that lives inside the `@shoki/binding-<os>-<arch>` npm package. The Zig core talks to the helper via XPC; TCC sees the helper's stable bundle identity, not `node`'s or the addon's.
 
 Consequences:
 
-- Every release requires Apple Developer ID signing + notarization of the helper. Documented in [Release setup](./release-setup.md).
-- The helper is **tiny** — one Swift target, one XPC protocol, one service implementation.
+- Every release requires Apple Developer ID signing + notarization of **both** helper bundles (`ShokiRunner.app` and `ShokiSetup.app`). Documented in [Release setup](./release-setup.md).
+- The helper is **tiny** — Zig-compiled, one build target per bundle, one XPC protocol, one service implementation. Single-language helper means no Swift toolchain is required to build shoki from source.
 - The `.node` addon itself is NOT independently signed; it inherits trust from Node.
-- Local dev without Dev ID works — the helper script noops signing when `DEVELOPER_ID_IDENTITY` is unset. You'll just re-prompt for permissions more often.
+- Local dev without Dev ID works — the helper script noops signing when `APPLE_DEVELOPER_ID_APP` is unset. You'll just re-prompt for permissions more often.
 
 Alternatives considered and rejected:
 

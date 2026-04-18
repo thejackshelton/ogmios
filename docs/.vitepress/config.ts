@@ -119,7 +119,7 @@ export default defineConfig({
 					text: "API Reference",
 					items: [
 						{ text: "@shoki/sdk", link: "/api/sdk" },
-						{ text: "@shoki/matchers", link: "/api/matchers" },
+						{ text: "Matchers", link: "/api/matchers" },
 						{ text: "@shoki/vitest", link: "/api/vitest" },
 						{ text: "shoki (CLI)", link: "/api/cli" },
 					],

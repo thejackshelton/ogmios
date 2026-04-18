@@ -1,17 +1,24 @@
-# `@shoki/matchers`
+# Matchers (`@shoki/sdk/matchers` + `@shoki/vitest/setup`)
 
-Vitest `expect` matchers over `ShokiEvent[]` (or `WireShokiEvent[]`) logs. For a narrative introduction with full examples, see the [Matchers guide](/guides/matchers). This page is the type reference.
+Four Vitest `expect` matchers over `ShokiEvent[]` (or `WireShokiEvent[]`) logs.
+
+The package layout separates pure assertion logic from framework wiring:
+
+- **`@shoki/sdk/matchers`** — framework-agnostic matcher functions (Jest-compatible `{ pass, message }` shape). Safe to import from anywhere.
+- **`@shoki/vitest/setup`** — the `expect.extend(...)` setup file. This is what you point Vitest's `setupFiles` at.
+
+For a narrative introduction with full examples, see the [Matchers guide](/guides/matchers). This page is the type reference.
 
 ## Setup
 
 ```ts
 // vitest.config.ts
 export default defineConfig({
-  test: { setupFiles: ["@shoki/matchers/setup"] },
+  test: { setupFiles: ["@shoki/vitest/setup"] },
 });
 ```
 
-This registers the four matchers globally and augments Vitest's `expect` type to know about them.
+This registers the four matchers globally and augments Vitest's `expect` type to know about them. The matcher implementations themselves come from `@shoki/sdk/matchers`.
 
 ## Shared types
 
@@ -143,7 +150,7 @@ Most tests will prefer `session.awaitStable({ quietMs })` which returns a stable
 
 ## Type augmentation
 
-`@shoki/matchers/setup` adds this to Vitest's `expect`:
+`@shoki/vitest/setup` adds this to Vitest's `expect`:
 
 ```ts
 declare module "vitest" {

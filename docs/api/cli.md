@@ -1,9 +1,10 @@
 # `shoki` CLI
 
-Shipped as part of `@shoki/doctor`. Two subcommands today: `doctor` and `info`.
+Shipped as the `bin` entry of **`@shoki/sdk`** (`bin: { "shoki": "./dist/cli/main.js" }`). Installing `@shoki/sdk` puts `shoki` on your PATH via `npx`. Four subcommands today: `doctor`, `setup`, `info`, and `restore-vo-settings`.
 
 ```bash
 npx shoki doctor
+npx shoki setup
 npx shoki info
 ```
 
@@ -109,11 +110,11 @@ shoki info
 
 Dumps (to stdout):
 
-- `shoki` package versions (sdk, doctor, matchers, vitest).
+- `shoki` package versions (sdk, vitest).
 - macOS version + codename.
 - Node version + arch.
 - pnpm version (if present in PATH).
-- Resolved paths for `@shoki/binding-*` installations.
+- Resolved paths for `@shoki/binding-*` installations (includes both `ShokiRunner.app` and `ShokiSetup.app` paths).
 - Whether `codesign -dvvv` on the helper succeeds.
 
 Paste the output into your GitHub issue and we can skip half the back-and-forth.
@@ -125,12 +126,40 @@ Paste the output into your GitHub issue and we can skip half the back-and-forth.
 | `--json` | Machine-readable output. |
 | `--help` | Print help. |
 
+## `shoki setup`
+
+Launch the bundled **ShokiSetup.app** — a minimal Zig-compiled macOS GUI that triggers the Accessibility + Automation TCC prompts cleanly on first run. Replaces the multi-step System Settings walkthrough.
+
+```bash
+shoki setup [options]
+```
+
+### Options
+
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Print the resolved `ShokiSetup.app` path without launching it. Useful for CI diagnostics. |
+| `-h`, `--help` | Print help. |
+
+### Resolver chain
+
+`shoki setup` locates the bundle in this order:
+
+1. `$SHOKI_SETUP_APP_PATH` — explicit override.
+2. `node_modules/@shoki/binding-darwin-arm64/helper/ShokiSetup.app` (or `-x64`, depending on host arch).
+3. `helper/.build/ShokiSetup.app` — the monorepo dev-build path.
+
+If none resolve, exits `HELPER_MISSING` (8).
+
+### Relation to `shoki doctor --fix`
+
+`shoki doctor` now emits a `launch-setup-app` fix action ahead of the legacy `open-system-settings` deep link when `TCC_MISSING_ACCESSIBILITY` or `TCC_MISSING_AUTOMATION` fires. `--fix` picks the GUI path automatically; manual users can still copy the deep-link URL from the JSON report.
+
 ## Planned subcommands (v1.1+)
 
 | Command | Purpose | Status |
 |---------|---------|--------|
 | `shoki capture` | Standalone capture loop — boot VO, print events to stdout until SIGINT. Useful for ad-hoc debugging without a test framework. | Deferred to v1.1 |
-| `shoki setup` | Apply the full setup-action locally. | Deferred to v1.1 |
 
 ## Exit code semantics
 
