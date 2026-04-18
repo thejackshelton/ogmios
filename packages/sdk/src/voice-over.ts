@@ -75,7 +75,7 @@ function voiceOverFactory(opts: VoiceOverOptions = {}): ScreenReaderHandle {
 // ---------------------------------------------------------------------------
 // Process-singleton for the convenience API (Phase 7 Decision D-03)
 //
-// Refcount model mirrors shoki/vitest's SessionStore (VITEST-05): the first
+// Refcount model mirrors @shoki/core/vitest's SessionStore (VITEST-05): the first
 // start() boots the driver; subsequent starts return the same handle and
 // bump a refcount. The last end() tears the handle down (stop + deinit).
 // end() without a prior start() is a no-op — matches the "afterAll is safe

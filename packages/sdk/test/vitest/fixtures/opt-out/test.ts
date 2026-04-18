@@ -1,4 +1,4 @@
-import { voiceOver } from 'shoki/vitest/browser';
+import { voiceOver } from '@shoki/core/vitest/browser';
 import { test } from 'vitest';
 
 test('opt-out', async () => {

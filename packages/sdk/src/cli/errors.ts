@@ -1,6 +1,6 @@
 /**
- * `shoki/cli` (doctor) typed error taxonomy.
- * Mirrors the `shoki` ShokiError pattern (stable `code` string + `name`).
+ * `@shoki/core/cli` (doctor) typed error taxonomy.
+ * Mirrors the `@shoki/core` ShokiError pattern (stable `code` string + `name`).
  */
 
 export class DoctorError extends Error {
@@ -29,7 +29,7 @@ export class HelperNotFoundError extends DoctorError {
   constructor(public readonly searchedPaths: string[]) {
     super(
       `ShokiRunner.app was not found in any known location. Searched:\n  - ${searchedPaths.join('\n  - ')}\n` +
-        `Install shoki (which pulls in the platform binding containing the helper), ` +
+        `Install @shoki/core (which pulls in the platform binding containing the helper), ` +
         `or set SHOKI_HELPER_PATH to override.`,
       'ERR_HELPER_NOT_FOUND',
     );

@@ -1,7 +1,7 @@
 /**
- * Browser-safe base class — does NOT import from the shoki Node entry because
- * the browser entry (`shoki/vitest/browser`) must not pull in Node-only modules.
- * Structurally compatible with the shoki core `ShokiError` (Error + `.code`).
+ * Browser-safe base class — does NOT import from the @shoki/core Node entry because
+ * the browser entry (`@shoki/core/vitest/browser`) must not pull in Node-only modules.
+ * Structurally compatible with the @shoki/core `ShokiError` (Error + `.code`).
  */
 export class ShokiError extends Error {
   constructor(
@@ -48,7 +48,7 @@ export class ShokiSessionNotFoundError extends ShokiError {
 export class ShokiBindingNotAvailableError extends ShokiError {
   constructor(cause?: string) {
     super(
-      'The shoki native binding is not available in this process. ' +
+      'The @shoki/core native binding is not available in this process. ' +
         (cause ? `Underlying error: ${cause}. ` : '') +
         'Run `npx shoki doctor` or check that the platform-specific binding is installed.',
       'ERR_SHOKI_BINDING_NOT_AVAILABLE',
