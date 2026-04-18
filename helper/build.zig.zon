@@ -1,0 +1,20 @@
+.{
+    .name = .shoki_helper,
+    .version = "0.0.0",
+    // Arbitrary 64-bit identifier for this package; Zig's build system
+    // validates the low bits to distinguish it from other packages. The
+    // value below was produced by Zig 0.16 when it rejected a hand-rolled
+    // fingerprint that collided with its reserved space — it is a fresh
+    // random id that is NOT reused anywhere else in the tree (distinct
+    // from zig/build.zig.zon's 0x46448382d63a18be).
+    .fingerprint = 0x10005a4ffe7d374e,
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{},
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "all_tests.zig",
+        "src",
+        "test",
+    },
+}
