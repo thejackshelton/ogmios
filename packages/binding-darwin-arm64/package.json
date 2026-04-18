@@ -1,11 +1,11 @@
 {
-  "name": "@munadi/binding-darwin-arm64",
+  "name": "@ogmios/binding-darwin-arm64",
   "version": "0.1.0",
-  "description": "Munadi native addon — darwin arm64 (Apple Silicon)",
+  "description": "Ogmios native addon — darwin arm64 (Apple Silicon)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thejackshelton/munadi.git",
+    "url": "git+https://github.com/thejackshelton/ogmios.git",
     "directory": "packages/binding-darwin-arm64"
   },
   "main": "munadi.node",
