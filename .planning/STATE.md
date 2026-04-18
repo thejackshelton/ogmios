@@ -111,6 +111,10 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from]: Plan 10-03: app-release.yml publishes shoki-darwin-{arm64,x64}.zip+.sha256 to GitHub Releases on app-v* tags; package-app-zip.sh uses staged-dir ditto (ditto -c rejects multi-source) to keep Shoki.app + Shoki Setup.app at archive root; build-app-bundle.sh gained --target for x64 cross-compile; secret gating via job-level env (step if: cannot reference secrets context)
 - [Phase 10]: Renamed @shoki/sdk → shoki; collapsed @shoki/vitest into shoki/vitest subpaths; .apps moved out of npm tarballs onto GitHub Releases; new app-v* tag cadence independent from v* SDK cadence
 
+### Roadmap Evolution
+
+- Phase 11 added: Full rebrand Shoki/Dicta to Munadi — binaries, npm packages, CLI bin, state dir, env vars, plist keys, Zig source, infra, error class names, repo URL, all docs and prose, homepage Arabic etymology
+
 ### Pending Todos
 
 None yet.

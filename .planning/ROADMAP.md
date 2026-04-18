@@ -196,6 +196,22 @@ Plans:
 - [x] 10-04-PLAN.md — Strip helper/ from binding tarballs + rewire .github/actions/build-helper-app + scrub release.yml [Wave 2]
 - [x] 10-05-PLAN.md — Docs sweep (README + every docs/ + CHANGELOG) + final end-to-end verification gate + 10-SUMMARY.md [Wave 4]
 
+### Phase 11: Full rebrand Shoki/Dicta to Munadi — binaries, npm packages, CLI bin, state dir, env vars, plist keys, Zig source, infra, error class names, repo URL, all docs and prose, homepage Arabic etymology
+
+**Goal:** Complete the fourth and final name pivot. Every Shoki and Dicta token becomes Munadi (Arabic: مُنادي, "herald" / "one who announces"). Scope includes npm packages (`dicta` → `munadi`, `@shoki/binding-*` → `@munadi/binding-*`), CLI bin, helper app bundles (bundle IDs, display names, .app directory names, CSREQ trust anchors), Zig core package + compiled `.node` filename, env vars (`SHOKI_*` → `MUNADI_*`), plist snapshot keys, state directory (`~/.shoki/` / `~/.dicta/` → `~/.munadi/` with clean-break legacy detection), error class names (`Shoki*Error` → `Munadi*Error`), infra (tart image labels, Ansible variables, TCC-grant script), GitHub Actions workflows, every doc and every prose reference, repo URL rename to `github.com/thejackshelton/munadi`, npm deprecate of prior names (reversible; no unpublish), homepage Arabic etymology lead, and terminal-step parent folder rename `/Users/jackshelton/dev/open-source/shoki` → `/Users/jackshelton/dev/open-source/munadi`.
+**Requirements**: N/A — infrastructure/rebrand phase, no v1 REQ-IDs.
+**Depends on:** Phase 10
+**Plans:** 7 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — packages/sdk TS surface rename (package.json, plugin needle, CLI, error classes, env vars, tests) [Wave 1]
+- [ ] 11-02-PLAN.md — Binding packages rename to @munadi scope (package.json + README) [Wave 1]
+- [ ] 11-03-PLAN.md — Zig core rename: package name, build product, plist keys, env vars, rebuild munadi.node into both bindings [Wave 2 — depends on 11-02]
+- [ ] 11-04-PLAN.md — Helper app end-to-end rename: Zig sources, Info.plists, XPC symbols, dylib, build scripts, .app bundles [Wave 1]
+- [ ] 11-05-PLAN.md — Infra rebrand: tart Packer images, Ansible vars, TCC-grant script [Wave 1]
+- [ ] 11-06-PLAN.md — Prose + example + workflow sweep: README, CHANGELOG, CLAUDE.md, CONTRIBUTING, docs/**, RELEASE runbook, example Qwik project, .github/** [Wave 3 — depends on 11-01..05]
+- [ ] 11-07-PLAN.md — Terminal: version bump 0.1.1, GitHub repo rename, npm publish + deprecate prior names, parent folder rename (session-terminating) [Wave 4 — depends on 11-01..06, checkpoints]
+
 ---
 *Roadmap created: 2026-04-17*
 *Granularity: standard (target 5-8 phases) — 6 phases derived from natural delivery boundaries; Phase 3 is requirement-dense (16 reqs) but cohesive and will be split into 3-4 plans during /gsd-plan-phase.*
