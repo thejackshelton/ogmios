@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Sign and notarize a .app bundle (MunadiRunner.app OR MunadiSetup.app).
+# Sign and notarize a .app bundle (OgmiosRunner.app OR OgmiosSetup.app).
 #
 # Usage: ./scripts/sign-and-notarize.sh <path-to-app> [--entitlements <path>]
 #
 # Plan 08-04 factored the script to accept any .app path (previously
-# MunadiRunner-only). CI loops over both bundles, calling this once per bundle.
+# OgmiosRunner-only). CI loops over both bundles, calling this once per bundle.
 # Entitlements default is inferred from the bundle basename:
-#   - MunadiRunner.app -> src/runner/MunadiRunner.entitlements
-#   - MunadiSetup.app  -> src/setup/MunadiSetup.entitlements
-#   - anything else    -> src/runner/MunadiRunner.entitlements (backward-compat
+#   - OgmiosRunner.app -> src/runner/OgmiosRunner.entitlements
+#   - OgmiosSetup.app  -> src/setup/OgmiosSetup.entitlements
+#   - anything else    -> src/runner/OgmiosRunner.entitlements (backward-compat
 #                         default; callers can override via --entitlements).
 #
 # Required env vars:
@@ -67,9 +67,9 @@ HELPER_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 if [[ -z "$ENT_PATH" ]]; then
     base="$(basename "$APP_PATH" .app)"
     case "$base" in
-        MunadiRunner) ENT_PATH="$HELPER_DIR/src/runner/MunadiRunner.entitlements" ;;
-        MunadiSetup)  ENT_PATH="$HELPER_DIR/src/setup/MunadiSetup.entitlements" ;;
-        *)            ENT_PATH="$HELPER_DIR/src/runner/MunadiRunner.entitlements" ;;
+        OgmiosRunner) ENT_PATH="$HELPER_DIR/src/runner/OgmiosRunner.entitlements" ;;
+        OgmiosSetup)  ENT_PATH="$HELPER_DIR/src/setup/OgmiosSetup.entitlements" ;;
+        *)            ENT_PATH="$HELPER_DIR/src/runner/OgmiosRunner.entitlements" ;;
     esac
 fi
 

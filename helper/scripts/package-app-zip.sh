@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# Package MunadiRunner.app + MunadiSetup.app into a single release zip + SHA256.
+# Package OgmiosRunner.app + OgmiosSetup.app into a single release zip + SHA256.
 #
 # Usage: ./scripts/package-app-zip.sh --arch <arm64|x64> [--out-dir <path>]
 #
 # Reads (must already exist):
-#   helper/.build/MunadiRunner.app
-#   helper/.build/MunadiSetup.app
+#   helper/.build/OgmiosRunner.app
+#   helper/.build/OgmiosSetup.app
 #
 # Writes (under --out-dir, default helper/.build/):
-#   munadi-darwin-<arch>.zip          (contains MunadiRunner.app/ + MunadiSetup.app/ at root)
-#   munadi-darwin-<arch>.zip.sha256   (format: "<64-hex>  munadi-darwin-<arch>.zip\n")
+#   ogmios-darwin-<arch>.zip          (contains OgmiosRunner.app/ + OgmiosSetup.app/ at root)
+#   ogmios-darwin-<arch>.zip.sha256   (format: "<64-hex>  ogmios-darwin-<arch>.zip\n")
 #
-# Phase 10 Plan 03: this is the producer side of the `munadi setup` download flow
+# Phase 10 Plan 03: this is the producer side of the `ogmios setup` download flow
 # (Plan 10-02 parses the SHA256 file with that exact "<64-hex>  <basename>\n"
 # format). The bundles match the user-visible names from 11-CONTEXT.md — two
-# separate apps (MunadiRunner.app + MunadiSetup.app). Bundle identifiers
-# (org.munadi.runner / org.munadi.setup) follow the same scheme so TCC
-# grants are fresh under the new Munadi trust anchor.
+# separate apps (OgmiosRunner.app + OgmiosSetup.app). Bundle identifiers
+# (org.ogmios.runner / org.ogmios.setup) follow the same scheme so TCC
+# grants are fresh under the new Ogmios trust anchor.
 #
 # Uses `ditto -c -k` on a staging dir — macOS-native zip that preserves bundle
 # metadata (resource forks, xattrs), so the extracted .apps launch cleanly
@@ -69,8 +69,8 @@ if [[ -z "$OUT_DIR" ]]; then
 fi
 mkdir -p "$OUT_DIR"
 
-RUNNER_SRC="$HELPER_DIR/.build/MunadiRunner.app"
-SETUP_SRC="$HELPER_DIR/.build/MunadiSetup.app"
+RUNNER_SRC="$HELPER_DIR/.build/OgmiosRunner.app"
+SETUP_SRC="$HELPER_DIR/.build/OgmiosSetup.app"
 
 for d in "$RUNNER_SRC" "$SETUP_SRC"; do
     if [[ ! -d "$d" ]]; then
@@ -80,27 +80,27 @@ for d in "$RUNNER_SRC" "$SETUP_SRC"; do
     fi
 done
 
-ZIP_NAME="munadi-darwin-${ARCH}.zip"
+ZIP_NAME="ogmios-darwin-${ARCH}.zip"
 SHA_NAME="${ZIP_NAME}.sha256"
 ZIP_PATH="$OUT_DIR/$ZIP_NAME"
 SHA_PATH="$OUT_DIR/$SHA_NAME"
 
 # Stage bundles in a temp dir; never mutate the build outputs so a
 # subsequent `package-app-zip.sh --arch <other>` run (or a re-run of the same
-# arch) sees the canonical MunadiRunner.app / MunadiSetup.app names.
+# arch) sees the canonical OgmiosRunner.app / OgmiosSetup.app names.
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
 echo "[package-app-zip] Staging bundles in $STAGE"
-ditto "$RUNNER_SRC" "$STAGE/MunadiRunner.app"
-ditto "$SETUP_SRC"  "$STAGE/MunadiSetup.app"
+ditto "$RUNNER_SRC" "$STAGE/OgmiosRunner.app"
+ditto "$SETUP_SRC"  "$STAGE/OgmiosSetup.app"
 
 echo "[package-app-zip] Creating $ZIP_NAME"
 # ditto -c -k accepts exactly one source. Archiving the STAGE dir (without
-# --keepParent) places its immediate children — MunadiRunner.app/ and
-# MunadiSetup.app/ — at the zip root, which is what Plan 10-02's extractor
+# --keepParent) places its immediate children — OgmiosRunner.app/ and
+# OgmiosSetup.app/ — at the zip root, which is what Plan 10-02's extractor
 # relies on (see packages/sdk/src/cli/setup-install.ts: it looks for
-# <installDir>/MunadiRunner.app and <installDir>/MunadiSetup.app after extraction).
+# <installDir>/OgmiosRunner.app and <installDir>/OgmiosSetup.app after extraction).
 #
 # Note: the original plan text suggested `ditto -c -k --keepParent A.app B.app <zip>`,
 # but ditto's -c form rejects multiple sources ("Can't archive multiple
