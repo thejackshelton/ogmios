@@ -157,6 +157,26 @@ Plans:
 - [x] 07-05-PLAN.md — Settings restore SIGKILL verification + shoki restore-vo-settings CLI escape hatch + permission-setup docs [Wave 2]
 - [x] 07-06-PLAN.md — End-to-end verification + QA-REPORT.md with all 15 CONTEXT.md checklist items + human-verify checkpoint [Wave 4]
 
+### Phase 8: Zig helper port + ShokiSetup.app GUI + package consolidation
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 7
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 8 to break down)
+
+### Phase 9: Qwik example + docs switch from React
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 8
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 9 to break down)
+
 ---
 *Roadmap created: 2026-04-17*
 *Granularity: standard (target 5-8 phases) — 6 phases derived from natural delivery boundaries; Phase 3 is requirement-dense (16 reqs) but cohesive and will be split into 3-4 plans during /gsd-plan-phase.*
