@@ -174,4 +174,37 @@ pub extern "c" fn xpc_release(object: xpc_object_t) void;
 /// (`ShokiRunnerMachServiceName`).
 pub const mach_service_name: [*:0]const u8 = "org.shoki.runner";
 
+// ---------------------------------------------------------------------------
+// Block-ABI shim (Plan 08-04 — previously deferred by 08-02)
+// ---------------------------------------------------------------------------
+//
+// libxpc's `xpc_connection_set_event_handler` takes an Obj-C block, not a
+// function pointer. See `helper/src/runner/xpc_block_shim.c` for the clang-
+// compiled bridge that wraps a Zig-exported C handler in a real block and
+// passes it to libxpc. Calling `xpc_connection_set_event_handler` directly
+// (above) with a plain function pointer crashes inside libsystem_blocks; the
+// shim functions below are the safe entry point.
+
+/// Install a connection-level event handler block. Used on a peer connection
+/// to handle incoming XPC_TYPE_CONNECTION events (new peer, error, cancel).
+pub extern "c" fn shoki_xpc_install_event_handler_block(
+    connection: xpc_connection_t,
+    handler: xpc_event_handler_fn,
+) void;
+
+/// Install a message-level event handler block. Used on an already-accepted
+/// peer connection to receive XPC_TYPE_DICTIONARY messages from the client.
+pub extern "c" fn shoki_xpc_install_peer_message_handler_block(
+    connection: xpc_connection_t,
+    handler: xpc_event_handler_fn,
+) void;
+
+/// Self-test — invokes `handler(arg)` through a heap-copied block. Used by
+/// the helper's unit test to prove the block ABI works end-to-end without
+/// needing a live Mach service. Callable with any non-null `arg`.
+pub extern "c" fn shoki_xpc_self_test_invoke_handler_block(
+    handler: xpc_event_handler_fn,
+    arg: xpc_object_t,
+) void;
+
 // NOTE: Do not migrate to @cImport — see 08-CONTEXT.md § "Hand-written extern decls (avoid @cImport drift)".

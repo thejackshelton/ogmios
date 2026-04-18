@@ -88,13 +88,14 @@ fn installSignalHandlers() void {
 /// Called by libxpc for each incoming peer connection. We install a per-peer
 /// event handler that dispatches messages into `svc.dispatch` and sends the
 /// reply back on the connection.
+///
+/// Plan 08-04: uses the block-ABI shim (`shoki_xpc_install_peer_message_handler_block`)
+/// to wrap `onPeerMessage` in a real Obj-C block before installing it on the
+/// peer connection. Passing a plain C function pointer to libxpc crashes
+/// inside libsystem_blocks (08-02 deferred item).
 fn onListenerEvent(peer: xpc.xpc_object_t) callconv(.c) void {
-    // In a real listener the `peer` here IS an xpc_connection_t. libxpc
-    // delivers an object whose type is connection; we resume it and set a
-    // message handler. `xpc_connection_set_event_handler` expects the same
-    // function-pointer shape — we re-use onPeerMessage below.
     const conn: xpc.xpc_connection_t = @ptrCast(peer);
-    xpc.xpc_connection_set_event_handler(conn, onPeerMessage);
+    xpc.shoki_xpc_install_peer_message_handler_block(conn, onPeerMessage);
     xpc.xpc_connection_resume(conn);
 }
 

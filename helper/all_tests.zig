@@ -10,4 +10,5 @@ comptime {
     _ = @import("test/xpc_service_test.zig");
     _ = @import("test/ax_observer_test.zig");
     _ = @import("test/setup_bindings_test.zig");
+    _ = @import("test/xpc_block_shim_test.zig");
 }

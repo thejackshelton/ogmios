@@ -90,10 +90,26 @@ pub fn build(b: *std.Build) void {
     // siblings; since they share its root-file subtree (`src/runner/`) no
     // explicit addImport is needed for those.
 
+    // Plan 08-04: block-ABI shim. libxpc's set_event_handler takes an
+    // Obj-C block; clang compiles src/runner/xpc_block_shim.c with -fblocks
+    // to produce the real block literals that Zig cannot emit. The
+    // symbols are declared in xpc_bindings.zig and consumed by main.zig.
+    if (target.result.os.tag == .macos) {
+        runner_mod.addCSourceFile(.{
+            .file = b.path("src/runner/xpc_block_shim.c"),
+            .flags = &.{ "-fblocks", "-fobjc-arc", "-Wall" },
+        });
+    }
+
     if (target.result.os.tag == .macos) {
         runner_mod.linkFramework("Foundation", .{});
         runner_mod.linkFramework("ApplicationServices", .{});
         runner_mod.linkFramework("CoreFoundation", .{});
+        // Plan 08-04: link the clang blocks runtime so the block descriptors
+        // produced by xpc_block_shim.c resolve at link time. libSystem on
+        // macOS 13+ includes the blocks runtime, but we link BlocksRuntime
+        // explicitly via -lobjc for forward-compat.
+        runner_mod.linkSystemLibrary("objc", .{});
     }
 
     const runner_exe = b.addExecutable(.{
@@ -237,6 +253,12 @@ pub fn build(b: *std.Build) void {
         // libobjc symbols (objc_getClass, sel_registerName).
         test_mod.linkFramework("AppKit", .{});
         test_mod.linkSystemLibrary("objc", .{});
+        // Plan 08-04: xpc_block_shim_test.zig references the block-ABI
+        // shim symbols; compile the same C file into the test module.
+        test_mod.addCSourceFile(.{
+            .file = b.path("src/runner/xpc_block_shim.c"),
+            .flags = &.{ "-fblocks", "-fobjc-arc", "-Wall" },
+        });
     }
 
     const t = b.addTest(.{ .root_module = test_mod });
