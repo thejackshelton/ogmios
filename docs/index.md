@@ -40,7 +40,7 @@ features:
 ## Quick install
 
 ```bash
-pnpm add -D @shoki/sdk @shoki/vitest
+pnpm add -D shoki shoki/vitest
 npx shoki doctor
 # If TCC is missing, one-click setup via the bundled GUI:
 npx shoki setup

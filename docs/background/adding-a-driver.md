@@ -75,7 +75,7 @@ If your driver targets a new OS/arch triple, create `packages/binding-<os>-<arch
 }
 ```
 
-Add it to `@shoki/sdk`'s `optionalDependencies` in `packages/sdk/package.json`:
+Add it to `shoki`'s `optionalDependencies` in `packages/sdk/package.json`:
 
 ```json
 "optionalDependencies": {
@@ -137,7 +137,7 @@ Each platform will have its own security model documented when the driver lands.
 - [ ] `zig/src/drivers/<name>/driver.zig` implements the vtable
 - [ ] `zig/src/core/registry.zig` includes the driver
 - [ ] New `packages/binding-<os>-<arch>/` exists with correct `os`/`cpu`
-- [ ] `@shoki/sdk/package.json` lists the binding in `optionalDependencies`
+- [ ] `shoki/package.json` lists the binding in `optionalDependencies`
 - [ ] `packages/sdk/src/<name>.ts` factory + `index.ts` export
 - [ ] Zig + TS tests green
 - [ ] CI builds and runs tests for the new platform

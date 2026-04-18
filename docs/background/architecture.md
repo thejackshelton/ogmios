@@ -7,7 +7,7 @@ This document captures the load-bearing design decisions for Shoki. Before chang
 ```
 ┌────────────────────────┐
 │  Test process (Node)   │
-│  @shoki/sdk (TS)       │
+│  shoki (TS)       │
 │  shoki.node (N-API)    │  ← Zig compiled to .node addon
 └────────────┬───────────┘
              │ XPC (libShokiXPCClient.dylib)
@@ -21,7 +21,7 @@ This document captures the load-bearing design decisions for Shoki. Before chang
 └────────────────────────┘
 ```
 
-- **SDK layer** (`@shoki/sdk`, TypeScript) — public API. `voiceOver.listen()`, `shoki` CLI, matcher functions at `@shoki/sdk/matchers`, event types.
+- **SDK layer** (`shoki`, TypeScript) — public API. `voiceOver.listen()`, `shoki` CLI, matcher functions at `shoki/matchers`, event types.
 - **Core layer** (`shoki.node`, Zig via napi-zig) — in-process N-API addon. Owns the 50ms VO poll loop, the ring buffer, the wire format. Never spawns a subprocess for hot-path reads. Links `libShokiXPCClient.dylib` (also Zig-compiled) as the XPC client surface.
 - **Helper layer** (`ShokiRunner.app`, Zig) — signed helper app that holds the **stable TCC trust anchor**. When the Zig core needs to call into TCC-protected VO APIs, it routes via XPC through the helper. Shipped alongside `ShokiSetup.app` — a minimal Zig-compiled GUI whose sole purpose is to trigger the Accessibility + Automation TCC prompts cleanly on first run (replaces the multi-step System Settings walkthrough).
 

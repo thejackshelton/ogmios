@@ -7,6 +7,40 @@ macOS gates VoiceOver automation behind two permission layers:
 
 Shoki's job is to make these discoverable. Run `shoki doctor` and it tells you exactly which layer is missing and how to fix it.
 
+## First-run flow: `npx shoki setup`
+
+The recommended path is one command:
+
+```bash
+npx shoki setup
+```
+
+What this does on first run (once per machine):
+
+1. Downloads `shoki-darwin-<arch>.zip` (~10MB) from GitHub Releases — uses Node 24's native `fetch`.
+2. Verifies the download against a published `.sha256` sidecar via `crypto.createHash('sha256')`.
+3. Extracts `Shoki.app` + `Shoki Setup.app` into `~/Applications/` via `ditto` (preserves bundle metadata).
+4. Strips `com.apple.quarantine` so macOS Gatekeeper doesn't block launch.
+5. Launches **Shoki Setup.app** — a minimal Zig GUI that fires the Accessibility + Automation TCC prompts. Click to grant.
+
+That replaces the old "System Settings → Privacy & Security → four-step dance" — you just click through the two GUI prompts. No plist edits, no deep links, no hunting for the right pane.
+
+### To re-grant or reinstall
+
+```bash
+npx shoki setup --force    # redownload + reinstall (e.g. after a compatibleAppVersion bump)
+```
+
+### If shoki's left your VoiceOver settings in a weird state
+
+```bash
+shoki restore-vo-settings  # escape hatch — see below
+```
+
+### Power users: manual fallback
+
+If you can't run `shoki setup` (offline CI, sandboxed shell, etc.), the manual fallback is to download `shoki-darwin-<arch>.zip` + `.sha256` from the [`app-v*` GitHub Release](https://github.com/shoki/shoki/releases), verify the hash yourself, unzip into `~/Applications/`, strip quarantine (`xattr -dr com.apple.quarantine ~/Applications/Shoki.app ~/Applications/Shoki\ Setup.app`), and launch `Shoki Setup.app` manually. Or pass `--install-dir <path>` + `--no-download` if your image is pre-seeded.
+
 ## The happy path
 
 ```bash

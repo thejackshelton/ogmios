@@ -1,16 +1,16 @@
-# `@shoki/sdk`
+# `shoki`
 
 Core TypeScript SDK. Public API surface for booting a screen reader, reading structured events, and running the `shoki` CLI. Ships three entry points:
 
 | Entry | Import | Purpose |
 |-------|--------|---------|
-| **Root** | `@shoki/sdk` | `voiceOver()` factory, `ScreenReaderHandle`, event types. |
-| **Matchers** | `@shoki/sdk/matchers` | Framework-agnostic matcher functions (pure assertion logic). See [Matchers API](/api/matchers). |
-| **CLI library** | `@shoki/sdk/cli` | Library exports for `shoki` CLI internals (`runDoctor`, `applyFixActions`, report types). See [CLI API](/api/cli). |
+| **Root** | `shoki` | `voiceOver()` factory, `ScreenReaderHandle`, event types. |
+| **Matchers** | `shoki/matchers` | Framework-agnostic matcher functions (pure assertion logic). See [Matchers API](/api/matchers). |
+| **CLI library** | `shoki/cli` | Library exports for `shoki` CLI internals (`runDoctor`, `applyFixActions`, report types). See [CLI API](/api/cli). |
 | **Binary** | `bin: shoki` | CLI entry (`./dist/cli/main.js`). Installed on PATH via `npx shoki …`. |
 
 ```ts
-import { voiceOver } from "@shoki/sdk";
+import { voiceOver } from "shoki";
 ```
 
 The `voiceOver` factory returns a [`ScreenReaderHandle`](#screenreaderhandle) — the uniform interface implemented by every driver (VoiceOver in v1; NVDA, Orca planned). Because it's a driver factory pattern, swapping screen readers in the future is a one-line change at the import site.
@@ -30,7 +30,7 @@ function voiceOver(options?: ScreenReaderOptions): ScreenReaderHandle;
 Use these when you want ONE VoiceOver session scoped to a test file (the most common shape). They manage a refcounted process-singleton internally — you don't thread a handle through `beforeAll`/`afterAll` yourself.
 
 ```ts
-import { voiceOver } from "@shoki/sdk";
+import { voiceOver } from "shoki";
 import { beforeAll, afterAll, beforeEach } from "vitest";
 
 beforeAll(async () => {
@@ -191,14 +191,14 @@ interface ShokiEvent {
 }
 ```
 
-The browser-side variant (used by `@shoki/vitest`'s RPC payloads) uses `tsMs: number` instead of `tsNanos: bigint` — all matchers work against both shapes.
+The browser-side variant (used by `shoki/vitest`'s RPC payloads) uses `tsMs: number` instead of `tsNanos: bigint` — all matchers work against both shapes.
 
 ## Keyboard command catalog
 
 Shoki is observe-only by design, but exports a complete catalog of VoiceOver gestures so users can drive VO via their own framework's keyboard driver. 226 VO commands + 129 Commander commands, exported as typed constants.
 
 ```ts
-import { VoiceOverCommands } from "@shoki/sdk";
+import { VoiceOverCommands } from "shoki";
 
 // Example — dispatching "next" via Playwright:
 await page.keyboard.press(VoiceOverCommands.next.shortcut);
@@ -231,12 +231,12 @@ All shoki errors extend `ShokiError`.
 ## Caveats
 
 - **VoiceOver is a system singleton.** Running multiple handles simultaneously is unsupported; refcount handles sharing across tests.
-- **bigint timestamps** — `tsNanos` is a `bigint`, which does not structured-clone cleanly across all browser/RPC boundaries. `@shoki/vitest` converts to `tsMs: number` at the boundary.
+- **bigint timestamps** — `tsNanos` is a `bigint`, which does not structured-clone cleanly across all browser/RPC boundaries. `shoki/vitest` converts to `tsMs: number` at the boundary.
 - **`role`/`name` may be empty** — the AppleScript capture path doesn't expose these; only the AX-notifications path does. If you're matching on them, prefer `source: "ax"` events.
 
 ## See also
 
-- [Matchers API](/api/matchers) — `expect` matchers at `@shoki/sdk/matchers` (pure fns) + `@shoki/vitest/setup` (wiring).
-- [`@shoki/vitest`](/api/vitest) — Vitest browser-mode integration.
+- [Matchers API](/api/matchers) — `expect` matchers at `shoki/matchers` (pure fns) + `shoki/vitest/setup` (wiring).
+- [`shoki/vitest`](/api/vitest) — Vitest browser-mode integration.
 - [`shoki` CLI](/api/cli) — doctor / setup / info / restore-vo-settings subcommands.
 - [Adding a screen reader driver](/background/adding-a-driver) — the same `ScreenReaderHandle` interface is reused.

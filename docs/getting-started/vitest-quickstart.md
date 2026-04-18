@@ -13,11 +13,11 @@ The canonical example uses **Qwik** because its `renderSSR()` helper lets you as
 ## 1. Install the packages
 
 ```bash
-pnpm add -D @shoki/sdk @shoki/vitest vitest @vitest/browser playwright @qwik.dev/core vitest-browser-qwik
+pnpm add -D shoki shoki/vitest vitest @vitest/browser playwright @qwik.dev/core vitest-browser-qwik
 pnpm exec playwright install chromium
 ```
 
-The `@shoki/binding-darwin-arm64` (or `-x64`) native package is installed automatically as an `optionalDependency` of `@shoki/sdk`.
+The `@shoki/binding-darwin-arm64` (or `-x64`) native package is installed automatically as an `optionalDependency` of `shoki`.
 
 ## 2. Configure Vitest
 
@@ -25,14 +25,14 @@ The `@shoki/binding-darwin-arm64` (or `-x64`) native package is installed automa
 
 ```ts
 import { defineConfig } from "vitest/config";
-import { shokiVitest } from "@shoki/vitest";
+import { shokiVitest } from "shoki/vitest";
 import { qwikVite } from "@qwik.dev/core/optimizer";
 import { testSSR } from "vitest-browser-qwik/ssr-plugin";
 
 export default defineConfig({
   plugins: [testSSR(), qwikVite(), shokiVitest()],
   test: {
-    setupFiles: ["@shoki/vitest/setup"],
+    setupFiles: ["shoki/vitest/setup"],
     browser: {
       enabled: true,
       provider: "playwright",
@@ -44,12 +44,12 @@ export default defineConfig({
 
 The `testSSR()` plugin is what unlocks Qwik's `renderSSR()` helper — it's optional if you only need CSR tests.
 
-`@shoki/vitest/setup` runs `expect.extend(...)` for Shoki's four matchers (`toHaveAnnounced`, `toHaveAnnouncedText`, `toHaveNoAnnouncement`, `toHaveStableLog`) — the matcher implementations themselves are pure functions at `@shoki/sdk/matchers` and the setup file is the framework-specific wiring.
+`shoki/vitest/setup` runs `expect.extend(...)` for Shoki's four matchers (`toHaveAnnounced`, `toHaveAnnouncedText`, `toHaveNoAnnouncement`, `toHaveStableLog`) — the matcher implementations themselves are pure functions at `shoki/matchers` and the setup file is the framework-specific wiring.
 
 The `shokiVitest()` plugin:
 
 - Registers 10 `BrowserCommand`s so browser-side tests can talk to the Node-side SDK over Vitest's tinyRPC.
-- Auto-sets `poolOptions.threads.singleThread = true` when it sees `@shoki/vitest/browser` imports — VoiceOver is a system singleton, so parallel tests would collide.
+- Auto-sets `poolOptions.threads.singleThread = true` when it sees `shoki/vitest/browser` imports — VoiceOver is a system singleton, so parallel tests would collide.
 - Throws `ShokiConcurrentTestError` at the first `test.concurrent` in a VO-scoped file, pointing you at the exact fix.
 
 ## 3. Define a Qwik component
@@ -82,7 +82,7 @@ export const SubmitButton = component$(() => {
 ```tsx
 import { render } from "vitest-browser-qwik";
 import { page } from "@vitest/browser/context";
-import { voiceOver, type ShokiBrowserSession } from "@shoki/vitest/browser";
+import { voiceOver, type ShokiBrowserSession } from "shoki/vitest/browser";
 import { expect, test, beforeAll, afterAll, beforeEach } from "vitest";
 import { SubmitButton } from "../src/SubmitButton";
 

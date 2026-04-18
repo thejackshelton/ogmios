@@ -1,6 +1,6 @@
 # `shoki` CLI
 
-Shipped as the `bin` entry of **`@shoki/sdk`** (`bin: { "shoki": "./dist/cli/main.js" }`). Installing `@shoki/sdk` puts `shoki` on your PATH via `npx`. Four subcommands today: `doctor`, `setup`, `info`, and `restore-vo-settings`.
+Shipped as the `bin` entry of **`shoki`** (`bin: { "shoki": "./dist/cli/main.js" }`). Installing `shoki` puts `shoki` on your PATH via `npx`. Four subcommands today: `doctor`, `setup`, `info`, and `restore-vo-settings`.
 
 ```bash
 npx shoki doctor
@@ -128,32 +128,87 @@ Paste the output into your GitHub issue and we can skip half the back-and-forth.
 
 ## `shoki setup`
 
-Launch the bundled **ShokiSetup.app** — a minimal Zig-compiled macOS GUI that triggers the Accessibility + Automation TCC prompts cleanly on first run. Replaces the multi-step System Settings walkthrough.
+Download + install `Shoki.app` + `Shoki Setup.app` from GitHub Releases, then launch **Shoki Setup.app** — a minimal Zig-compiled macOS GUI that triggers the Accessibility + Automation TCC prompts cleanly on first run. Replaces the multi-step System Settings walkthrough.
 
 ```bash
 shoki setup [options]
 ```
 
+### Flow
+
+1. Check `<install-dir>/Shoki.app` and `<install-dir>/Shoki Setup.app`. If both present and `--force` is not set, skip to step 6.
+2. Fetch `shoki-darwin-<arch>.zip` from `https://github.com/<owner>/shoki/releases/download/app-v<version>/shoki-darwin-<arch>.zip` using Node 24's native `fetch` (no new runtime dependencies).
+3. Fetch the `.sha256` sidecar from the same release. Parses either `<64-hex>  <basename>` (shasum format) or a bare `<64-hex>`.
+4. Hash the downloaded zip with `crypto.createHash('sha256')` and compare to the sidecar. Mismatch = hard error.
+5. Unzip via `/usr/bin/ditto -x -k <zip> <install-dir>`, strip the quarantine attr via `xattr -dr com.apple.quarantine <installed bundles>`.
+6. Unless `--skip-launch`, run `/usr/bin/open -W <install-dir>/Shoki Setup.app` so the user can click through the TCC prompts. `-W` waits for the app to exit before the CLI returns.
+
 ### Options
 
 | Flag | Description |
 |------|-------------|
-| `--dry-run` | Print the resolved `ShokiSetup.app` path without launching it. Useful for CI diagnostics. |
+| `--force` | Redownload + reinstall even if the apps are already present. Use after an `app-v*` release bumps `compatibleAppVersion`. |
+| `--no-download` | Fail with exit code 2 (`MISSING_DEP`) if apps are missing — never makes a network request. For pre-seeded CI images. |
+| `--install-dir <path>` | Override the install directory. Default: `~/Applications/`. |
+| `--skip-launch` | Download + install but don't auto-open `Shoki Setup.app`. For headless bootstrap. |
+| `--json` | Emit structured JSON output (`SetupResult`) instead of human output. For CI pipelines. |
+| `--version <ver>` | Download a specific `Shoki.app` version. Default: the SDK's `compatibleAppVersion` from `packages/sdk/package.json`. |
+| `--dry-run` | Print the resolved download URL + install dir without touching the network or filesystem. |
 | `-h`, `--help` | Print help. |
 
-### Resolver chain
+### `--json` output shape
 
-`shoki setup` locates the bundle in this order:
+```ts
+interface SetupResult {
+  action: "noop" | "launched-only" | "downloaded" | "reinstalled";
+  installDir: string;
+  appsPresent: { shokiApp: boolean; shokiSetupApp: boolean };
+  downloadedFromUrl?: string;
+  sha256Verified?: boolean;
+  launched: boolean;
+  compatibleAppVersion: string;
+}
+```
 
-1. `$SHOKI_SETUP_APP_PATH` — explicit override.
-2. `node_modules/@shoki/binding-darwin-arm64/helper/ShokiSetup.app` (or `-x64`, depending on host arch).
-3. `helper/.build/ShokiSetup.app` — the monorepo dev-build path.
+Example:
 
-If none resolve, exits `HELPER_MISSING` (8).
+```bash
+$ shoki setup --json
+{
+  "action": "downloaded",
+  "installDir": "/Users/you/Applications",
+  "appsPresent": { "shokiApp": true, "shokiSetupApp": true },
+  "downloadedFromUrl": "https://github.com/shoki/shoki/releases/download/app-v0.1.0/shoki-darwin-arm64.zip",
+  "sha256Verified": true,
+  "launched": true,
+  "compatibleAppVersion": "0.1.0"
+}
+```
+
+### Exit codes
+
+| Code | Name | Meaning |
+|------|------|---------|
+| 0 | `OK` | Success — or `--dry-run` returned cleanly. |
+| 1 | `GENERIC` | Catch-all (checksum mismatch, network error, unzip failure — all currently route here with an attached error message; promoted to dedicated codes 3–5 in a future release). |
+| 2 | `MISSING_DEP` | `--no-download` passed and apps are absent. |
+| 6 | `QUARANTINE` | `xattr -dr` returned an unexpected non-0/non-1 exit. |
+| 7 | `UNSUPPORTED_PLATFORM` | Not darwin-arm64 or darwin-x64. |
+
+### Download URL pattern
+
+```
+https://github.com/<owner>/shoki/releases/download/app-v<version>/shoki-<platform>.zip
+https://github.com/<owner>/shoki/releases/download/app-v<version>/shoki-<platform>.zip.sha256
+```
+
+Where `<platform>` is `darwin-arm64` or `darwin-x64`, and `<version>` is `compatibleAppVersion` from the SDK's package.json (or `--version <ver>` override).
+
+The release cadence is **independent** from the SDK's `v*` tag cadence. SDK tags (`v*`) publish the npm package; app tags (`app-v*`) publish the helper bundles. `compatibleAppVersion` in `packages/sdk/package.json` couples the two.
 
 ### Relation to `shoki doctor --fix`
 
-`shoki doctor` now emits a `launch-setup-app` fix action ahead of the legacy `open-system-settings` deep link when `TCC_MISSING_ACCESSIBILITY` or `TCC_MISSING_AUTOMATION` fires. `--fix` picks the GUI path automatically; manual users can still copy the deep-link URL from the JSON report.
+`shoki doctor` emits a `launch-setup-app` fix action ahead of the legacy `open-system-settings` deep link when `TCC_MISSING_ACCESSIBILITY` or `TCC_MISSING_AUTOMATION` fires. `--fix` picks the GUI path automatically; manual users can still copy the deep-link URL from the JSON report.
 
 ## Planned subcommands (v1.1+)
 

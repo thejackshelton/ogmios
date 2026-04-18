@@ -51,7 +51,7 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 
 ### `ShokiConcurrentTestError` from the Vitest plugin
 
-- **Cause:** You used `test.concurrent(...)` inside a file that imports `@shoki/vitest/browser`. VO is a system singleton; concurrent tests would pollute each other's capture logs.
+- **Cause:** You used `test.concurrent(...)` inside a file that imports `shoki/vitest/browser`. VO is a system singleton; concurrent tests would pollute each other's capture logs.
 - **Fix:** Remove the `.concurrent`. Vitest will run the tests serially in a single thread. Shoki refcount semantics handle cross-file VO sharing.
 
 ### `ShokiPlatformUnsupportedError`
@@ -96,7 +96,36 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 - **Cause:** You're running against a dev build of the helper, not a signed release.
 - **Fix:**
   - For local dev, this is fine — just expect to re-grant permissions every time the helper changes.
-  - For CI or production, install a signed release from npm: `pnpm add -D @shoki/sdk@latest`.
+  - For CI or production, install a signed release from npm: `pnpm add -D shoki@latest`.
+
+### `shoki setup` fails with ENOENT on `~/Applications/`
+
+- **Cause:** Fresh macOS installs sometimes don't have `~/Applications/`. `shoki setup` auto-creates it, but on some sandboxed shells (e.g. restricted dev containers) the `mkdir -p` itself fails.
+- **Fix:**
+  ```bash
+  mkdir -p ~/Applications/
+  npx shoki setup
+  ```
+  Or use `--install-dir <path>` to route installs somewhere you control.
+
+### "Cannot verify developer" when opening `Shoki.app`
+
+- **Cause:** macOS Gatekeeper quarantine wasn't stripped. `shoki setup` normally runs `xattr -dr com.apple.quarantine` on the installed bundles automatically.
+- **Fix:** Re-run `npx shoki setup --force`, or strip manually:
+  ```bash
+  xattr -dr com.apple.quarantine ~/Applications/Shoki.app ~/Applications/Shoki\ Setup.app
+  ```
+  Or right-click `Shoki Setup.app` in Finder → Open → confirm. This is a one-time System Settings override.
+
+### `shoki setup` exits with "checksum mismatch"
+
+- **Cause:** The downloaded `shoki-darwin-<arch>.zip` failed SHA256 verification against the published `.sha256` sidecar. Possible causes: interrupted download, corrupted cache, network MITM.
+- **Fix:** Re-run with `--force` to redownload cleanly. If the failure repeats, open an issue with the URL printed by `--dry-run` and the hash output by `shasum -a 256 <cached-zip-path>`.
+
+### `shoki setup --no-download` fails in CI
+
+- **Cause:** Your CI image doesn't have `~/Applications/Shoki.app` pre-baked, but `--no-download` forbids fetching.
+- **Fix:** Either drop `--no-download` (let setup fetch on first run) or bake the apps into your image. The [pre-baked tart image](/guides/ci/tart-selfhosted) already includes them.
 
 ## CI-specific
 

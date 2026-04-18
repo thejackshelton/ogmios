@@ -36,12 +36,12 @@ cd zig && zig build test
 cd helper && swift test
 ```
 
-End-to-end tests (`noop-roundtrip.test.ts`, `ping.test.ts` in `@shoki/sdk`) require the native binding to be built and `SHOKI_NATIVE_BUILT=1` in the env. CI does this automatically; locally:
+End-to-end tests (`noop-roundtrip.test.ts`, `ping.test.ts` in `shoki`) require the native binding to be built and `SHOKI_NATIVE_BUILT=1` in the env. CI does this automatically; locally:
 
 ```bash
 cd zig && zig build
 cp zig-out/lib/libshoki.dylib ../packages/binding-darwin-arm64/shoki.node
-SHOKI_NATIVE_BUILT=1 pnpm --filter @shoki/sdk test
+SHOKI_NATIVE_BUILT=1 pnpm --filter shoki test
 ```
 
 ### Format + lint
@@ -56,7 +56,7 @@ pnpm format      # Biome format (auto-fix)
 ```
 shoki/
 ├── packages/
-│   ├── sdk/                        @shoki/sdk — public TS API
+│   ├── sdk/                        shoki — public TS API
 │   ├── binding-darwin-arm64/       @shoki/binding-darwin-arm64 — platform binary
 │   └── binding-darwin-x64/         @shoki/binding-darwin-x64 — platform binary
 ├── zig/                            Zig core source

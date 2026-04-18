@@ -46,7 +46,7 @@ test("Submit announces", async ({ page }) => {
 ### Shoki
 
 ```tsx
-import { voiceOver } from "@shoki/vitest/browser";
+import { voiceOver } from "shoki/vitest/browser";
 import { page } from "@vitest/browser/context";
 import { render } from "vitest-browser-qwik";
 import { expect, test } from "vitest";
