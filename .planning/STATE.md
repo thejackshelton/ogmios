@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed Phase 9 (Qwik example + docs switch) — 09-SUMMARY.md written
-last_updated: "2026-04-18T05:02:14.646Z"
+stopped_at: Completed 10-01 — rename @shoki/sdk → shoki + merge @shoki/vitest into shoki/vitest subpath
+last_updated: "2026-04-18T14:04:52.042Z"
 last_activity: 2026-04-18
 progress:
-  total_phases: 9
+  total_phases: 10
   completed_phases: 4
-  total_plans: 37
-  completed_plans: 28
-  percent: 76
+  total_plans: 42
+  completed_plans: 29
+  percent: 69
 ---
 
 # Project State
@@ -68,6 +68,7 @@ Progress: [█░░░░░░░░░] 17%
 | Phase 08-zig-helper-port-shokisetup-app-gui-package-consolidation P04 | 9m | 7 tasks | 22 files |
 | Phase 08 P06 | 13m | 4 tasks | 16 files |
 | Phase 09 Pall | ~19min | 4 tasks | 27 files |
+| Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from P01 | 10m | 2 tasks | 48 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,7 @@ Decisions are logged in PROJECT.md Key Decisions table. Recent decisions affecti
 - [Phase 08]: Plan 08-06: --ignore-workspace required for docs standalone install because docs/ is a sibling of the repo-root pnpm-workspace.yaml (pnpm walks up from cwd and treats docs as 'inside workspace but not a member')
 - [Phase 09]: Hard-replaced examples/vitest-browser-react with vitest-browser-qwik to gain pre-hydration SSR a11y testing via renderSSR()
 - [Phase 09]: Widened @shoki/vitest peer range to vitest ^3 || ^4; Qwik example runs Vitest 4, rest of monorepo stays on Vitest 3
+- [Phase 10-cli-driven-shoki-app-distribution-shoki-setup-downloads-from]: Plan 10-01: Renamed @shoki/sdk → shoki (unscoped), merged @shoki/vitest into shoki/vitest* subpaths; plugin detection needle + plugin.name updated to 'shoki/vitest(/browser)'; 3-package monorepo baseline (shoki + 2 platform bindings) for downstream Phase 10 plans
 
 ### Pending Todos
 
@@ -131,6 +133,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-04-18T05:02:14.644Z
-Stopped at: Completed Phase 9 (Qwik example + docs switch) — 09-SUMMARY.md written
+Last session: 2026-04-18T14:04:50.850Z
+Stopped at: Completed 10-01 — rename @shoki/sdk → shoki + merge @shoki/vitest into shoki/vitest subpath
 Resume file: None
