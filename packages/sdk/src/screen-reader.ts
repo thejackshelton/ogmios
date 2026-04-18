@@ -29,6 +29,12 @@ export interface ScreenReaderHandle {
   readonly name: string;
   start(): Promise<void>;
   stop(): Promise<void>;
+  /**
+   * Alias for {@link ScreenReaderHandle.stop}. Preferred in v1+ for symmetry
+   * with {@link ScreenReaderHandle.start}; both names call the same underlying
+   * implementation and remain available indefinitely for back-compat.
+   */
+  end(): Promise<void>;
   drain(): Promise<ShokiEvent[]>;
   reset(): Promise<void>;
   /** Async iterator yielding events as they're drained. Phase 1 polls drain at a fixed 50ms cadence. */

@@ -93,6 +93,11 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
     }
   }
 
+  async function doStop(): Promise<void> {
+    stopDrainInterval();
+    binding.driverStop(assertAlive());
+  }
+
   return {
     name: opts.driverName,
 
@@ -101,10 +106,12 @@ export function createDriverHandle(opts: CreateDriverHandleOptions): ScreenReade
       startDrainInterval();
     },
 
-    async stop() {
-      stopDrainInterval();
-      binding.driverStop(assertAlive());
-    },
+    stop: doStop,
+
+    // end() is a v1+ alias for stop(). Both bindings point at the same
+    // implementation so mock-call counts remain symmetric across the two names
+    // (see packages/sdk/test/voice-over.test.ts "handle.end() is an alias").
+    end: doStop,
 
     async drain() {
       return drainOnceSync();
