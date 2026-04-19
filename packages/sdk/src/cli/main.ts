@@ -34,8 +34,10 @@ program
   .description('ogmios CLI — VoiceOver setup + diagnostics for macOS 14/15/26')
   .version(pkg.version, '-v, --version');
 
+program.showHelpAfterError('(add --help for usage)');
+
 program
-  .command('setup', { isDefault: true })
+  .command('setup')
   .description(
     'Download Ogmios.app + Ogmios Setup.app from GitHub Releases, install into ~/Applications, and launch the TCC-prompt setup GUI',
   )
