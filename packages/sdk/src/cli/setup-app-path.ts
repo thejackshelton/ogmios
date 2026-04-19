@@ -64,8 +64,7 @@ export async function resolveSetupAppPath(
   const arm64Path = join(
     cwd,
     'node_modules',
-    '@ogmios',
-    'binding-darwin-arm64',
+    'ogmios-darwin-arm64',
     'helper',
     'OgmiosSetup.app',
   );
@@ -78,8 +77,7 @@ export async function resolveSetupAppPath(
   const x64Path = join(
     cwd,
     'node_modules',
-    '@ogmios',
-    'binding-darwin-x64',
+    'ogmios-darwin-x64',
     'helper',
     'OgmiosSetup.app',
   );

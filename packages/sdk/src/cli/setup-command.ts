@@ -131,8 +131,8 @@ export async function runSetup(opts: SetupOptions): Promise<SetupResult> {
   const plannedZipUrl = `${baseUrl.replace(/\/+$/, '')}/app-v${version}/ogmios-${platform}.zip`;
 
   const appPaths = [
-    join(installDir, 'Ogmios.app'),
-    join(installDir, 'Ogmios Setup.app'),
+    join(installDir, 'OgmiosRunner.app'),
+    join(installDir, 'OgmiosSetup.app'),
   ];
 
   if (opts.dryRun) {

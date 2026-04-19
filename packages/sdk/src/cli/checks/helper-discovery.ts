@@ -1,4 +1,5 @@
 import { access, constants } from 'node:fs/promises';
+import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { type DoctorCheckResult, ExitCode } from '../report-types.js';
 
@@ -62,7 +63,23 @@ export async function discoverHelper(
     }
   }
 
-  // 2. npm install path
+  // 2. ~/Applications path — where `ogmios setup` installs the downloaded bundle
+  const installedPath = join(homedir(), 'Applications', 'OgmiosRunner.app');
+  searched.push(installedPath);
+  if (await exists(installedPath)) {
+    return {
+      location: { path: installedPath, source: 'npm' },
+      result: {
+        id: 'helper-present',
+        status: 'pass',
+        summary: `OgmiosRunner.app found at ${installedPath} (installed via ogmios setup)`,
+        meta: { path: installedPath, source: 'npm' },
+      },
+    };
+  }
+
+  // 3. npm install path (legacy — binding tarball doesn't ship the .app currently,
+  //    kept for forward-compat when it might)
   const npmPath = join(
     cwd,
     'node_modules',
