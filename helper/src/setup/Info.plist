@@ -10,6 +10,8 @@
     <string>Ogmios Setup</string>
     <key>CFBundleExecutable</key>
     <string>OgmiosSetup</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundlePackageType</key>

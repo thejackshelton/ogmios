@@ -146,6 +146,18 @@ pub fn build(b: *std.Build) void {
     );
     b.getInstallStep().dependOn(&install_bundle_exe.step);
 
+    // Contents/Resources/AppIcon.icns — the multi-resolution Ogmios logo that
+    // Finder, Dock, App Switcher, and NSAlert read via CFBundleIconFile.
+    // Source .icns is committed to src/assets/ (generated from ogmios-logo.png
+    // via sips + iconutil; regenerate by rerunning the pipeline documented in
+    // helper/README.md when the logo changes).
+    const install_runner_icon = b.addInstallFileWithDir(
+        b.path("src/assets/AppIcon.icns"),
+        .{ .custom = "../.build/OgmiosRunner.app/Contents/Resources" },
+        "AppIcon.icns",
+    );
+    b.getInstallStep().dependOn(&install_runner_icon.step);
+
     // -----------------------------------------------------------------------
     // 3. libOgmiosXPCClient.dylib — Plan 02 Task 2
     // -----------------------------------------------------------------------
@@ -232,6 +244,14 @@ pub fn build(b: *std.Build) void {
         "OgmiosSetup",
     );
     b.getInstallStep().dependOn(&install_setup_bundle_exe.step);
+
+    // Contents/Resources/AppIcon.icns — mirrors OgmiosRunner.app (same icon).
+    const install_setup_icon = b.addInstallFileWithDir(
+        b.path("src/assets/AppIcon.icns"),
+        .{ .custom = "../.build/OgmiosSetup.app/Contents/Resources" },
+        "AppIcon.icns",
+    );
+    b.getInstallStep().dependOn(&install_setup_icon.step);
 
     // -----------------------------------------------------------------------
     // 5. Test step — Plan 01 + Plan 02 + Plan 03 tests
