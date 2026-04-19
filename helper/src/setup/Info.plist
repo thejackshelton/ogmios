@@ -7,7 +7,7 @@
     <key>CFBundleName</key>
     <string>OgmiosSetup</string>
     <key>CFBundleDisplayName</key>
-    <string>Ogmios Setup</string>
+    <string>Ogmios</string>
     <key>CFBundleExecutable</key>
     <string>OgmiosSetup</string>
     <key>CFBundleIconFile</key>
@@ -30,8 +30,8 @@
     <key>NSHumanReadableCopyright</key>
     <string>Copyright (c) 2026 Ogmios contributors. MIT licensed.</string>
     <key>NSAccessibilityUsageDescription</key>
-    <string>Ogmios Setup requests Accessibility access so ogmios's test tools can observe VoiceOver announcements during automated tests.</string>
+    <string>Ogmios requests Accessibility access so ogmios's test tools can observe VoiceOver announcements during automated tests.</string>
     <key>NSAppleEventsUsageDescription</key>
-    <string>Ogmios Setup sends AppleScript to VoiceOver once to enable the Automation permission required for ogmios tests.</string>
+    <string>Ogmios sends AppleScript to VoiceOver once to enable the Automation permission required for ogmios tests.</string>
 </dict>
 </plist>

@@ -235,9 +235,9 @@ fn runInteractive() !void {
     //    This gives them a chance to read BEFORE the first TCC dialog.
     // -----------------------------------------------------------------
     activateApp();
-    debugLogPid("Showing alert: Welcome to Ogmios Setup");
+    debugLogPid("Showing alert: Welcome to Ogmios");
     showAlert(
-        "Welcome to Ogmios Setup",
+        "Welcome to Ogmios",
         "Click Continue to grant the 2 permissions ogmios needs " ++
             "(Accessibility + Automation of VoiceOver).\n\n" ++
             "After you click Continue, macOS will show its own system " ++
@@ -274,7 +274,7 @@ fn runInteractive() !void {
         debugLog("Showing alert: Grant Accessibility + Relaunch");
         showAlert(
             "Grant Accessibility + Relaunch",
-            "Please enable 'OgmiosSetup' in System Settings \xe2\x86\x92 " ++
+            "Please enable 'Ogmios' in System Settings \xe2\x86\x92 " ++
                 "Privacy & Security \xe2\x86\x92 Accessibility, then quit and " ++
                 "relaunch this app by running `npx ogmios setup` again.\n\n" ++
                 "macOS caches the trust state at launch, so re-running the " ++
@@ -353,7 +353,7 @@ fn runInteractive() !void {
             "Grant Automation + Relaunch",
             "Ogmios could not detect Automation access.\n\n" ++
                 "Open System Settings \xe2\x86\x92 Privacy & Security \xe2\x86\x92 " ++
-                "Automation, enable OgmiosSetup's control of VoiceOver, " ++
+                "Automation, enable Ogmios's control of VoiceOver, " ++
                 "then quit and relaunch this app by running `npx ogmios " ++
                 "setup` again.",
             "Open System Settings & Quit",
