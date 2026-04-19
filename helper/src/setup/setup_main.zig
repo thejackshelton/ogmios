@@ -231,6 +231,7 @@ fn runInteractive() !void {
     // 2. Welcome alert — user clicks Continue before anything else.
     //    This gives them a chance to read BEFORE the first TCC dialog.
     // -----------------------------------------------------------------
+    activateApp();
     showAlert(
         "Welcome to Ogmios Setup",
         "Click Continue to grant the 2 permissions ogmios needs " ++
@@ -259,6 +260,7 @@ fn runInteractive() !void {
         // -----------------------------------------------------------------
         const granted = pollAccessibility(120);
         if (!granted) {
+            activateApp();
             showAlert(
                 "Accessibility access is required",
                 "Ogmios could not detect an Accessibility grant within 120 " ++
@@ -274,7 +276,11 @@ fn runInteractive() !void {
     // -----------------------------------------------------------------
     // 5. Mid-flow alert — tell the user Accessibility is done and
     //    what's about to happen next.
+    //
+    //    The Accessibility TCC dialog stole focus; re-activate so the
+    //    next alert renders on top instead of behind our own window.
     // -----------------------------------------------------------------
+    activateApp();
     showAlert(
         "Accessibility granted",
         "Next, Ogmios needs permission to control VoiceOver via " ++
@@ -307,7 +313,11 @@ fn runInteractive() !void {
 
     // -----------------------------------------------------------------
     // 8. Show success or warning alert.
+    //
+    //    VoiceOver launch + the Automation TCC dialog both steal focus;
+    //    re-activate before the final alert so it renders on top.
     // -----------------------------------------------------------------
+    activateApp();
     if (automation_granted) {
         showAlert(
             "\xe2\x9c\x85 Ogmios is ready",
@@ -440,10 +450,33 @@ fn runAppleScriptOk(source: [*:0]const u8) bool {
     return result != null;
 }
 
+/// Force the current process to the foreground via
+/// `[NSApp activateIgnoringOtherApps:YES]`. Called before every `showAlert`
+/// so that alerts remain visually on top even after a macOS permission
+/// dialog (TCC) has stolen focus. Without this, the second and third
+/// wizard alerts can end up hidden behind the app that regained focus
+/// after the user clicked Allow/Don't-Allow on a system TCC dialog, which
+/// the user perceives as "the Welcome modal never dismissed".
+fn activateApp() void {
+    const ns_app_cls = ak.objc_getClass("NSApplication") orelse return;
+    const sel_shared = ak.sel_registerName("sharedApplication") orelse return;
+    const sel_activate = ak.sel_registerName("activateIgnoringOtherApps:") orelse return;
+    const app = ak.objc_msgSend_id(ns_app_cls, sel_shared) orelse return;
+    _ = ak.objc_msgSend_bool_bool(app, sel_activate, true);
+}
+
 /// Show a modal NSAlert with one button. Blocks on the Obj-C runloop
 /// until the user clicks, which is exactly the semantic we want at every
 /// stage of the sequenced flow: we never advance past an alert until the
 /// user has acknowledged it.
+///
+/// After `runModal` returns we explicitly `orderOut:` the alert's window
+/// and `release` the alert object. Without this, the alert's NSWindow can
+/// linger in the app's window list; if the next operation surfaces a
+/// system dialog (e.g. the Accessibility TCC prompt) and the system
+/// dialog's dismissal re-activates our app, the lingering alert window
+/// can redraw on screen, which the user perceives as "the Welcome modal
+/// never dismissed".
 ///
 /// `title` is set via setMessageText:; `body` via setInformativeText:;
 /// `button_label` is the single action button.
@@ -469,4 +502,16 @@ fn showAlert(title: [*:0]const u8, body: [*:0]const u8, button_label: [*:0]const
     _ = ak.objc_msgSend_id_id(alert, sel_add_button, button);
 
     _ = ak.objc_msgSend_i64(alert, sel_run_modal);
+
+    // Explicitly dismiss + release the alert so its window leaves the
+    // app's window list. Recovering focus from the subsequent TCC dialog
+    // would otherwise redraw the stale alert window.
+    const sel_window = ak.sel_registerName("window") orelse return;
+    const window = ak.objc_msgSend_id(alert, sel_window);
+    if (window) |w| {
+        const sel_order_out = ak.sel_registerName("orderOut:") orelse return;
+        ak.objc_msgSend_void_id(w, sel_order_out, null);
+    }
+    const sel_release = ak.sel_registerName("release") orelse return;
+    ak.objc_msgSend_void(alert, sel_release);
 }

@@ -42,19 +42,46 @@ if [[ "$CONFIG" == "debug" ]]; then
 fi
 
 ZIG_ARGS=("$OPT_FLAG")
+# Only pass -Dtarget when it differs from native. Zig 0.16 + SDK 26.2 treats
+# an explicit -target as a "bring-your-own-paths" signal and stops expanding
+# the host SDK's framework/library search paths, which breaks linkFramework
+# and linkSystemLibrary("objc"). For native arm64 builds the reliable path is
+# to omit -target entirely and let Zig use its auto-detected host toolchain.
 if [[ -n "$TARGET" ]]; then
-    ZIG_ARGS+=("-Dtarget=$TARGET")
+    NATIVE_ARCH="$(uname -m)"
+    NATIVE_TARGET=""
+    case "$NATIVE_ARCH" in
+        arm64) NATIVE_TARGET="aarch64-macos" ;;
+        x86_64) NATIVE_TARGET="x86_64-macos" ;;
+    esac
+    if [[ "$TARGET" == "$NATIVE_TARGET" ]]; then
+        echo "[build-app-bundle] TARGET=$TARGET matches native host; omitting -Dtarget to preserve SDK auto-detect"
+    else
+        ZIG_ARGS+=("-Dtarget=$TARGET")
+    fi
 fi
 
-# Zig 0.16 on GH macos runners doesn't always auto-discover the macOS SDK
-# (SDKROOT env var isn't consistently honored for -framework lookups). Pass
-# --sysroot explicitly so linkFramework("Foundation", ...) can find the
-# system frameworks. Only on macOS where xcrun is available.
+# SDK discovery. Zig 0.16 uses SDKROOT env + its own auto-detection to find
+# frameworks and libobjc; on local dev hosts with modern Xcode (SDK 26.2+)
+# passing `--sysroot` explicitly causes framework lookup to fail with
+# "searched paths: none" because Zig does not expand the sysroot into framework
+# search paths when the option is passed via `build-exe --sysroot`. The
+# reliable pattern is:
+#   - Export SDKROOT so Zig's auto-detection uses the right SDK.
+#   - Only add `--sysroot` as a fallback if SDKROOT is empty (e.g. minimal
+#     CI image where xcrun lives but SDKROOT isn't set at the job level).
 if command -v xcrun >/dev/null 2>&1; then
     SDK_PATH="$(xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)"
     if [[ -n "$SDK_PATH" ]]; then
-        ZIG_ARGS+=("--sysroot" "$SDK_PATH")
-        echo "[build-app-bundle] Using macOS SDK: $SDK_PATH"
+        export SDKROOT="$SDK_PATH"
+        echo "[build-app-bundle] SDKROOT=$SDK_PATH"
+        # Only add --sysroot as a belt-and-suspenders fallback if the caller
+        # explicitly asks for it via SHOKI_USE_SYSROOT=1. On Zig 0.16 + SDK
+        # 26.2 it actively breaks framework resolution for native builds.
+        if [[ "${SHOKI_USE_SYSROOT:-0}" == "1" ]]; then
+            ZIG_ARGS+=("--sysroot" "$SDK_PATH")
+            echo "[build-app-bundle] SHOKI_USE_SYSROOT=1 -> passing --sysroot $SDK_PATH"
+        fi
     fi
 fi
 
@@ -75,6 +102,33 @@ for f in "$RUNNER/Contents/MacOS/OgmiosRunner" \
          "$DYLIB"; do
     if [[ ! -e "$f" ]]; then
         echo "error: missing artifact $f" >&2
+        exit 1
+    fi
+done
+
+# Ad-hoc re-sign with explicit reverse-DNS identifier.
+# Zig's auto adhoc-sign uses the executable basename (e.g. "OgmiosSetup") as the
+# codesign identifier. That basename gets cached in macOS TCC based on prior
+# build sessions, and if an older build had a different basename (e.g.
+# "ShokiSetup" from before the rename), TCC can display the stale name in
+# permission prompts even after the binary is rebuilt. Re-signing with an
+# explicit reverse-DNS identifier:
+#   (a) forces a new cdhash, invalidating TCC cache for this binary
+#   (b) sets a stable identifier that matches CFBundleIdentifier in Info.plist
+# Runs unconditionally — skip-if-Developer-ID-set isn't needed because explicit
+# --identifier is valid for both adhoc and Developer-ID-signed bundles.
+echo "[build-app-bundle] Re-signing with explicit reverse-DNS identifiers"
+codesign --force --sign - --identifier org.ogmios.runner "$RUNNER"
+codesign --force --sign - --identifier org.ogmios.setup "$SETUP"
+codesign --force --sign - --identifier org.ogmios.xpc.client "$DYLIB"
+
+# Verify the identifier actually stuck.
+for pair in "$RUNNER:org.ogmios.runner" "$SETUP:org.ogmios.setup" "$DYLIB:org.ogmios.xpc.client"; do
+    path="${pair%%:*}"
+    expected="${pair##*:}"
+    actual=$(codesign -dvv "$path" 2>&1 | awk -F= '/^Identifier=/{print $2}')
+    if [[ "$actual" != "$expected" ]]; then
+        echo "error: codesign identifier mismatch on $path — got '$actual' expected '$expected'" >&2
         exit 1
     fi
 done
