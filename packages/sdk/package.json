@@ -1,6 +1,6 @@
 {
   "name": "ogmios",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "compatibleAppVersion": "0.1.6",
   "description": "Screen-reader test automation SDK — TypeScript surface + CLI + matchers + Vitest plugin for Ogmios's Zig native core",
   "license": "MIT",
@@ -55,7 +55,7 @@
     "picocolors": "^1.0.0"
   },
   "optionalDependencies": {
-    "ogmios-darwin-arm64": "0.1.7"
+    "ogmios-darwin-arm64": "0.1.8"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
