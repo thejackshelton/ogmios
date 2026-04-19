@@ -48,8 +48,8 @@ describe('installFromZip', () => {
       ['-x', '-k', GOOD_ZIP, installDir],
     );
     expect(result.installedPaths).toEqual([
+      join(installDir, 'OgmiosRunner.app'),
       join(installDir, 'Ogmios.app'),
-      join(installDir, 'Ogmios Setup.app'),
     ]);
   });
 

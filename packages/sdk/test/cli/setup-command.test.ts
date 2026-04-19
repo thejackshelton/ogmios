@@ -46,7 +46,7 @@ async function seedInstalledApps(installDir: string, version = '0.1.0') {
     /<string>0\.1\.0<\/string>/g,
     `<string>${version}</string>`,
   );
-  for (const name of ['Ogmios.app', 'Ogmios Setup.app']) {
+  for (const name of ['OgmiosRunner.app', 'Ogmios.app']) {
     await mkdir(join(installDir, name, 'Contents'), { recursive: true });
     await writeFile(join(installDir, name, 'Contents', 'Info.plist'), plist, 'utf8');
   }
@@ -78,7 +78,7 @@ describe('runSetup', () => {
     // The only exec should be the `open -W` launch.
     expect(exec).toHaveBeenCalledWith('/usr/bin/open', [
       '-W',
-      join(installDir, 'Ogmios Setup.app'),
+      join(installDir, 'Ogmios.app'),
     ]);
   });
 

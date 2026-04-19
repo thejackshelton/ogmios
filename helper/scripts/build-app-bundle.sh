@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Build OgmiosRunner.app AND OgmiosSetup.app from the Zig helper.
+# Build OgmiosRunner.app AND Ogmios.app (setup) from the Zig helper.
 #
 # Usage: ./scripts/build-app-bundle.sh [--configuration release|debug] [--target <zig-triple>]
 #
 # Runs from the helper/ directory. Produces:
 #   - helper/.build/OgmiosRunner.app/
-#   - helper/.build/OgmiosSetup.app/
+#   - helper/.build/Ogmios.app/          (setup bundle — was OgmiosSetup.app pre-0.1.6)
 #   - helper/.build/libOgmiosXPCClient.dylib
 #
 # Phase 08 Plan 04 extended this script to verify BOTH bundles + the dylib
@@ -89,7 +89,7 @@ echo "[build-app-bundle] Building Zig helper (configuration=$CONFIG${TARGET:+, t
 zig build "${ZIG_ARGS[@]}"
 
 RUNNER="$HELPER_DIR/.build/OgmiosRunner.app"
-SETUP="$HELPER_DIR/.build/OgmiosSetup.app"
+SETUP="$HELPER_DIR/.build/Ogmios.app"
 DYLIB="$HELPER_DIR/.build/libOgmiosXPCClient.dylib"
 
 # Verify every artifact that downstream CI (sign + notarize + copy into
@@ -97,7 +97,7 @@ DYLIB="$HELPER_DIR/.build/libOgmiosXPCClient.dylib"
 # dropped a target — fail loud rather than ship a broken bundle.
 for f in "$RUNNER/Contents/MacOS/OgmiosRunner" \
          "$RUNNER/Contents/Info.plist" \
-         "$SETUP/Contents/MacOS/OgmiosSetup" \
+         "$SETUP/Contents/MacOS/Ogmios" \
          "$SETUP/Contents/Info.plist" \
          "$DYLIB"; do
     if [[ ! -e "$f" ]]; then
@@ -107,14 +107,16 @@ for f in "$RUNNER/Contents/MacOS/OgmiosRunner" \
 done
 
 # Ad-hoc re-sign with explicit reverse-DNS identifier.
-# Zig's auto adhoc-sign uses the executable basename (e.g. "OgmiosSetup") as the
+# Zig's auto adhoc-sign uses the executable basename (e.g. "Ogmios") as the
 # codesign identifier. That basename gets cached in macOS TCC based on prior
 # build sessions, and if an older build had a different basename (e.g.
-# "ShokiSetup" from before the rename), TCC can display the stale name in
-# permission prompts even after the binary is rebuilt. Re-signing with an
-# explicit reverse-DNS identifier:
+# "ShokiSetup" from before the 11-* rebrand or "OgmiosSetup" from 0.1.5 and
+# earlier), TCC can display the stale name in permission prompts even after
+# the binary is rebuilt. Re-signing with an explicit reverse-DNS identifier:
 #   (a) forces a new cdhash, invalidating TCC cache for this binary
 #   (b) sets a stable identifier that matches CFBundleIdentifier in Info.plist
+#       (`org.ogmios.setup` — reverse-DNS id is stable across the bundle
+#       rename from OgmiosSetup.app -> Ogmios.app in 0.1.6).
 # Runs unconditionally — skip-if-Developer-ID-set isn't needed because explicit
 # --identifier is valid for both adhoc and Developer-ID-signed bundles.
 echo "[build-app-bundle] Re-signing with explicit reverse-DNS identifiers"

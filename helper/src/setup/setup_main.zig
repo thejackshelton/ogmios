@@ -1,9 +1,13 @@
-// OgmiosSetup.app — Zig-compiled GUI whose only job is to trigger the macOS
-// TCC prompts for Accessibility + Automation-of-VoiceOver on first launch.
+// Ogmios.app (setup) — Zig-compiled GUI whose only job is to trigger the
+// macOS TCC prompts for Accessibility + Automation-of-VoiceOver on first
+// launch. Bundle filename was `OgmiosSetup.app` through 0.1.5; 0.1.6
+// renamed it to `Ogmios.app` so System Settings + TCC prompts show just
+// "Ogmios". The reverse-DNS codesign identifier (`org.ogmios.setup`) and
+// CFBundleIdentifier are unchanged.
 //
 // Phase 07 QA-REPORT.md proved that CLI parent processes cannot trigger these
 // prompts — macOS only prompts when a bundled `.app` tries to use a
-// protected API. OgmiosSetup.app replaces "follow these 4 System Settings
+// protected API. Ogmios.app (setup) replaces "follow these 4 System Settings
 // steps" with "double-click this once."
 //
 // ## Sequencing (why this file is opinionated)
@@ -43,7 +47,7 @@
 //  12. [NSApp terminate:nil].
 //
 // Flags:
-//   --version               -> print "OgmiosSetup <ver> (zig-compiled)"; exit 0
+//   --version               -> print "Ogmios <ver> (zig-compiled)"; exit 0
 //   --self-test             -> exercise linkage (objc_getClass for
 //                              NSApplication + NSAppleScript); skip UI;
 //                              exit 0 — for CI smoke tests
@@ -59,7 +63,7 @@ const ak = @import("appkit_bindings.zig");
 
 pub const version = "0.1.0";
 
-/// Mode of the OgmiosSetup run, derived from argv.
+/// Mode of the Ogmios setup run, derived from argv.
 pub const CmdMode = enum { interactive, version, self_test, self_test_sequencing };
 
 /// Parse errors — only one shape: unknown flag -> hard fail w/ exit 2.
@@ -121,7 +125,7 @@ pub fn main(init: std.process.Init.Minimal) !void {
         var buf: [128]u8 = undefined;
         const line = try std.fmt.bufPrint(
             &buf,
-            "OgmiosSetup: unknown flag '{s}'\n",
+            "Ogmios: unknown flag '{s}'\n",
             .{first},
         );
         _ = write(2, line.ptr, line.len);
@@ -133,7 +137,7 @@ pub fn main(init: std.process.Init.Minimal) !void {
             var buf: [64]u8 = undefined;
             const line = try std.fmt.bufPrint(
                 &buf,
-                "OgmiosSetup {s} (zig-compiled)\n",
+                "Ogmios {s} (zig-compiled)\n",
                 .{version},
             );
             _ = write(1, line.ptr, line.len);
@@ -145,19 +149,19 @@ pub fn main(init: std.process.Init.Minimal) !void {
             // its own non-zero exit code so CI diagnostics tell us
             // exactly what broke.
             _ = ak.objc_getClass("NSObject") orelse {
-                _ = write(2, "OgmiosSetup: libobjc missing\n", 29);
+                _ = write(2, "Ogmios: libobjc missing\n", 24);
                 exit(10);
             };
             _ = ak.objc_getClass("NSApplication") orelse {
-                _ = write(2, "OgmiosSetup: AppKit missing\n", 28);
+                _ = write(2, "Ogmios: AppKit missing\n", 23);
                 exit(11);
             };
             _ = ak.objc_getClass("NSAppleScript") orelse {
-                _ = write(2, "OgmiosSetup: Foundation missing\n", 32);
+                _ = write(2, "Ogmios: Foundation missing\n", 27);
                 exit(12);
             };
             _ = ak.objc_getClass("NSAlert") orelse {
-                _ = write(2, "OgmiosSetup: NSAlert missing\n", 29);
+                _ = write(2, "Ogmios: NSAlert missing\n", 24);
                 exit(13);
             };
             return;
@@ -591,26 +595,26 @@ extern "c" fn getpid() c_int;
 
 fn debugLog(msg: []const u8) void {
     var buf: [256]u8 = undefined;
-    const line = std.fmt.bufPrint(&buf, "[OgmiosSetup] {s}\n", .{msg}) catch return;
+    const line = std.fmt.bufPrint(&buf, "[Ogmios setup] {s}\n", .{msg}) catch return;
     _ = write(2, line.ptr, line.len);
 }
 
 fn debugLogBool(label: []const u8, value: bool) void {
     var buf: [256]u8 = undefined;
     const v: []const u8 = if (value) "true" else "false";
-    const line = std.fmt.bufPrint(&buf, "[OgmiosSetup] {s}: {s}\n", .{ label, v }) catch return;
+    const line = std.fmt.bufPrint(&buf, "[Ogmios setup] {s}: {s}\n", .{ label, v }) catch return;
     _ = write(2, line.ptr, line.len);
 }
 
 fn debugLogI64(label: []const u8, value: i64) void {
     var buf: [256]u8 = undefined;
-    const line = std.fmt.bufPrint(&buf, "[OgmiosSetup] {s}: {d}\n", .{ label, value }) catch return;
+    const line = std.fmt.bufPrint(&buf, "[Ogmios setup] {s}: {d}\n", .{ label, value }) catch return;
     _ = write(2, line.ptr, line.len);
 }
 
 fn debugLogPid(msg: []const u8) void {
     var buf: [256]u8 = undefined;
     const pid = getpid();
-    const line = std.fmt.bufPrint(&buf, "[OgmiosSetup pid={d}] {s}\n", .{ pid, msg }) catch return;
+    const line = std.fmt.bufPrint(&buf, "[Ogmios setup pid={d}] {s}\n", .{ pid, msg }) catch return;
     _ = write(2, line.ptr, line.len);
 }

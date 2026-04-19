@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sign and notarize a .app bundle (OgmiosRunner.app OR OgmiosSetup.app).
+# Sign and notarize a .app bundle (OgmiosRunner.app OR Ogmios.app setup).
 #
 # Usage: ./scripts/sign-and-notarize.sh <path-to-app> [--entitlements <path>]
 #
@@ -7,7 +7,8 @@
 # OgmiosRunner-only). CI loops over both bundles, calling this once per bundle.
 # Entitlements default is inferred from the bundle basename:
 #   - OgmiosRunner.app -> src/runner/OgmiosRunner.entitlements
-#   - OgmiosSetup.app  -> src/setup/OgmiosSetup.entitlements
+#   - Ogmios.app       -> src/setup/OgmiosSetup.entitlements  (0.1.6+ setup bundle)
+#   - OgmiosSetup.app  -> src/setup/OgmiosSetup.entitlements  (pre-0.1.6 setup bundle)
 #   - anything else    -> src/runner/OgmiosRunner.entitlements (backward-compat
 #                         default; callers can override via --entitlements).
 #
@@ -68,6 +69,7 @@ if [[ -z "$ENT_PATH" ]]; then
     base="$(basename "$APP_PATH" .app)"
     case "$base" in
         OgmiosRunner) ENT_PATH="$HELPER_DIR/src/runner/OgmiosRunner.entitlements" ;;
+        Ogmios)       ENT_PATH="$HELPER_DIR/src/setup/OgmiosSetup.entitlements" ;;
         OgmiosSetup)  ENT_PATH="$HELPER_DIR/src/setup/OgmiosSetup.entitlements" ;;
         *)            ENT_PATH="$HELPER_DIR/src/runner/OgmiosRunner.entitlements" ;;
     esac

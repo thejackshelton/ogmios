@@ -5,11 +5,11 @@
     <key>CFBundleIdentifier</key>
     <string>org.ogmios.setup</string>
     <key>CFBundleName</key>
-    <string>OgmiosSetup</string>
+    <string>Ogmios</string>
     <key>CFBundleDisplayName</key>
     <string>Ogmios</string>
     <key>CFBundleExecutable</key>
-    <string>OgmiosSetup</string>
+    <string>Ogmios</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleInfoDictionaryVersion</key>
@@ -22,7 +22,7 @@
     <string>1</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
-    <!-- OgmiosSetup.app is interactive — show in dock while running. -->
+    <!-- Ogmios.app (setup bundle) is interactive — show in dock while running. -->
     <key>LSUIElement</key>
     <false/>
     <key>NSHighResolutionCapable</key>

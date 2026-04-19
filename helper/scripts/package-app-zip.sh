@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# Package OgmiosRunner.app + OgmiosSetup.app into a single release zip + SHA256.
+# Package OgmiosRunner.app + Ogmios.app (setup) into a single release zip + SHA256.
 #
 # Usage: ./scripts/package-app-zip.sh --arch <arm64|x64> [--out-dir <path>]
 #
 # Reads (must already exist):
 #   helper/.build/OgmiosRunner.app
-#   helper/.build/OgmiosSetup.app
+#   helper/.build/Ogmios.app            (setup bundle — was OgmiosSetup.app pre-0.1.6)
 #
 # Writes (under --out-dir, default helper/.build/):
-#   ogmios-darwin-<arch>.zip          (contains OgmiosRunner.app/ + OgmiosSetup.app/ at root)
+#   ogmios-darwin-<arch>.zip          (contains OgmiosRunner.app/ + Ogmios.app/ at root)
 #   ogmios-darwin-<arch>.zip.sha256   (format: "<64-hex>  ogmios-darwin-<arch>.zip\n")
 #
 # Phase 10 Plan 03: this is the producer side of the `ogmios setup` download flow
 # (Plan 10-02 parses the SHA256 file with that exact "<64-hex>  <basename>\n"
-# format). The bundles match the user-visible names from 11-CONTEXT.md — two
-# separate apps (OgmiosRunner.app + OgmiosSetup.app). Bundle identifiers
-# (org.ogmios.runner / org.ogmios.setup) follow the same scheme so TCC
-# grants are fresh under the new Ogmios trust anchor.
+# format). 0.1.6 renamed the setup bundle from OgmiosSetup.app to Ogmios.app so
+# macOS TCC prompts show "Ogmios" instead of "OgmiosSetup". Bundle identifiers
+# (org.ogmios.runner / org.ogmios.setup) are unchanged — only the bundle
+# filename + executable basename moved.
 #
 # Uses `ditto -c -k` on a staging dir — macOS-native zip that preserves bundle
 # metadata (resource forks, xattrs), so the extracted .apps launch cleanly
@@ -70,7 +70,7 @@ fi
 mkdir -p "$OUT_DIR"
 
 RUNNER_SRC="$HELPER_DIR/.build/OgmiosRunner.app"
-SETUP_SRC="$HELPER_DIR/.build/OgmiosSetup.app"
+SETUP_SRC="$HELPER_DIR/.build/Ogmios.app"
 
 for d in "$RUNNER_SRC" "$SETUP_SRC"; do
     if [[ ! -d "$d" ]]; then
@@ -87,20 +87,20 @@ SHA_PATH="$OUT_DIR/$SHA_NAME"
 
 # Stage bundles in a temp dir; never mutate the build outputs so a
 # subsequent `package-app-zip.sh --arch <other>` run (or a re-run of the same
-# arch) sees the canonical OgmiosRunner.app / OgmiosSetup.app names.
+# arch) sees the canonical OgmiosRunner.app / Ogmios.app names.
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
 echo "[package-app-zip] Staging bundles in $STAGE"
 ditto "$RUNNER_SRC" "$STAGE/OgmiosRunner.app"
-ditto "$SETUP_SRC"  "$STAGE/OgmiosSetup.app"
+ditto "$SETUP_SRC"  "$STAGE/Ogmios.app"
 
 echo "[package-app-zip] Creating $ZIP_NAME"
 # ditto -c -k accepts exactly one source. Archiving the STAGE dir (without
 # --keepParent) places its immediate children — OgmiosRunner.app/ and
-# OgmiosSetup.app/ — at the zip root, which is what Plan 10-02's extractor
+# Ogmios.app/ — at the zip root, which is what Plan 10-02's extractor
 # relies on (see packages/sdk/src/cli/setup-install.ts: it looks for
-# <installDir>/OgmiosRunner.app and <installDir>/OgmiosSetup.app after extraction).
+# <installDir>/OgmiosRunner.app and <installDir>/Ogmios.app after extraction).
 #
 # Note: the original plan text suggested `ditto -c -k --keepParent A.app B.app <zip>`,
 # but ditto's -c form rejects multiple sources ("Can't archive multiple

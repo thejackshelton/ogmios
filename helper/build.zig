@@ -192,12 +192,18 @@ pub fn build(b: *std.Build) void {
     b.getInstallStep().dependOn(&install_dylib.step);
 
     // -----------------------------------------------------------------------
-    // 4. OgmiosSetup executable + .app bundle — Plan 08-03
+    // 4. Ogmios setup executable + .app bundle — Plan 08-03
     // -----------------------------------------------------------------------
     //
     // Zig-compiled GUI whose whole purpose is to trigger the macOS
     // Accessibility + Automation-of-VoiceOver TCC prompts cleanly on first
     // launch. See src/setup/setup_main.zig for the flow.
+    //
+    // The bundle is named `Ogmios.app` (was `OgmiosSetup.app` pre-0.1.6) so
+    // macOS permission prompts and System Settings display just "Ogmios".
+    // The executable basename inside Contents/MacOS/ matches — Ogmios — since
+    // TCC derives the display name from CFBundleName (also Ogmios) but falls
+    // back to the executable basename when the bundle record is stale.
     //
     // Framework linkage is a superset of OgmiosRunner's because we also need
     // AppKit (NSApplication + NSAlert) and libobjc (objc_msgSend variants).
@@ -217,7 +223,7 @@ pub fn build(b: *std.Build) void {
     }
 
     const setup_exe = b.addExecutable(.{
-        .name = "OgmiosSetup",
+        .name = "Ogmios",
         .root_module = setup_mod,
     });
 
@@ -226,29 +232,33 @@ pub fn build(b: *std.Build) void {
     const install_setup = b.addInstallFileWithDir(
         setup_exe.getEmittedBin(),
         .{ .custom = "../.build" },
-        "OgmiosSetup",
+        "Ogmios",
     );
     b.getInstallStep().dependOn(&install_setup.step);
 
-    // Stage the .app bundle: Contents/Info.plist + Contents/MacOS/OgmiosSetup.
+    // Stage the .app bundle: Contents/Info.plist + Contents/MacOS/Ogmios.
+    // Bundle is named Ogmios.app (user-visible name in System Settings + TCC
+    // prompts). Reverse-DNS codesign identifier stays `org.ogmios.setup`
+    // (see build-app-bundle.sh) — identifier is stable; only the bundle
+    // filename + executable basename changed.
     const install_setup_plist = b.addInstallFileWithDir(
         b.path("src/setup/Info.plist"),
-        .{ .custom = "../.build/OgmiosSetup.app/Contents" },
+        .{ .custom = "../.build/Ogmios.app/Contents" },
         "Info.plist",
     );
     b.getInstallStep().dependOn(&install_setup_plist.step);
 
     const install_setup_bundle_exe = b.addInstallFileWithDir(
         setup_exe.getEmittedBin(),
-        .{ .custom = "../.build/OgmiosSetup.app/Contents/MacOS" },
-        "OgmiosSetup",
+        .{ .custom = "../.build/Ogmios.app/Contents/MacOS" },
+        "Ogmios",
     );
     b.getInstallStep().dependOn(&install_setup_bundle_exe.step);
 
     // Contents/Resources/AppIcon.icns — mirrors OgmiosRunner.app (same icon).
     const install_setup_icon = b.addInstallFileWithDir(
         b.path("src/assets/AppIcon.icns"),
-        .{ .custom = "../.build/OgmiosSetup.app/Contents/Resources" },
+        .{ .custom = "../.build/Ogmios.app/Contents/Resources" },
         "AppIcon.icns",
     );
     b.getInstallStep().dependOn(&install_setup_icon.step);

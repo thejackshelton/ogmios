@@ -16,9 +16,9 @@ export interface ApplyFixActionsOptions {
     key: string,
     value: boolean,
   ) => Promise<void>;
-  /** Test seam: replace the `open OgmiosSetup.app` invocation. */
+  /** Test seam: replace the `open Ogmios.app` invocation. */
   setupAppLauncher?: (appPath: string) => Promise<void>;
-  /** Test seam: replace the OgmiosSetup.app path resolver. */
+  /** Test seam: replace the Ogmios.app (setup) path resolver. */
   setupAppResolver?: () => Promise<string | null>;
 }
 
@@ -35,7 +35,7 @@ const defaultDefaultsWriter = async (
 };
 
 /**
- * Default launcher — `open <OgmiosSetup.app>`. Fire-and-forget (the user drives
+ * Default launcher — `open <Ogmios.app>`. Fire-and-forget (the user drives
  * the GUI from here; the doctor re-check happens on the next `ogmios doctor`
  * invocation after TCC grants land).
  */
@@ -78,7 +78,7 @@ export async function applyFixActions(
         errors.push({
           action,
           error:
-            'OgmiosSetup.app not found — install ogmios-darwin-arm64 or ogmios-darwin-x64, or set $OGMIOS_SETUP_APP_PATH.',
+            'Ogmios.app not found — install ogmios-darwin-arm64 or ogmios-darwin-x64, or set $OGMIOS_SETUP_APP_PATH.',
         });
         continue;
       }

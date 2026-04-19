@@ -61,9 +61,9 @@ jobs:
       - name: OgmiosRunner --version smoke
         working-directory: helper
         run: ./.build/OgmiosRunner.app/Contents/MacOS/OgmiosRunner --version
-      - name: OgmiosSetup --self-test smoke
+      - name: Ogmios setup --self-test smoke
         working-directory: helper
-        run: ./.build/OgmiosSetup.app/Contents/MacOS/OgmiosSetup --self-test
+        run: ./.build/Ogmios.app/Contents/MacOS/Ogmios --self-test
       - name: LaunchServices registration smoke — OgmiosRunner
         working-directory: helper
         # `open -W -n` waits for the bundle to exit; --args --version forces
@@ -71,16 +71,16 @@ jobs:
         # This catches Info.plist / LaunchServices rejection that a plain
         # exe invocation would miss.
         run: open -W -n .build/OgmiosRunner.app --args --version
-      - name: LaunchServices registration smoke — OgmiosSetup
+      - name: LaunchServices registration smoke — Ogmios setup
         working-directory: helper
-        run: open -W -n .build/OgmiosSetup.app --args --self-test
+        run: open -W -n .build/Ogmios.app --args --self-test
       - name: Bundle structure verify
         working-directory: helper
         run: |
           test -f .build/OgmiosRunner.app/Contents/Info.plist
-          test -f .build/OgmiosSetup.app/Contents/Info.plist
+          test -f .build/Ogmios.app/Contents/Info.plist
           test -x .build/OgmiosRunner.app/Contents/MacOS/OgmiosRunner
-          test -x .build/OgmiosSetup.app/Contents/MacOS/OgmiosSetup
+          test -x .build/Ogmios.app/Contents/MacOS/Ogmios
           test -f .build/libOgmiosXPCClient.dylib
 
   sdk-test-native:

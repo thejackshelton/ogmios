@@ -10,7 +10,7 @@
  *      - Stale or --force → fall through to download.
  *   5. --no-download + missing bundles → reject.
  *   6. Otherwise: download+verify → install (ditto) → strip quarantine.
- *   7. --skip-launch? return without launching. Else: open -W Ogmios Setup.app.
+ *   7. --skip-launch? return without launching. Else: open -W Ogmios.app (setup).
  *
  * The commander subcommand in main.ts is a thin wrapper that calls runSetup,
  * formats the SetupResult (human vs JSON), and maps it to a process exit code.
@@ -49,7 +49,7 @@ export interface SetupOptions {
 
   // --- Non-commander options, injected by tests or main.ts -----------------
 
-  /** Ogmios.app version this SDK is pinned against (packages/sdk/package.json). */
+  /** Ogmios helper bundle version this SDK is pinned against (packages/sdk/package.json). */
   compatibleAppVersion?: string;
   /** Release base URL, e.g. https://github.com/thejackshelton/ogmios/releases/download */
   releaseBaseUrl?: string;
@@ -132,7 +132,7 @@ export async function runSetup(opts: SetupOptions): Promise<SetupResult> {
 
   const appPaths = [
     join(installDir, 'OgmiosRunner.app'),
-    join(installDir, 'OgmiosSetup.app'),
+    join(installDir, 'Ogmios.app'),
   ];
 
   if (opts.dryRun) {
@@ -156,7 +156,7 @@ export async function runSetup(opts: SetupOptions): Promise<SetupResult> {
     if (opts.noDownload) {
       const err = new Error(
         `ogmios setup --no-download: apps are missing at ${installDir} and download is disabled.\n` +
-          `Place Ogmios.app + "Ogmios Setup.app" into ${installDir} manually, or re-run without --no-download.`,
+          `Place OgmiosRunner.app + Ogmios.app into ${installDir} manually, or re-run without --no-download.`,
       );
       (err as Error & { exitCode?: number }).exitCode = SETUP_EXIT.MISSING_DEP;
       throw err;

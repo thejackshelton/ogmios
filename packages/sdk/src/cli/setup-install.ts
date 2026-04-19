@@ -70,7 +70,7 @@ export async function installFromZip(
   return {
     installedPaths: [
       join(opts.installDir, 'OgmiosRunner.app'),
-      join(opts.installDir, 'OgmiosSetup.app'),
+      join(opts.installDir, 'Ogmios.app'),
     ],
   };
 }

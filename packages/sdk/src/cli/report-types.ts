@@ -36,7 +36,7 @@ export type FixAction =
     }
   | {
       /**
-       * Plan 08-04 — launch the bundled OgmiosSetup.app GUI.
+       * Plan 08-04 — launch the bundled Ogmios.app (setup) GUI.
        * The GUI cleanly triggers macOS Accessibility + Automation TCC prompts
        * via a real `.app`-bundle trust anchor (Phase 7 proved CLI-parent
        * prompts don't fire). --fix executes this action automatically.

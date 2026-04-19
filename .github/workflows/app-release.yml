@@ -85,7 +85,7 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
         run: |
           set -euo pipefail
-          for app in .build/OgmiosRunner.app .build/OgmiosSetup.app; do
+          for app in .build/OgmiosRunner.app .build/Ogmios.app; do
             ./scripts/sign-and-notarize.sh "$app"
           done
 
@@ -152,7 +152,7 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
         run: |
           set -euo pipefail
-          for app in .build/OgmiosRunner.app .build/OgmiosSetup.app; do
+          for app in .build/OgmiosRunner.app .build/Ogmios.app; do
             ./scripts/sign-and-notarize.sh "$app"
           done
 

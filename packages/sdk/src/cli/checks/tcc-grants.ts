@@ -315,7 +315,7 @@ export function checkTCCStaleEntries(
 
 function accessibilityFix(): FixAction[] {
   // Plan 08-04: emit the GUI launcher FIRST so `doctor --fix` launches the
-  // bundled OgmiosSetup.app (which triggers the TCC prompt cleanly via a real
+  // bundled Ogmios.app setup GUI (which triggers the TCC prompt cleanly via a real
   // .app trust anchor). The open-system-settings deep link remains as a
   // fallback that the reporter prints for users who prefer the manual path.
   return [

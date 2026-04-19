@@ -1,17 +1,21 @@
 /**
  * `ogmios setup` / `LAUNCH_SETUP_APP` fix-action path resolution.
  *
- * Plan 08-03 introduced OgmiosSetup.app — a tiny Zig-compiled GUI whose sole
+ * Plan 08-03 introduced a setup GUI — a tiny Zig-compiled app whose sole
  * purpose is to trigger macOS Accessibility + Automation TCC prompts cleanly.
  * Plan 08-04 wires the CLI `ogmios setup` subcommand + the `launch-setup-app`
  * fix-action to find and open the bundle from npm-installed binding packages
  * (primary) or the monorepo dev build (fallback).
  *
+ * The bundle was named `OgmiosSetup.app` through SDK 0.1.5; 0.1.6 renamed
+ * it to `Ogmios.app` so macOS System Settings + TCC prompts show just
+ * "Ogmios". The CFBundleIdentifier (`org.ogmios.setup`) is unchanged.
+ *
  * Resolution order (first match wins):
  *   1. `$OGMIOS_SETUP_APP_PATH` env override — escape hatch for QA / custom layouts
- *   2. node_modules/ogmios-darwin-arm64/helper/OgmiosSetup.app
- *   3. node_modules/ogmios-darwin-x64/helper/OgmiosSetup.app
- *   4. helper/.build/OgmiosSetup.app (local monorepo dev)
+ *   2. node_modules/ogmios-darwin-arm64/helper/Ogmios.app
+ *   3. node_modules/ogmios-darwin-x64/helper/Ogmios.app
+ *   4. helper/.build/Ogmios.app (local monorepo dev)
  *
  * Returns `null` when nothing is found — callers emit a user-facing "not
  * installed" error with the search paths enumerated.
@@ -66,7 +70,7 @@ export async function resolveSetupAppPath(
     'node_modules',
     'ogmios-darwin-arm64',
     'helper',
-    'OgmiosSetup.app',
+    'Ogmios.app',
   );
   searched.push(arm64Path);
   if (await exists(arm64Path)) {
@@ -79,7 +83,7 @@ export async function resolveSetupAppPath(
     'node_modules',
     'ogmios-darwin-x64',
     'helper',
-    'OgmiosSetup.app',
+    'Ogmios.app',
   );
   searched.push(x64Path);
   if (await exists(x64Path)) {
@@ -87,7 +91,7 @@ export async function resolveSetupAppPath(
   }
 
   // 4. Monorepo dev build — the path `zig build` stages to.
-  const devPath = join(cwd, 'helper', '.build', 'OgmiosSetup.app');
+  const devPath = join(cwd, 'helper', '.build', 'Ogmios.app');
   searched.push(devPath);
   if (await exists(devPath)) {
     return { path: devPath, source: 'dev', searched };
