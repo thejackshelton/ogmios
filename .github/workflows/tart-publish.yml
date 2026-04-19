@@ -59,7 +59,7 @@ jobs:
             base_image: ghcr.io/cirruslabs/macos-tahoe-xcode:latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Import Developer ID cert (for signing any helper artifacts)
         uses: apple-actions/import-codesign-certs@v3
