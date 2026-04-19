@@ -9,8 +9,8 @@
  *
  * Resolution order (first match wins):
  *   1. `$OGMIOS_SETUP_APP_PATH` env override — escape hatch for QA / custom layouts
- *   2. node_modules/@ogmios/binding-darwin-arm64/helper/OgmiosSetup.app
- *   3. node_modules/@ogmios/binding-darwin-x64/helper/OgmiosSetup.app
+ *   2. node_modules/ogmios-darwin-arm64/helper/OgmiosSetup.app
+ *   3. node_modules/ogmios-darwin-x64/helper/OgmiosSetup.app
  *   4. helper/.build/OgmiosSetup.app (local monorepo dev)
  *
  * Returns `null` when nothing is found — callers emit a user-facing "not

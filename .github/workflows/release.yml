@@ -10,7 +10,7 @@ on:
 
 # OIDC trusted publishing — no NPM_TOKEN secret required.
 # Requires npm trusted publishers configured for each of:
-#   ogmios, @ogmios/binding-darwin-arm64, @ogmios/binding-darwin-x64
+#   ogmios, ogmios-darwin-arm64, ogmios-darwin-x64
 # See docs/release-setup.md for one-time setup.
 
 permissions:

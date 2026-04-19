@@ -2,7 +2,7 @@
 
 exports[`printHumanReport (snapshot) > renders a passing report with the OK tail 1`] = `
 "ogmios doctor
-  macOS: 15.2   helper: /Users/x/node_modules/@ogmios/binding-darwin-arm64/helper/OgmiosRunner.app   mode: report
+  macOS: 15.2   helper: /Users/x/node_modules/ogmios-darwin-arm64/helper/OgmiosRunner.app   mode: report
 
   ✔ os-version             macOS 15.2 — supported
 
@@ -11,7 +11,7 @@ exports[`printHumanReport (snapshot) > renders a passing report with the OK tail
 
 exports[`printHumanReport (snapshot) > renders a sample failing report stably 1`] = `
 "ogmios doctor
-  macOS: 15.2   helper: /Users/x/node_modules/@ogmios/binding-darwin-arm64/helper/OgmiosRunner.app   mode: report
+  macOS: 15.2   helper: /Users/x/node_modules/ogmios-darwin-arm64/helper/OgmiosRunner.app   mode: report
 
   ✔ os-version             macOS 15.2 (major 15) — supported
   ✔ helper-present         OgmiosRunner.app found (npm install)

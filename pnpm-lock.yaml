@@ -90,7 +90,7 @@ importers:
         specifier: ^3.0.0
         version: 3.2.4(@types/node@24.12.2)(@vitest/browser@3.2.4)(tsx@4.21.0)
     optionalDependencies:
-      '@ogmios/binding-darwin-arm64':
+      ogmios-darwin-arm64:
         specifier: workspace:*
         version: link:../binding-darwin-arm64
 

@@ -22,7 +22,7 @@ describe('discoverHelper', () => {
   });
 
   it('falls through to npm path when override does not exist', async () => {
-    const npmPath = '/repo/node_modules/@ogmios/binding-darwin-arm64/helper/OgmiosRunner.app';
+    const npmPath = '/repo/node_modules/ogmios-darwin-arm64/helper/OgmiosRunner.app';
     const { location, result } = await discoverHelper({
       overridePath: '/nope',
       exists: mkExists([npmPath]),
@@ -72,7 +72,7 @@ describe('discoverHelper', () => {
   });
 
   it('uses the right binding package name for darwin-x64', async () => {
-    const npmPath = '/repo/node_modules/@ogmios/binding-darwin-x64/helper/OgmiosRunner.app';
+    const npmPath = '/repo/node_modules/ogmios-darwin-x64/helper/OgmiosRunner.app';
     const { location } = await discoverHelper({
       exists: mkExists([npmPath]),
       cwd: '/repo',

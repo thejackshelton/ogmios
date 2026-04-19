@@ -52,7 +52,7 @@ Expected output when everything is set up:
 ```
 ✓ macOS 14.6 (Sonoma) — supported
 ✓ VoiceOver AppleScript control enabled
-✓ OgmiosRunner.app found at /path/to/@ogmios/binding-darwin-arm64/helper/OgmiosRunner.app
+✓ OgmiosRunner.app found at /path/to/ogmios-darwin-arm64/helper/OgmiosRunner.app
 ✓ OgmiosRunner.app is Developer ID signed
 ✓ Accessibility grant present for OgmiosRunner.app
 ✓ Automation grant present for OgmiosRunner.app → VoiceOver

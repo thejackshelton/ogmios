@@ -78,7 +78,7 @@ export async function applyFixActions(
         errors.push({
           action,
           error:
-            'OgmiosSetup.app not found — install @ogmios/binding-darwin-arm64 or @ogmios/binding-darwin-x64, or set $OGMIOS_SETUP_APP_PATH.',
+            'OgmiosSetup.app not found — install ogmios-darwin-arm64 or ogmios-darwin-x64, or set $OGMIOS_SETUP_APP_PATH.',
         });
         continue;
       }

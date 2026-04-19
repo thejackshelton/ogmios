@@ -1,5 +1,5 @@
 {
-  "name": "@ogmios/binding-darwin-x64",
+  "name": "ogmios-darwin-x64",
   "version": "0.1.1",
   "private": true,
   "description": "Ogmios native addon — darwin x64 (Intel)",

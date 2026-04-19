@@ -17,8 +17,8 @@ export interface NativeBinding {
 }
 
 export const SUPPORTED_PLATFORMS = [
-  { platform: 'darwin', arch: 'arm64', pkg: '@ogmios/binding-darwin-arm64' },
-  { platform: 'darwin', arch: 'x64', pkg: '@ogmios/binding-darwin-x64' },
+  { platform: 'darwin', arch: 'arm64', pkg: 'ogmios-darwin-arm64' },
+  { platform: 'darwin', arch: 'x64', pkg: 'ogmios-darwin-x64' },
 ] as const;
 
 export type SupportedPlatform = (typeof SUPPORTED_PLATFORMS)[number];

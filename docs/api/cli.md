@@ -54,7 +54,7 @@ ogmios doctor (0.1.1)
 
 ✓ macOS 14.6 (Sonoma) — supported
 ✓ VoiceOver AppleScript control enabled
-✓ OgmiosRunner.app found at /…/node_modules/@ogmios/binding-darwin-arm64/helper/OgmiosRunner.app
+✓ OgmiosRunner.app found at /…/node_modules/ogmios-darwin-arm64/helper/OgmiosRunner.app
 ✓ OgmiosRunner.app is Developer ID signed
 ✓ Accessibility grant present for OgmiosRunner.app
 ✓ Automation grant present for OgmiosRunner.app → VoiceOver

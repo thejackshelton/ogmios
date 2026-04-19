@@ -55,7 +55,7 @@
     "picocolors": "^1.0.0"
   },
   "optionalDependencies": {
-    "@ogmios/binding-darwin-arm64": "workspace:*"
+    "ogmios-darwin-arm64": "workspace:*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

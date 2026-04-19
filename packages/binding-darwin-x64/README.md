@@ -1,4 +1,4 @@
-# @ogmios/binding-darwin-x64
+# ogmios-darwin-x64
 
 Native addon for Ogmios on macOS Intel.
 

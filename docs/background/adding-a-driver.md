@@ -79,8 +79,8 @@ Add it to `ogmios`'s `optionalDependencies` in `packages/sdk/package.json`:
 
 ```json
 "optionalDependencies": {
-  "@ogmios/binding-darwin-arm64": "workspace:*",
-  "@ogmios/binding-darwin-x64": "workspace:*",
+  "ogmios-darwin-arm64": "workspace:*",
+  "ogmios-darwin-x64": "workspace:*",
   "@ogmios/binding-linux-x64": "workspace:*"
 }
 ```

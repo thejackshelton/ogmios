@@ -70,7 +70,7 @@ Precedent: tools like `pnpm` and `nvm` are global-by-default because they manage
 |---------|---------|
 | `ogmios` | Everything user-facing: core TS API (`voiceOver()`, `ScreenReaderHandle`, events), the `ogmios` CLI (bin entry), matcher functions at `ogmios/matchers`, and the Vitest plugin at `ogmios/vitest` / `ogmios/vitest/setup` / `ogmios/vitest/browser`. |
 
-The platform-specific binding (`@ogmios/binding-darwin-arm64` or `@ogmios/binding-darwin-x64`) is an **optional** dependency of `ogmios` — pnpm/npm picks the right one for your OS + CPU at install time. Never installed by hand. No postinstall scripts, no `node-gyp`.
+The platform-specific binding (`ogmios-darwin-arm64` or `ogmios-darwin-x64`) is an **optional** dependency of `ogmios` — pnpm/npm picks the right one for your OS + CPU at install time. Never installed by hand. No postinstall scripts, no `node-gyp`.
 
 > **Heads up (v0.1.1 — migrating from a prior name?):** this library
 > went through several npm names before v0.1.1 GA shipped as
@@ -140,7 +140,7 @@ On a fresh macOS arm64 machine this also loads the native binding into memory; a
 Previously the library shipped 4 user-facing packages (a prior-scope SDK, a prior-scope Vitest plugin, plus the two platform bindings). We collapsed to 1 user-facing package:
 
 - **`ogmios`** — core API, CLI, matchers, Vitest plugin, browser-safe entry points — all behind subpath exports.
-- **`@ogmios/binding-darwin-arm64` + `@ogmios/binding-darwin-x64`** — auto-installed via `optionalDependencies`. Never seen by end users.
+- **`ogmios-darwin-arm64` + `ogmios-darwin-x64`** — auto-installed via `optionalDependencies`. Never seen by end users.
 
 Vitest and `@vitest/browser` are **optional peer deps** of `ogmios` — install them only if you use the Vitest plugin.
 

@@ -25,7 +25,7 @@ pnpm add -D ogmios vitest @vitest/browser playwright @qwik.dev/core vitest-brows
 pnpm exec playwright install chromium
 ```
 
-The `@ogmios/binding-darwin-arm64` (or `-x64`) native package is installed automatically as an `optionalDependency` of `ogmios`.
+The `ogmios-darwin-arm64` (or `-x64`) native package is installed automatically as an `optionalDependency` of `ogmios`.
 
 ## 2. Configure Vitest
 

@@ -4,11 +4,11 @@ import { UnsupportedPlatformError } from '../src/errors.js';
 
 describe('resolveBindingPackage', () => {
   it('returns the darwin-arm64 package on darwin-arm64', () => {
-    expect(resolveBindingPackage('darwin', 'arm64')).toBe('@ogmios/binding-darwin-arm64');
+    expect(resolveBindingPackage('darwin', 'arm64')).toBe('ogmios-darwin-arm64');
   });
 
   it('returns the darwin-x64 package on darwin-x64', () => {
-    expect(resolveBindingPackage('darwin', 'x64')).toBe('@ogmios/binding-darwin-x64');
+    expect(resolveBindingPackage('darwin', 'x64')).toBe('ogmios-darwin-x64');
   });
 
   it('throws UnsupportedPlatformError on unsupported combos', () => {

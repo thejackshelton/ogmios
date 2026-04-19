@@ -40,8 +40,8 @@ Ogmios publishes via npm's trusted-publishing flow — no `NPM_TOKEN` secret in 
 
 For each of:
 - `ogmios` (the SDK)
-- `@ogmios/binding-darwin-arm64`
-- `@ogmios/binding-darwin-x64`
+- `ogmios-darwin-arm64`
+- `ogmios-darwin-x64`
 
 1. Publish an initial `0.0.1` version with a classic `NPM_TOKEN` from a maintainer's machine (bootstrap only; see "bootstrap publish" below).
 2. Log into npmjs.com → package settings → Trusted Publishers → Add trusted publisher.
@@ -76,7 +76,7 @@ After a tag push:
 1. Watch the `Release` workflow in GitHub Actions. All four jobs should be green.
 2. `npm view ogmios dist-tags` — should show the new `latest` version.
 3. `npm install ogmios@latest` on a fresh macOS machine:
-   - `@ogmios/binding-darwin-arm64` or `@ogmios/binding-darwin-x64` should be selected via `optionalDependencies`
+   - `ogmios-darwin-arm64` or `ogmios-darwin-x64` should be selected via `optionalDependencies`
    - `node -e "require('ogmios')"` should load without errors
    - `codesign -dvvv node_modules/@ogmios/binding-*/helper/OgmiosRunner.app` should show a valid Developer ID signature
 4. `npm view ogmios@<new-version> --json | jq .dist.attestations` — should show provenance attestation.
@@ -101,8 +101,8 @@ xcrun notarytool log <log-uuid> --key AuthKey_XXX.p8 --key-id XXX --issuer XXX
 npm allows unpublishing within 72 hours. If a broken release ships:
 ```bash
 npm unpublish ogmios@<broken-version>
-npm unpublish @ogmios/binding-darwin-arm64@<broken-version>
-npm unpublish @ogmios/binding-darwin-x64@<broken-version>
+npm unpublish ogmios-darwin-arm64@<broken-version>
+npm unpublish ogmios-darwin-x64@<broken-version>
 ```
 After 72 hours, unpublishing is restricted — instead publish a patched version and `npm deprecate` the broken one.
 

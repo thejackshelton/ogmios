@@ -104,8 +104,8 @@ Ogmios solves those piece by piece.
 Ogmios ships **3 npm packages**:
 
 - `ogmios` — TypeScript API, `ogmios` CLI (`bin`), matcher functions at `ogmios/matchers`, and Vitest plugin at `ogmios/vitest`, `ogmios/vitest/setup`, `ogmios/vitest/browser`.
-- `@ogmios/binding-darwin-arm64` — platform binary (Zig `.node`), auto-installed via `optionalDependencies`. Never installed by hand.
-- `@ogmios/binding-darwin-x64` — same, for Intel Macs. Auto-installed via `optionalDependencies`. Never installed by hand.
+- `ogmios-darwin-arm64` — platform binary (Zig `.node`), auto-installed via `optionalDependencies`. Never installed by hand.
+- `ogmios-darwin-x64` — same, for Intel Macs. Auto-installed via `optionalDependencies`. Never installed by hand.
 
 The helper apps (`OgmiosRunner.app` + `OgmiosSetup.app`) are **not** in the npm tarballs. `npx ogmios setup` downloads them from GitHub Releases on first run (~10MB), verifies SHA256, installs them into `~/Applications/`, and triggers the macOS TCC permission flow. The helper bundles are **single-language Zig** — no Swift, no Objective-C sources. See [`docs/background/architecture.md`](docs/background/architecture.md) for the full story (signed-wrapper-app rationale, wire format spec, driver extensibility).
 

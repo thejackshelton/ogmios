@@ -1,4 +1,4 @@
-# @ogmios/binding-darwin-arm64
+# ogmios-darwin-arm64
 
 Native addon for Ogmios on macOS Apple Silicon.
 

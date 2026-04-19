@@ -27,7 +27,7 @@ describe('resolveSetupAppPath', () => {
 
   it('falls through to arm64 node_modules path when env is absent', async () => {
     const arm64 =
-      '/repo/node_modules/@ogmios/binding-darwin-arm64/helper/OgmiosSetup.app';
+      '/repo/node_modules/ogmios-darwin-arm64/helper/OgmiosSetup.app';
     const res = await resolveSetupAppPath({
       cwd: '/repo',
       envPath: undefined,
@@ -39,7 +39,7 @@ describe('resolveSetupAppPath', () => {
 
   it('falls through to x64 node_modules path when arm64 absent', async () => {
     const x64 =
-      '/repo/node_modules/@ogmios/binding-darwin-x64/helper/OgmiosSetup.app';
+      '/repo/node_modules/ogmios-darwin-x64/helper/OgmiosSetup.app';
     const res = await resolveSetupAppPath({
       cwd: '/repo',
       exists: mkExists([x64]),
@@ -72,7 +72,7 @@ describe('resolveSetupAppPath', () => {
 
   it('ignores env override when env path does not exist (still searches fallbacks)', async () => {
     const arm64 =
-      '/repo/node_modules/@ogmios/binding-darwin-arm64/helper/OgmiosSetup.app';
+      '/repo/node_modules/ogmios-darwin-arm64/helper/OgmiosSetup.app';
     const res = await resolveSetupAppPath({
       cwd: '/repo',
       envPath: '/not/real/OgmiosSetup.app',

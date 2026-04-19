@@ -56,8 +56,8 @@ pnpm format      # Biome format (auto-fix)
 ogmios/
 ├── packages/
 │   ├── sdk/                        ogmios — public TS API
-│   ├── binding-darwin-arm64/       @ogmios/binding-darwin-arm64 — platform binary
-│   └── binding-darwin-x64/         @ogmios/binding-darwin-x64 — platform binary
+│   ├── binding-darwin-arm64/       ogmios-darwin-arm64 — platform binary
+│   └── binding-darwin-x64/         ogmios-darwin-x64 — platform binary
 ├── zig/                            Zig core source
 │   ├── build.zig, build.zig.zon
 │   ├── src/core/                   driver vtable, ring buffer, wire format, N-API surface

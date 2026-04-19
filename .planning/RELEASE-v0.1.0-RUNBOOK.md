@@ -74,15 +74,15 @@ pnpm publish -r --access public --no-git-checks
 ```
 
 pnpm publishes all 3 workspace packages in dependency order:
-1. `@ogmios/binding-darwin-arm64@0.1.1`
-2. `@ogmios/binding-darwin-x64@0.1.1`
+1. `ogmios-darwin-arm64@0.1.1`
+2. `ogmios-darwin-x64@0.1.1`
 3. `ogmios@0.1.1`
 
 Verify:
 ```bash
 npm view ogmios@0.1.1
-npm view @ogmios/binding-darwin-arm64@0.1.1
-npm view @ogmios/binding-darwin-x64@0.1.1
+npm view ogmios-darwin-arm64@0.1.1
+npm view ogmios-darwin-x64@0.1.1
 ```
 
 ## Step 2a: Deprecate the prior-name packages
@@ -93,9 +93,9 @@ After `ogmios@0.1.1` is live, redirect former-name installs to it:
 npm deprecate dicta@0.1.0 \
   "Renamed to ogmios. Install: npm install ogmios"
 npm deprecate "@shoki/binding-darwin-arm64@*" \
-  "Renamed to @ogmios/binding-darwin-arm64. Install via ogmios."
+  "Renamed to ogmios-darwin-arm64. Install via ogmios."
 npm deprecate "@shoki/binding-darwin-x64@*" \
-  "Renamed to @ogmios/binding-darwin-x64. Install via ogmios."
+  "Renamed to ogmios-darwin-x64. Install via ogmios."
 # munadi was never successfully published; no deprecation needed.
 ```
 

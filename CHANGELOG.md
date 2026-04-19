@@ -19,8 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   of eloquence whom Lucian of Samosata described as an elder binding his
   listeners with chains of gold from his tongue to their ears — is
   mythologically grounded, distinctive, and unambiguous.
-- `npm install ogmios` (unscoped) + `@ogmios/binding-darwin-arm64` /
-  `@ogmios/binding-darwin-x64` (platform bindings).
+- `npm install ogmios` (unscoped) + `ogmios-darwin-arm64` /
+  `ogmios-darwin-x64` (platform bindings).
 - CLI bin is `ogmios`. Users run `ogmios doctor`, `npx ogmios setup`,
   `ogmios info`, `ogmios restore-vo-settings`.
 - Helper apps renamed: `Shoki.app` / `Shoki Setup.app` →
@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `dicta@0.1.0` — renamed to `ogmios`. Install: `npm install ogmios`.
 - `@shoki/binding-darwin-arm64@*` / `@shoki/binding-darwin-x64@*` —
-  renamed to `@ogmios/binding-darwin-arm64` / `@ogmios/binding-darwin-x64`.
+  renamed to `ogmios-darwin-arm64` / `ogmios-darwin-x64`.
 - `munadi` was never successfully published (blocked by the similarity
   filter vs `minami` before first publish) so no deprecation is needed.
 

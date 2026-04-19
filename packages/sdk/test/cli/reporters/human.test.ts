@@ -8,7 +8,7 @@ function sampleReport(overrides: Partial<DoctorReport> = {}): DoctorReport {
     exitCode: ExitCode.VO_APPLESCRIPT_DISABLED,
     macOSVersion: '15.2',
     helperPath:
-      '/Users/x/node_modules/@ogmios/binding-darwin-arm64/helper/OgmiosRunner.app',
+      '/Users/x/node_modules/ogmios-darwin-arm64/helper/OgmiosRunner.app',
     helperSignature: 'Developer ID Application: Jack Shelton (TEAMIDXYZ)',
     checks: [
       {
