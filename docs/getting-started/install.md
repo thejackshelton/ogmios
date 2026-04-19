@@ -34,16 +34,13 @@ npm install ogmios
 # First-run setup: downloads OgmiosRunner.app + OgmiosSetup.app from GitHub Releases,
 # installs to ~/Applications/, strips quarantine, opens the macOS TCC permission flow.
 npx ogmios setup
-
-# Verify everything is wired
-npx ogmios doctor
 ```
 
 That's it. `npm install ogmios` (or `pnpm add -D ogmios`, or `yarn add -D ogmios`) drops the `ogmios` CLI on your PATH via `npx`, and `ogmios setup` does the first-run download + install + permission dance once per machine.
 
 ### Why local install
 
-Ogmios is both a library and a CLI, but the canonical path is a **local install** inside your test project. Your test files will do `import { voiceOver } from 'ogmios'`, which only resolves when `ogmios` lives in your project's `package.json` and `node_modules/`. The `ogmios` binary is available via `npx ogmios …` from that same local install — no global install needed to run `setup` or `doctor`.
+Ogmios is both a library and a CLI, but the canonical path is a **local install** inside your test project. Your test files will do `import { voiceOver } from 'ogmios'`, which only resolves when `ogmios` lives in your project's `package.json` and `node_modules/`. The `ogmios` binary is available via `npx ogmios …` from that same local install — no global install needed to run `setup` or `info`.
 
 This mirrors how Vitest and Playwright distribute: they're libraries your tests import, plus CLIs you invoke via `npx` / `pnpm exec`. Don't global-install them; don't global-install `ogmios` as the default.
 
@@ -58,7 +55,7 @@ ogmios setup
 
 Reasonable reasons to global install:
 
-- **Evaluating ogmios** — you want to run `ogmios setup` + `ogmios doctor` on your Mac to see what the permission flow looks like before committing to a project.
+- **Evaluating ogmios** — you want to run `ogmios setup` + `ogmios info` on your Mac to see what the permission flow looks like before committing to a project.
 - **Pre-provisioning a dev box or CI image** — grant TCC once at the machine level so later project installs skip the prompt.
 - **Shared multi-project machines** — one TCC grant anchored on `~/Applications/OgmiosRunner.app` covers every project on that machine regardless of which `node_modules/` they use.
 
@@ -112,19 +109,15 @@ Full flag reference: [CLI API → `ogmios setup`](/api/cli#ogmios-setup).
 
 ## Verify the install
 
+`ogmios setup` exits 0 once `OgmiosRunner.app` + `OgmiosSetup.app` are installed and the Accessibility + Automation TCC prompts fired. If `setup` succeeded, the install is done — macOS persists the grants across runs on that host. You don't need a separate verification step.
+
+For a diagnostic dump (useful in bug reports) run:
+
 ```bash
-npx ogmios doctor --json
+npx ogmios info
 ```
 
-What doctor checks:
-
-- macOS version (14 / 15 / 26).
-- VoiceOver AppleScript-controllability (`com.apple.VoiceOver4.local.plist` → `SCREnableAppleScriptEnabled`).
-- `OgmiosRunner.app` + `OgmiosSetup.app` discoverable in `~/Applications/`.
-- Accessibility + Automation TCC grants on the helper.
-- Stale grants from prior binary signatures.
-
-Exit code 0 means you're ready to write a test. Non-zero exit identifies which check failed — see [Exit codes](/api/cli#exit-codes).
+which prints the Ogmios version, platform, resolved helper path, and TCC.db accessibility. See [CLI API → `ogmios info`](/api/cli#ogmios-info).
 
 A minimal sanity check without VoiceOver:
 
@@ -148,7 +141,7 @@ If you only need the capture core without Vitest ergonomics, `npm install ogmios
 
 ## What's next
 
-- [Permission setup](./permission-setup) — fix whatever `ogmios doctor` flagged.
+- [Permission setup](./permission-setup) — what the TCC prompts are granting and how to re-trigger them if the first click was "Don't Allow".
 - [Vitest quickstart](./vitest-quickstart) — write your first test in under 5 minutes.
 - [CI quickstart](./ci-quickstart) — pick a runner topology and copy a workflow.
 - [Troubleshooting](/guides/troubleshooting) — `ogmios setup` download errors, ENOENT, quarantine issues.

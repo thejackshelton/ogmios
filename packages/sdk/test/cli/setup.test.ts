@@ -1,12 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
-import { applyFixActions } from '../../src/cli/fix-executor.js';
-import type { FixAction } from '../../src/cli/report-types.js';
+import { describe, expect, it } from 'vitest';
 import { resolveSetupAppPath } from '../../src/cli/setup-app-path.js';
-import {
-  checkTCCAccessibility,
-  checkTCCAutomation,
-  type EnumerateTCCGrantsResult,
-} from '../../src/cli/checks/index-tcc.js';
 
 function mkExists(knownPaths: string[]) {
   const set = new Set(knownPaths);
@@ -80,105 +73,5 @@ describe('resolveSetupAppPath', () => {
     });
     expect(res.path).toBe(arm64);
     expect(res.source).toBe('npm-arm64');
-  });
-});
-
-describe('launch-setup-app fix-action', () => {
-  it('applies via the injected launcher when a path is pinned on the action', async () => {
-    const launcher = vi.fn(async () => undefined);
-    const resolver = vi.fn(async () => null);
-    const actions: FixAction[] = [
-      { kind: 'launch-setup-app', appPath: '/opt/Ogmios.app' },
-    ];
-    const res = await applyFixActions(actions, {
-      sipEnabled: true,
-      setupAppLauncher: launcher,
-      setupAppResolver: resolver,
-    });
-    expect(launcher).toHaveBeenCalledWith('/opt/Ogmios.app');
-    expect(resolver).not.toHaveBeenCalled();
-    expect(res.appliedActions).toHaveLength(1);
-    expect(res.errors).toHaveLength(0);
-  });
-
-  it('resolves path at fix time when the action has appPath=null', async () => {
-    const launcher = vi.fn(async () => undefined);
-    const resolver = vi.fn(async () => '/resolved/Ogmios.app');
-    const actions: FixAction[] = [{ kind: 'launch-setup-app', appPath: null }];
-    const res = await applyFixActions(actions, {
-      sipEnabled: true,
-      setupAppLauncher: launcher,
-      setupAppResolver: resolver,
-    });
-    expect(resolver).toHaveBeenCalledOnce();
-    expect(launcher).toHaveBeenCalledWith('/resolved/Ogmios.app');
-    expect(res.appliedActions).toHaveLength(1);
-    expect(res.appliedActions[0]).toEqual({
-      kind: 'launch-setup-app',
-      appPath: '/resolved/Ogmios.app',
-    });
-  });
-
-  it('records an error when resolver cannot find the app', async () => {
-    const launcher = vi.fn(async () => undefined);
-    const resolver = vi.fn(async () => null);
-    const actions: FixAction[] = [{ kind: 'launch-setup-app', appPath: null }];
-    const res = await applyFixActions(actions, {
-      sipEnabled: true,
-      setupAppLauncher: launcher,
-      setupAppResolver: resolver,
-    });
-    expect(launcher).not.toHaveBeenCalled();
-    expect(res.appliedActions).toHaveLength(0);
-    expect(res.errors).toHaveLength(1);
-    expect(res.errors[0]?.error).toMatch(/Ogmios\.app not found/);
-  });
-
-  it('propagates launcher failures as errors (does not crash the batch)', async () => {
-    const launcher = vi.fn(async () => {
-      throw new Error('open: -10810');
-    });
-    const actions: FixAction[] = [
-      { kind: 'launch-setup-app', appPath: '/opt/Ogmios.app' },
-    ];
-    const res = await applyFixActions(actions, {
-      sipEnabled: true,
-      setupAppLauncher: launcher,
-    });
-    expect(res.appliedActions).toHaveLength(0);
-    expect(res.errors).toHaveLength(1);
-    expect(res.errors[0]?.error).toBe('open: -10810');
-  });
-});
-
-describe('TCC checks emit launch-setup-app fix-action', () => {
-  it('checkTCCAccessibility emits launch-setup-app when Accessibility grant is missing', () => {
-    const enumeration: EnumerateTCCGrantsResult = {
-      rows: [],
-      userDbAccessible: true,
-      systemDbAccessible: true,
-      warnings: [],
-    };
-    const result = checkTCCAccessibility(enumeration);
-    expect(result.status).toBe('fail');
-    const launchAction = (result.fixActions ?? []).find(
-      (a) => a.kind === 'launch-setup-app',
-    );
-    expect(launchAction).toBeDefined();
-  });
-
-  it('checkTCCAutomation emits launch-setup-app when Automation grant is missing', () => {
-    const enumeration: EnumerateTCCGrantsResult = {
-      rows: [],
-      userDbAccessible: true,
-      systemDbAccessible: true,
-      warnings: [],
-    };
-    const result = checkTCCAutomation(enumeration);
-    expect(result.status).toBe('fail');
-    const launchAction = (result.fixActions ?? []).find(
-      (a) => a.kind === 'launch-setup-app',
-    );
-    expect(launchAction).toBeDefined();
   });
 });

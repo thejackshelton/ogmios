@@ -1,28 +1,23 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { createRequire } from 'node:module';
-import { discoverHelper } from './checks/index.js';
-import {
-  openTCCDatabase,
-  SYSTEM_TCC_DB_PATH,
-  USER_TCC_DB_PATH,
-} from './checks/index-tcc.js';
+import { discoverHelper } from './helper-discovery.js';
 import { warnOnLegacyStateDir } from './legacy-state.js';
-import { ExitCode } from './report-types.js';
-import { printHumanReport } from './reporters/human.js';
-import { printJsonReport } from './reporters/json.js';
-import { printQuietReport } from './reporters/quiet.js';
 import {
   DEFAULT_SNAPSHOT_PATH,
   restoreVoSettingsFromSnapshot,
 } from './restore-vo-settings.js';
-import { runDoctor } from './run-doctor.js';
 import {
   resolveReleaseBaseUrlFromPackageJson,
   runSetup,
   SETUP_EXIT,
   type SetupResult,
 } from './setup-command.js';
+import {
+  openTCCDatabase,
+  SYSTEM_TCC_DB_PATH,
+  USER_TCC_DB_PATH,
+} from './tcc-db-paths.js';
 
 const require = createRequire(import.meta.url);
 // Path is relative to dist/cli/main.js — climbs to packages/sdk/package.json.
@@ -36,49 +31,11 @@ const program = new Command();
 
 program
   .name('ogmios')
-  .description('ogmios CLI — VoiceOver/TCC diagnostics and setup for macOS 14/15/26')
+  .description('ogmios CLI — VoiceOver setup + diagnostics for macOS 14/15/26')
   .version(pkg.version, '-v, --version');
 
 program
-  .command('doctor', { isDefault: true })
-  .description('Diagnose VoiceOver, TCC, helper, and SIP state on this machine')
-  .option('--fix', 'Attempt safe automated remediations (writes VO plist when SIP permits)')
-  .option('--json', 'Emit machine-readable JSON instead of human-readable output')
-  .option('--quiet', 'Only print summary + exit code (suitable for pre-commit hooks)')
-  .option('--helper-path <path>', 'Override the OgmiosRunner.app path (also: $OGMIOS_HELPER_PATH)')
-  .action(
-    async (opts: {
-      fix?: boolean;
-      json?: boolean;
-      quiet?: boolean;
-      helperPath?: string;
-    }) => {
-      // CONTEXT.md D-05: announce surviving shoki/dicta/munadi state dirs on
-      // stderr before any structured output is produced (keeps --json/--quiet
-      // stdout contracts clean).
-      if (!opts.json) {
-        warnOnLegacyStateDir();
-      }
-
-      const report = await runDoctor({
-        fix: opts.fix,
-        helperPath: opts.helperPath ?? process.env.OGMIOS_HELPER_PATH,
-      });
-
-      if (opts.json) {
-        printJsonReport(report);
-      } else if (opts.quiet) {
-        printQuietReport(report);
-      } else {
-        printHumanReport(report);
-      }
-
-      process.exit(report.exitCode);
-    },
-  );
-
-program
-  .command('setup')
+  .command('setup', { isDefault: true })
   .description(
     'Download Ogmios.app + Ogmios Setup.app from GitHub Releases, install into ~/Applications, and launch the TCC-prompt setup GUI',
   )
@@ -111,7 +68,7 @@ program
       version?: string;
       dryRun?: boolean;
     }) => {
-      // CONTEXT.md D-05: same legacy-state notice as `doctor`, suppressed
+      // CONTEXT.md D-05: surface legacy state-dir notice on stderr, suppressed
       // under --json to preserve the machine-readable stdout contract.
       if (!opts.json) {
         warnOnLegacyStateDir();
@@ -190,7 +147,11 @@ program
   .command('info')
   .description('Print diagnostic context (paste this in bug reports)')
   .action(async () => {
-    const helperResult = await discoverHelper();
+    // Surface the legacy-state-dir notice (runs in all commands independent of
+    // any individual subsystem) before the info dump.
+    warnOnLegacyStateDir();
+
+    const { location } = await discoverHelper();
     const userOpen = openTCCDatabase(USER_TCC_DB_PATH);
     const systemOpen = openTCCDatabase(SYSTEM_TCC_DB_PATH);
     if (userOpen.ok) userOpen.db.close();
@@ -200,7 +161,7 @@ program
     console.log(`node ${process.version}`);
     console.log(`platform ${process.platform} ${process.arch}`);
     console.log(
-      `helper: ${helperResult.location ? `${helperResult.location.path} (${helperResult.location.source})` : '<none>'}`,
+      `helper: ${location ? `${location.path} (${location.source})` : '<none>'}`,
     );
     console.log(
       `tcc.user: ${userOpen.ok ? 'accessible' : `inaccessible (${!userOpen.ok ? userOpen.reason : ''})`}`,
@@ -208,7 +169,7 @@ program
     console.log(
       `tcc.system: ${systemOpen.ok ? 'accessible' : `inaccessible (${!systemOpen.ok ? systemOpen.reason : ''})`}`,
     );
-    process.exit(ExitCode.OK);
+    process.exit(0);
   });
 
 program
@@ -300,12 +261,12 @@ program
           break;
         default:
           console.error(`Unknown error: ${result.code}`);
-          process.exit(ExitCode.UNKNOWN_ERROR);
+          process.exit(1);
       }
     },
   );
 
 program.parseAsync(process.argv).catch((err) => {
   console.error(err instanceof Error ? err.message : String(err));
-  process.exit(ExitCode.UNKNOWN_ERROR);
+  process.exit(1);
 });

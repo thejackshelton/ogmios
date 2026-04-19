@@ -4,20 +4,20 @@ Known failure modes and their fixes. If you hit something not listed here, [open
 
 ## Quick diagnosis
 
-Always run `ogmios doctor` first. 90% of the issues on this page are diagnosed by it in one shot.
+Run `ogmios info` to dump the basics (Ogmios version, platform, resolved helper path, TCC.db accessibility). If a permission is missing, the fix is usually `npx ogmios setup --force`.
 
 ```bash
-npx ogmios doctor
+npx ogmios info
 ```
 
-Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
+> **v0.1.7+:** `ogmios doctor` was removed. Every check it ran pointed back to the GUI setup flow as the fix. Troubleshooting now routes through `ogmios setup --force` for permission issues and `ogmios info` for diagnostic dumps.
 
 ## Error → cause → fix
 
 ### `AXError -25204` / "cannot observe announcements"
 
 - **Cause:** The OgmiosRunner helper lacks the Accessibility TCC grant (or the grant is stale after a binding upgrade).
-- **Fix:** Run `ogmios doctor`. If it reports missing Accessibility, follow the deep link to System Settings → Privacy & Security → Accessibility and toggle OgmiosRunner.app on. If the grant is present but mismatched, run `tccutil reset Accessibility org.ogmios.runner` and re-grant.
+- **Fix:** Run `npx ogmios setup --force` to re-launch `OgmiosSetup.app` and re-fire the TCC prompts. If macOS cached an earlier denial, reset first: `tccutil reset Accessibility org.ogmios.runner && tccutil reset AppleEvents org.ogmios.runner && npx ogmios setup --force`.
 
 ### Ghost VoiceOver process after tests
 
@@ -67,15 +67,15 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
   2. Check `node_modules/@ogmios/` for a `binding-darwin-arm64` or `binding-darwin-x64` subdirectory.
   3. If it's missing, your registry might be blocking optional deps — set `optional=true` in `.npmrc` or pin the platform binding manually.
 
-### `ogmios doctor` says "Full Disk Access needed"
+### `ogmios info` reports `tcc.system: inaccessible (permission-denied)`
 
-- **Cause:** `ogmios doctor` reads the system TCC.db, which is SIP-protected on macOS 14+.
-- **Fix:** Grant FDA to your terminal in System Settings → Privacy & Security → Full Disk Access, OR run with `--skip-system-tcc` (user-scope check only).
+- **Cause:** The system TCC.db is SIP-protected; reading it requires Full Disk Access on macOS 14+. `ogmios` at runtime does **not** need to read the system TCC.db — this is only a diagnostic flag in `info`, never a blocker for actual capture.
+- **Fix:** Nothing to fix unless you're specifically looking at the system-scope grants. If you want the dump to show `accessible`, grant FDA to your terminal in System Settings → Privacy & Security → Full Disk Access.
 
 ### Empty log + `toHaveAnnounced` fails
 
 - **Cause:** Almost always a missing Automation grant specifically (Accessibility alone is not sufficient). VoiceOver has to show up as a child entry of OgmiosRunner.app under Automation.
-- **Fix:** Run `ogmios doctor` — it diagnoses Automation specifically. Re-grant if needed, re-run.
+- **Fix:** Run `npx ogmios setup --force`. The GUI re-fires the Automation prompt; click Allow.
 
 ### `awaitStable` times out
 
@@ -91,12 +91,12 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 - **Cause 2:** Your app isn't actually announcing (bad `aria-live`, role mismatch, etc.).
 - **Fix 2:** Test against [`examples/vitest-browser-qwik`](https://github.com/thejackshelton/ogmios/tree/main/examples/vitest-browser-qwik) first — if the canonical example works, the problem is in your app's semantics.
 
-### `ogmios doctor` exits 9 (HELPER_UNSIGNED)
+### Running against a dev build of `OgmiosRunner.app` (unsigned helper)
 
-- **Cause:** You're running against a dev build of the helper, not a signed release.
+- **Cause:** `OGMIOS_HELPER_PATH` points at a local `helper/.build/OgmiosRunner.app` instead of the signed release under `~/Applications/`.
 - **Fix:**
   - For local dev, this is fine — just expect to re-grant permissions every time the helper changes.
-  - For CI or production, install a signed release from npm: `pnpm add -D ogmios@latest`.
+  - For CI or production, unset `OGMIOS_HELPER_PATH` and install a signed release via `npx ogmios setup`.
 
 ### `ogmios setup` fails with ENOENT on `~/Applications/`
 
@@ -147,4 +147,4 @@ Exit codes 0-9 are documented in the [CLI reference](/api/cli#exit-codes).
 ## Still stuck?
 
 1. Run `ogmios info` — it prints a diagnostic blob suitable for pasting into a bug report.
-2. Open an issue on [the repo](https://github.com/thejackshelton/ogmios/issues) with: macOS version, Node version, pnpm version, the output of `ogmios doctor`, and the output of `ogmios info`.
+2. Open an issue on [the repo](https://github.com/thejackshelton/ogmios/issues) with: macOS version, Node version, pnpm version, and the output of `ogmios info`.

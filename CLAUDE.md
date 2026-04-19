@@ -49,8 +49,8 @@ If everything else fails, this must work: `voiceOver.listen()` in a Vitest brows
 | Tool | Purpose | Notes |
 |------|---------|-------|
 | **Zig build system** (`build.zig`, `build.zig.zon`) | Primary build system | napi-zig plugs in via `napi_zig.addLib(b, napi_dep, .{ ... })`. No separate Makefile, no CMake. |
-| **ogmios-doctor CLI** (to build) | Diagnose + auto-configure VoiceOver/Accessibility permissions on the user's Mac | Required for "setup that doesn't require a sysadmin" (PROJECT.md "Active" requirement). Mirrors what @guidepup/setup does. Ships as a subcommand of the ogmios CLI. |
-| **`tccutil` (third-party, DocSystem or jacobsalmela)** | TCC.db manipulation scripts for the reference tart image build | Only used during image bake, not at user runtime. Runtime users should use our `ogmios-doctor` which avoids SIP-off modifications wherever possible. |
+| **`ogmios setup` CLI subcommand** | Auto-configure VoiceOver/Accessibility permissions on the user's Mac | Required for "setup that doesn't require a sysadmin" (PROJECT.md "Active" requirement). Mirrors what @guidepup/setup does. Downloads a signed `OgmiosSetup.app`, launches it, lets macOS fire real TCC prompts. (The standalone `ogmios doctor` subcommand was removed in v0.1.7 — every failure it reported required `setup` to fix, so `setup` owns the whole flow.) |
+| **`tccutil` (third-party, DocSystem or jacobsalmela)** | TCC.db manipulation scripts for the reference tart image build | Only used during image bake, not at user runtime. Runtime users should use our `ogmios setup` which avoids SIP-off modifications wherever possible. |
 | **minisign** / Zig tarball signing | Verify Zig downloads in CI | mlugg/setup-zig handles this automatically. |
 | **Codesign + notarytool** | macOS codesigning + notarization of the `.node` binary if we ship outside npm | See §Code signing. npm-only distribution **does not require notarization** (npm-installed binaries are trust-inherited from the user's shell/Node). If we later distribute a standalone CLI via Homebrew or a pkg, notarization becomes required. |
 ## Installation (Ogmios dev setup, once this is a real repo)
@@ -99,8 +99,9 @@ If everything else fails, this must work: `voiceOver.listen()` in a Vitest brows
 ### If the user is on Jest:
 - Identical pattern via `globalSetup` / `globalTeardown`.
 ### If the user is running locally on their own Mac:
-- `npx ogmios doctor` detects missing VO-AppleScript-enabled flag, missing Accessibility permissions for their terminal/IDE, etc.
-- Where possible, `ogmios doctor` fixes in-place without requiring SIP-off (e.g., opening the VoiceOver Utility pref pane programmatically). Where impossible, it clearly explains what SIP-off + TCC modification the user needs to perform manually — or it recommends the VM path.
+- `npx ogmios setup` downloads the signed helper bundles, launches `OgmiosSetup.app`, and lets macOS fire the Accessibility + Automation TCC prompts cleanly on first run.
+- Where the VO-AppleScript-enabled flag is missing, `setup` either writes it (when SIP permits) or prints the exact `sudo defaults write` command. SIP-off modifications are never required of end users — the tart VM path handles those for CI.
+- `npx ogmios info` prints a diagnostic dump (helper path, TCC.db accessibility) for bug reports. `npx ogmios restore-vo-settings` is the escape hatch if a crash leaves VO settings altered.
 ### If the user is running in CI:
 - **Preferred:** `docker://ghcr.io/ogmios/macos-vo-vm:latest` (our pre-baked tart image, VO-enabled, SIP-off), orchestrated by a `ogmios-action` GitHub Action wrapper around `cirruslabs/tart-action`.
 - **Alternative A (Cirrus Runners):** single-line swap `runs-on: ghcr.io/cirruslabs/macos-sequoia-xcode:latest` (or our `ogmios` variant), uses our image template.
@@ -122,7 +123,7 @@ If everything else fails, this must work: `voiceOver.listen()` in a Vitest brows
 | Zig 0.16.0 | Yuku (for reference only) | Yuku's `build.zig.zon` also pins 0.16.0-dev.2535. So napi-zig + Yuku move together. |
 | Node 24 LTS | napi-zig latest | napi-zig README's publish.yml uses `node-version: 24`. N-API is ABI-stable, so 20/22 should also work, but test on 24 as baseline. |
 | Vitest 3.x | Playwright provider, Node 24 | Recommended provider as of 2026. WebdriverIO works but is heavier setup. |
-| tart 2.x | macOS 13+ host (Apple Silicon), guest macOS 13-15 (Sonoma, Sequoia, Tahoe all have public cirruslabs base images). | Guest must be ≥ macOS version where VoiceOver-AppleScript control works. macOS 14+ changed TCC prompt UX — handle both branches in `ogmios doctor`. |
+| tart 2.x | macOS 13+ host (Apple Silicon), guest macOS 13-15 (Sonoma, Sequoia, Tahoe all have public cirruslabs base images). | Guest must be ≥ macOS version where VoiceOver-AppleScript control works. macOS 14+ changed TCC prompt UX — handle both branches in `ogmios setup` / `OgmiosSetup.app`. |
 | macOS 14+ SIP | VO-AppleScript-enabled file modification | Requires SIP-off to write `.VoiceOverAppleScriptEnabled`. Bake in tart image; never ask users to disable SIP on their host. |
 | npm package name | `ogmios` + `@ogmios/binding-*` | Unscoped, distinctive Latin name. Prior attempts (`ogmios`, `@ogmios/core`) were blocked by npm's anti-typosquatting policy vs. `shiki`. |
 ## Sources

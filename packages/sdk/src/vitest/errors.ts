@@ -28,7 +28,7 @@ export class OgmiosPlatformUnsupportedError extends OgmiosError {
   constructor(public readonly platform: string) {
     super(
       `Ogmios Vitest integration requires macOS; this host is ${platform}. ` +
-        'Run `npx ogmios doctor` or set up a macOS runner — see https://github.com/thejackshelton/ogmios.',
+        'Set up a macOS runner — see https://github.com/thejackshelton/ogmios.',
       'ERR_OGMIOS_PLATFORM_UNSUPPORTED',
     );
     this.name = 'OgmiosPlatformUnsupportedError';
@@ -50,7 +50,7 @@ export class OgmiosBindingNotAvailableError extends OgmiosError {
     super(
       'The ogmios native binding is not available in this process. ' +
         (cause ? `Underlying error: ${cause}. ` : '') +
-        'Run `npx ogmios doctor` or check that the platform-specific binding is installed.',
+        'Run `npx ogmios info` or check that the platform-specific binding is installed.',
       'ERR_OGMIOS_BINDING_NOT_AVAILABLE',
     );
     this.name = 'OgmiosBindingNotAvailableError';

@@ -7,6 +7,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-04-18
+
+### Removed
+
+- **`ogmios doctor` subcommand (and all diagnostic checks, reporters, and
+  the `--fix` pipeline).** Eight months of field use proved doctor was
+  unactionable for consumers: every failure it surfaced (`TCC_*`,
+  `VO_APPLESCRIPT_DISABLED`, `SIGNATURE_MISMATCH`, `NEEDS_FULL_DISK_ACCESS`,
+  stale-entry detection) either required the GUI setup flow to fix or
+  required `sudo`/SIP-off steps the CLI cannot perform on the user's
+  behalf. `ogmios setup` now owns the entire onboarding path — download
+  `OgmiosRunner.app` + `OgmiosSetup.app`, launch the signed `.app`, let
+  macOS fire the real Accessibility + Automation TCC prompts. If the
+  prompts don't fire, doctor's advice was identical: run setup.
+- Removed exports from `ogmios/cli`: `runDoctor`, `applyFixActions`,
+  `printHumanReport`, `printJsonReport`, `printQuietReport`,
+  `DoctorError`, `HelperNotFoundError`, `NonDarwinHostError`,
+  `UnsupportedMacOSError`, `ExitCode`, `EXIT_CODE_PRIORITY`,
+  `resolveExitCode`, and all doctor-era types (`DoctorReport`,
+  `DoctorCheckResult`, `CheckId`, `CheckStatus`, `FixAction`,
+  `RunDoctorOptions`, `FixExecutionResult`, `ApplyFixActionsOptions`).
+- Deleted internal modules: `src/cli/run-doctor.ts`,
+  `src/cli/fix-executor.ts`, `src/cli/report-types.ts`,
+  `src/cli/errors.ts`, and the entire `src/cli/checks/` and
+  `src/cli/reporters/` directories. `helper-discovery.ts` and
+  `tcc-db-paths.ts` moved up to `src/cli/` (still used by `ogmios info`).
+- Doctor-era exit code namespace (`0..9`) is retired. Remaining
+  subcommands use their own narrow codes (see `SETUP_EXIT` for `setup`).
+
+### Kept
+
+- `ogmios setup` (primary onboarding).
+- `ogmios info` (diagnostic dump for bug reports — now reports helper
+  resolution + TCC.db accessibility only).
+- `ogmios restore-vo-settings` (crash-recovery escape hatch for the VO
+  plist snapshot; Plan 07-05).
+- `~/.shoki` / `~/.dicta` / `~/.munadi` legacy-state-dir notice — fires
+  on `setup` and `info`, independent of doctor.
+
+### Compatibility
+
+- `compatibleAppVersion` stays at `0.1.6`. No helper-app rebuild, no new
+  `app-v*` GitHub Release. `ogmios setup` continues to download
+  `app-v0.1.6` artifacts.
+
+### Migration
+
+- CI scripts that branched on `ogmios doctor --json` exit codes should
+  replace them with `ogmios setup` (exit 0 = ready) or omit the step
+  entirely — if `ogmios setup` completed successfully once, TCC grants
+  persist across runs on that host.
+
 ## [0.1.1] - 2026-04-18
 
 ### Renamed

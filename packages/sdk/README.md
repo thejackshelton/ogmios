@@ -9,7 +9,6 @@ The CLI bin name is `ogmios` — install and use as:
 ```bash
 npm install ogmios
 npx ogmios setup
-npx ogmios doctor
 ```
 
 ```ts

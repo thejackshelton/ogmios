@@ -61,7 +61,7 @@ The composite action auto-detects your runner and applies the right setup:
 
 - **Self-hosted tart** — no-op; the image is already baked with VO-AppleScript-enabled + TCC grants.
 - **Cirrus Runners** — no-op; same tart image under the hood.
-- **GetMac / GH-hosted** — runs `ogmios doctor --fix` to enable VO AppleScript, kills background announcement-emitting apps (Slack, Discord, Mail, Calendar), and verifies Accessibility grants.
+- **GetMac / GH-hosted** — runs the VO-AppleScript-enable step (`sudo defaults write … SCREnableAppleScriptEnabled -bool true` when SIP permits), kills background announcement-emitting apps (Slack, Discord, Mail, Calendar), and then runs `ogmios setup` to install the helper bundles and trigger the TCC prompts non-interactively.
 
 See [CI-03 / CI-05 in the roadmap](https://github.com/thejackshelton/ogmios/blob/main/.planning/ROADMAP.md) for the full matrix of what gets set up where.
 

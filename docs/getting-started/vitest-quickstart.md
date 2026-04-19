@@ -1,10 +1,10 @@
 # Vitest quickstart
 
-The fastest way to get a real VoiceOver-backed test running. Five minutes end to end if `ogmios doctor` already passes.
+The fastest way to get a real VoiceOver-backed test running. Five minutes end to end if `ogmios setup` has already completed on this machine.
 
 ## Prerequisites
 
-- `ogmios doctor` exits 0 — see [Install](./install) and [Permission setup](./permission-setup).
+- `ogmios setup` has run to completion on this Mac — see [Install](./install) and [Permission setup](./permission-setup).
 - A project with Vitest (3.x or 4.x) installed.
 - Playwright's Chromium available for Vitest browser mode.
 
@@ -195,7 +195,7 @@ The canonical [`examples/vitest-browser-qwik`](https://github.com/thejackshelton
 ## Troubleshooting
 
 - **`OgmiosConcurrentTestError`** — you used `test.concurrent` somewhere in the file. Remove it; VoiceOver is a singleton.
-- **Empty log + `toHaveAnnounced` fails** — run `ogmios doctor`. Missing Automation grant is the #1 cause.
+- **Empty log + `toHaveAnnounced` fails** — almost always a missing Automation grant. Re-run `npx ogmios setup --force`.
 - **Timeout on `awaitStable`** — bump `quietMs` or `timeoutMs`. On a slow machine 500ms is tight.
 - **"VoiceOver driver is macOS-only"** — you're on Linux/Windows; drop `OGMIOS_INTEGRATION=1`.
 

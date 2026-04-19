@@ -259,7 +259,7 @@ If that assertion ever fails, one of the three layers above has regressed
 - **RegExp flags matter** — `/submit/i` matches "Submit" and "SUBMIT"; `/submit/` does not.
 - **`source`** is `"applescript"` or `"ax"` — distinguishing the capture path matters only for debugging, not for application correctness.
 - **`interrupt`** is only set by the AppleScript capture path; the AX-notifications path doesn't carry it.
-- **Empty logs are a red flag** unless you explicitly assert them via `toHaveNoAnnouncement` — if you're getting empty logs you didn't expect, your grants are almost certainly missing. Run `ogmios doctor`.
+- **Empty logs are a red flag** unless you explicitly assert them via `toHaveNoAnnouncement` — if you're getting empty logs you didn't expect, your grants are almost certainly missing. Re-run `npx ogmios setup --force`.
 
 ## Full API reference
 

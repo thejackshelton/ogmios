@@ -18,7 +18,7 @@ Human steps to publish `ogmios` v0.1.1 + OgmiosRunner.app v0.1.1.
 >    ships.
 >
 > The CLI bin command is `ogmios` — users run `npx ogmios setup` /
-> `npx ogmios doctor`. Helper-app file names are `OgmiosRunner.app` /
+> `npx ogmios info`. Helper-app file names are `OgmiosRunner.app` /
 > `OgmiosSetup.app`, and the binding packages are
 > `@ogmios/binding-darwin-*`. All `dicta` / `@shoki/*` packages published
 > during the v0.1.0 run are deprecated in favor of `ogmios`.
@@ -140,11 +140,12 @@ npm init -y
 npm install ogmios
 npx ogmios setup
 # click through the 2 TCC dialogs — should work end-to-end
-npx ogmios doctor --json | jq
+npx ogmios info
 npx ogmios restore-vo-settings --dry-run
 ```
 
-If `ogmios doctor` reports all green, v0.1.1 is live and consumable.
+If `ogmios setup` exits 0 and `ogmios info` shows the helper resolved under
+`~/Applications/OgmiosRunner.app`, v0.1.1 is live and consumable.
 
 ## Step 6: Announce
 
@@ -161,4 +162,5 @@ If `ogmios doctor` reports all green, v0.1.1 is live and consumable.
 - The `@shoki` org on npm will host only the deprecated bindings forever;
   `@ogmios` is the forward-going scope.
 - `~/.shoki/` / `~/.dicta/` / `~/.munadi/` state dirs on existing developer
-  machines — `ogmios doctor` prints a one-line cleanup hint on first run.
+  machines — `ogmios setup` / `ogmios info` prints a one-line cleanup hint on
+  first run.

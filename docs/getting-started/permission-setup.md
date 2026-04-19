@@ -5,7 +5,9 @@ macOS gates VoiceOver automation behind two permission layers:
 1. **VoiceOver AppleScript control** — a single plist key that enables scripting. Off by default since macOS 26.
 2. **TCC grants** (Transparency, Consent, Control) — per-executable Accessibility + Automation permissions, keyed by code signature.
 
-Ogmios's job is to make these discoverable. Run `ogmios doctor` and it tells you exactly which layer is missing and how to fix it.
+`ogmios setup` resolves all of this in one step: it downloads a signed `.app` bundle, launches a minimal GUI, and lets macOS fire the real TCC prompts. You click "Allow" twice. Done.
+
+> **Note for v0.1.7+:** The former `ogmios doctor` subcommand (which used to enumerate each layer and emit fix suggestions) was removed. Every failure it surfaced required the GUI setup flow to fix, so the setup flow became the one-and-done path.
 
 ## First-run flow: `npx ogmios setup`
 
@@ -31,6 +33,8 @@ That replaces the old "System Settings → Privacy & Security → four-step danc
 npx ogmios setup --force    # redownload + reinstall (e.g. after a compatibleAppVersion bump)
 ```
 
+`--force` is the standard answer to "I clicked 'Don't Allow' by mistake" — quitting and relaunching `OgmiosSetup.app` re-fires the system prompts.
+
 ### If ogmios has left your VoiceOver settings in a weird state
 
 ```bash
@@ -41,107 +45,12 @@ ogmios restore-vo-settings  # escape hatch — see below
 
 If you can't run `ogmios setup` (offline CI, sandboxed shell, etc.), the manual fallback is to download `ogmios-darwin-<arch>.zip` + `.sha256` from the [`app-v*` GitHub Release](https://github.com/thejackshelton/ogmios/releases), verify the hash yourself, unzip into `~/Applications/`, strip quarantine (`xattr -dr com.apple.quarantine ~/Applications/OgmiosRunner.app ~/Applications/OgmiosSetup.app`), and launch `OgmiosSetup.app` manually. Or pass `--install-dir <path>` + `--no-download` if your image is pre-seeded.
 
-## The happy path
-
-```bash
-npx ogmios doctor
-```
-
-Expected output when everything is set up:
-
-```
-✓ macOS 14.6 (Sonoma) — supported
-✓ VoiceOver AppleScript control enabled
-✓ OgmiosRunner.app found at /path/to/ogmios-darwin-arm64/helper/OgmiosRunner.app
-✓ OgmiosRunner.app is Developer ID signed
-✓ Accessibility grant present for OgmiosRunner.app
-✓ Automation grant present for OgmiosRunner.app → VoiceOver
-
-ready to run ogmios · exit 0
-```
-
-If every box is checked, skip to the [Vitest quickstart](./vitest-quickstart).
-
-## Fixing common failures
-
-### 3 · VO_APPLESCRIPT_DISABLED
-
-```
-✗ VoiceOver AppleScript control disabled
-  Run: sudo defaults write /Library/Preferences/com.apple.VoiceOver4.local \
-       SCREnableAppleScriptEnabled -bool true
-```
-
-Ogmios will offer `ogmios doctor --fix` which attempts the write automatically when SIP permits. On systems where SIP blocks the write (most modern macOS installs), `--fix` falls back to printing the exact command and a deep link to the right System Settings pane.
-
-### 4 · TCC_MISSING_ACCESSIBILITY
-
-```
-✗ Accessibility grant missing for OgmiosRunner.app
-  Grant at: System Settings → Privacy & Security → Accessibility
-  Deep link: x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility
-```
-
-`ogmios doctor` emits `open <deep-link>` as a follow-up command. Once you grant it in the UI, re-run `ogmios doctor` to verify.
-
-### 5 · TCC_MISSING_AUTOMATION
-
-```
-✗ Automation grant missing: OgmiosRunner.app → VoiceOver
-  Grant at: System Settings → Privacy & Security → Automation
-  Deep link: x-apple.systempreferences:com.apple.preference.security?Privacy_Automation
-```
-
-Same fix flow as Accessibility. VoiceOver has to appear as a child entry under OgmiosRunner.app after the helper tries to script it once.
-
-### 6 · SIGNATURE_MISMATCH
-
-```
-✗ Stale TCC grant for OgmiosRunner.app (csreq does not match current signature)
-  Run: tccutil reset Accessibility org.ogmios.runner
-       tccutil reset AppleEvents org.ogmios.runner
-```
-
-This happens when the helper binary is replaced (e.g. you reinstalled the binding package at a new version) but the TCC database still references the old code signing hash. `tccutil reset` clears both entries; re-grant in the UI.
-
-### 7 · NEEDS_FULL_DISK_ACCESS
-
-```
-✗ Cannot read system TCC.db (SIP-protected)
-  ogmios doctor needs Full Disk Access to read this file.
-  Grant at: System Settings → Privacy & Security → Full Disk Access
-```
-
-This is only needed by `ogmios doctor` itself, not by the test runtime. If you don't want to grant FDA to your terminal, you can skip the system-TCC check with `ogmios doctor --skip-system-tcc` — the user-scope TCC database is usually enough.
-
-### 8 · HELPER_MISSING
-
-```
-✗ OgmiosRunner.app not found under any @ogmios/binding-* install
-  Likely cause: wrong platform binding selected or install was interrupted.
-  Try: pnpm install --force
-```
-
-### 9 · HELPER_UNSIGNED
-
-```
-⚠ OgmiosRunner.app is unsigned (dev build)
-  TCC grants will reset every rebuild. This is expected for local dev.
-  For CI or production, install a signed release from npm.
-```
-
-Not actually fatal for local work — it just means you'll re-grant permissions every time the helper changes. For CI you must use a signed release.
-
 ## Common first-run gotchas
 
-- **"I granted it but doctor still says missing"** — toggle the grant off and back on in System Settings. macOS occasionally caches the old state.
+- **"I clicked 'Don't Allow' — what now?"** — Run `npx ogmios setup --force`. That re-launches `OgmiosSetup.app` and macOS re-fires the prompts. If `--force` isn't enough (macOS stored the denial in TCC.db), reset and re-run: `tccutil reset Accessibility org.ogmios.runner && tccutil reset AppleEvents org.ogmios.runner && npx ogmios setup --force`.
 - **"`tccutil reset` asks for my password but nothing changes"** — use the exact bundle ID `org.ogmios.runner` (not the binary path). Bundle IDs are what TCC keys on.
-- **VoiceOver starts but announces nothing in tests** — almost always a missing Automation grant (→ VoiceOver specifically). The Accessibility grant is necessary but not sufficient.
+- **VoiceOver starts but announces nothing in tests** — almost always a missing Automation grant (→ VoiceOver specifically). The Accessibility grant is necessary but not sufficient. Re-run `ogmios setup --force`.
 - **Tests work locally, fail in CI** — your CI image lacks the grants. Use the [pre-baked tart image](/guides/ci/tart-selfhosted) or the [`ogmios/setup-action`](/getting-started/ci-quickstart).
-
-## Exit codes
-
-`ogmios doctor` exits non-zero on any failure so CI scripts can branch on the cause. The full table is in the [CLI reference](/api/cli).
 
 ## Recovery: `ogmios restore-vo-settings`
 
@@ -191,4 +100,4 @@ If ogmios starts up and finds a stale snapshot file, that's informational — no
 
 ## Next step
 
-Once `ogmios doctor` exits 0, head to the [Vitest quickstart](./vitest-quickstart) and run your first real test.
+Once `ogmios setup` has completed, head to the [Vitest quickstart](./vitest-quickstart) and run your first real test.

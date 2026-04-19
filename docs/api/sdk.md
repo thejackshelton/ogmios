@@ -6,7 +6,7 @@ Core TypeScript SDK. Public API surface for booting a screen reader, reading str
 |-------|--------|---------|
 | **Root** | `ogmios` | `voiceOver()` factory, `ScreenReaderHandle`, event types. |
 | **Matchers** | `ogmios/matchers` | Framework-agnostic matcher functions (pure assertion logic). See [Matchers API](/api/matchers). |
-| **CLI library** | `ogmios/cli` | Library exports for `ogmios` CLI internals (`runDoctor`, `applyFixActions`, report types). See [CLI API](/api/cli). |
+| **CLI library** | `ogmios/cli` | Library exports for programmatic access to `ogmios` CLI internals (`runSetup`, `discoverHelper`, `restoreVoSettingsFromSnapshot`, TCC.db helpers, legacy-state notice). See [CLI API](/api/cli). |
 | **Binary** | `bin: ogmios` | CLI entry (`./dist/cli/main.js`). Installed on PATH via `npx ogmios …`. |
 
 ```ts
@@ -226,7 +226,7 @@ All ogmios errors extend `OgmiosError`.
 | `OgmiosBindingNotAvailableError` | Platform-specific native binding failed to load. |
 | `OgmiosVoiceOverUnavailableError` | VO binary not found (should never happen on stock macOS). |
 | `OgmiosTimeoutError` | `.start()`, `.awaitStableLog()` exceeded their timeout. |
-| `OgmiosCapturePathFailedError` | Both capture paths failed to initialize (check `ogmios doctor`). |
+| `OgmiosCapturePathFailedError` | Both capture paths failed to initialize. Usually means the Accessibility + Automation TCC grants aren't on the signed helper — re-run `npx ogmios setup --force`. |
 
 ## Caveats
 
@@ -238,5 +238,5 @@ All ogmios errors extend `OgmiosError`.
 
 - [Matchers API](/api/matchers) — `expect` matchers at `ogmios/matchers` (pure fns) + `ogmios/vitest/setup` (wiring).
 - [`ogmios/vitest`](/api/vitest) — Vitest browser-mode integration.
-- [`ogmios` CLI](/api/cli) — doctor / setup / info / restore-vo-settings subcommands.
+- [`ogmios` CLI](/api/cli) — setup / info / restore-vo-settings subcommands.
 - [Adding a screen reader driver](/background/adding-a-driver) — the same `ScreenReaderHandle` interface is reused.

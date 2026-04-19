@@ -41,8 +41,7 @@ features:
 
 ```bash
 pnpm add -D ogmios
-npx ogmios doctor
-# If TCC is missing, one-click setup via the bundled GUI:
+# One-click setup via the bundled GUI (installs the helper + fires the TCC prompts):
 npx ogmios setup
 ```
 

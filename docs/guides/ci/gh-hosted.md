@@ -48,7 +48,7 @@ jobs:
         # On stock macos-latest the action does the full setup each run:
         # - sudo writes VO AppleScript plist
         # - kills background apps
-        # - runs ogmios doctor --fix
+        # - runs ogmios setup to install the helper + fire TCC prompts non-interactively
         # Expect ~30-60s of overhead per job.
 
       - run: pnpm install --frozen-lockfile
@@ -64,7 +64,7 @@ See the full reference at [`.github/workflows/examples/ogmios-github-hosted.yml`
 - Writes VO AppleScript plist (cold VM; always needed).
 - Grants Accessibility + Automation TCC to the helper (via `tccutil` + SIP-off workarounds; see notes).
 - Kills background announcement daemons.
-- Runs `ogmios doctor` and fails fast if anything didn't stick.
+- Runs `ogmios setup` and fails fast if anything didn't stick (non-zero exit means the helper wasn't installed or the TCC prompts couldn't be auto-approved).
 
 ## Known issues
 

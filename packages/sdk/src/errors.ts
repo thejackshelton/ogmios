@@ -33,7 +33,7 @@ export class BindingNotInstalledError extends OgmiosError {
       `The native binding package "${expectedPackage}" is not installed. ` +
         `This usually means your package manager skipped optionalDependencies — ` +
         `check your install (npm, pnpm, yarn) and confirm ${expectedPackage} is in node_modules. ` +
-        `Phase 2 ships a 'ogmios doctor' CLI that diagnoses this automatically.`,
+        `Run 'npx ogmios info' to see which binding path was searched.`,
       'ERR_BINDING_NOT_INSTALLED',
     );
     this.name = 'BindingNotInstalledError';

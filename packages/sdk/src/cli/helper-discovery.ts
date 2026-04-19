@@ -1,11 +1,10 @@
 import { access, constants } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { type DoctorCheckResult, ExitCode } from '../report-types.js';
 
 export interface HelperLocation {
   path: string;
-  source: 'npm' | 'dev' | 'env';
+  source: 'npm' | 'dev' | 'env' | 'installed';
 }
 
 export interface DiscoverHelperOptions {
@@ -20,6 +19,13 @@ export interface DiscoverHelperOptions {
   exists?: (path: string) => Promise<boolean>;
 }
 
+export interface DiscoverHelperResult {
+  /** Resolved location, or `null` if nothing matched. */
+  location: HelperLocation | null;
+  /** All paths consulted, in order. Useful for diagnostics / `ogmios info`. */
+  searched: string[];
+}
+
 const defaultExists = async (p: string): Promise<boolean> => {
   try {
     await access(p, constants.F_OK);
@@ -30,16 +36,17 @@ const defaultExists = async (p: string): Promise<boolean> => {
 };
 
 /**
- * CONTEXT.md D-09 search order:
+ * Search order (matches CONTEXT.md D-09):
  *   1. explicit override (CLI flag or $OGMIOS_HELPER_PATH)
- *   2. node_modules/ogmios-<platform>-<arch>/helper/OgmiosRunner.app (npm install path)
- *   3. helper/.build/OgmiosRunner.app  (dev build, detected by sibling Package.swift)
+ *   2. ~/Applications/OgmiosRunner.app  (installed via `ogmios setup`)
+ *   3. node_modules/ogmios-<platform>-<arch>/helper/OgmiosRunner.app (legacy npm install path)
+ *   4. helper/.build/OgmiosRunner.app    (dev build, detected by sibling Package.swift)
  *
- * Returns a DoctorCheckResult. On miss → HELPER_MISSING (exit code 8).
+ * Returns the resolved location and the list of paths searched.
  */
 export async function discoverHelper(
   options: DiscoverHelperOptions = {},
-): Promise<{ result: DoctorCheckResult; location: HelperLocation | null }> {
+): Promise<DiscoverHelperResult> {
   const exists = options.exists ?? defaultExists;
   const cwd = options.cwd ?? process.cwd();
   const platform = options.platform ?? process.platform;
@@ -53,12 +60,7 @@ export async function discoverHelper(
     if (await exists(options.overridePath)) {
       return {
         location: { path: options.overridePath, source: 'env' },
-        result: {
-          id: 'helper-present',
-          status: 'pass',
-          summary: `OgmiosRunner.app found at ${options.overridePath} (env/flag override)`,
-          meta: { path: options.overridePath, source: 'env' },
-        },
+        searched,
       };
     }
   }
@@ -68,18 +70,13 @@ export async function discoverHelper(
   searched.push(installedPath);
   if (await exists(installedPath)) {
     return {
-      location: { path: installedPath, source: 'npm' },
-      result: {
-        id: 'helper-present',
-        status: 'pass',
-        summary: `OgmiosRunner.app found at ${installedPath} (installed via ogmios setup)`,
-        meta: { path: installedPath, source: 'npm' },
-      },
+      location: { path: installedPath, source: 'installed' },
+      searched,
     };
   }
 
-  // 3. npm install path (legacy — binding tarball doesn't ship the .app currently,
-  //    kept for forward-compat when it might)
+  // 3. Legacy npm install path (kept for forward-compat when the binding tarball
+  //    might ship the .app directly)
   const npmPath = join(
     cwd,
     'node_modules',
@@ -91,40 +88,20 @@ export async function discoverHelper(
   if (await exists(npmPath)) {
     return {
       location: { path: npmPath, source: 'npm' },
-      result: {
-        id: 'helper-present',
-        status: 'pass',
-        summary: `OgmiosRunner.app found at ${npmPath} (npm install)`,
-        meta: { path: npmPath, source: 'npm' },
-      },
+      searched,
     };
   }
 
-  // 3. dev build path — detected by sibling Package.swift
+  // 4. Dev build path — detected by sibling Package.swift
   const devPath = join(cwd, 'helper', '.build', 'OgmiosRunner.app');
   const devSiblingManifest = join(cwd, 'helper', 'Package.swift');
   searched.push(devPath);
   if ((await exists(devPath)) && (await exists(devSiblingManifest))) {
     return {
       location: { path: devPath, source: 'dev' },
-      result: {
-        id: 'helper-present',
-        status: 'pass',
-        summary: `OgmiosRunner.app found at ${devPath} (dev build)`,
-        meta: { path: devPath, source: 'dev' },
-      },
+      searched,
     };
   }
 
-  return {
-    location: null,
-    result: {
-      id: 'helper-present',
-      status: 'fail',
-      summary: 'OgmiosRunner.app was not found in any known location',
-      detail: `Searched:\n  - ${searched.join('\n  - ')}`,
-      exitCode: ExitCode.HELPER_MISSING,
-      meta: { searched },
-    },
-  };
+  return { location: null, searched };
 }

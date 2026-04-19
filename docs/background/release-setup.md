@@ -189,8 +189,8 @@ tart pull ghcr.io/thejackshelton/ogmios-macos-vo-ready:sonoma
 tart run ogmios-vo-ready-sonoma --no-graphics &
 IP=$(tart ip ogmios-vo-ready-sonoma)
 ssh -o StrictHostKeyChecking=no admin@$IP \
-    'cat /etc/ogmios-image && ogmios doctor --json --quiet'
-# expected: ogmios doctor prints {"ok": true, ...} and exits 0
+    'cat /etc/ogmios-image && ogmios info'
+# expected: ogmios info prints the helper path + TCC accessibility lines and exits 0
 ```
 
 ### If the publish fails

@@ -4,7 +4,7 @@
  * Per CONTEXT.md decision D-05 (locked — clean break): after the fourth rename
  * (shoki → @shoki/core → dicta → munadi → ogmios) the CLI deliberately does
  * NOT auto-migrate state from prior names. Instead, on first run of `ogmios
- * doctor` or `ogmios setup` we emit a one-line notice naming any surviving
+ * setup` or `ogmios info` we emit a one-line notice naming any surviving
  * legacy state dirs so the user can delete them safely.
  *
  * Matched legacy dirs: `~/.shoki/`, `~/.dicta/`, `~/.munadi/`. Current state
