@@ -187,12 +187,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: app-darwin-arm64
           path: dist/app-darwin-arm64
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: app-darwin-x64
           path: dist/app-darwin-x64
