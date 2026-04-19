@@ -23,18 +23,21 @@
 //
 //   1. NSApplication.sharedApplication + setActivationPolicy(.regular) + activate
 //   2. Welcome NSAlert — single Continue button.
-//   3. Probe AXIsProcessTrusted(); skip step 4 if already granted.
-//   4. AXIsProcessTrustedWithOptions({ kAXTrustedCheckOptionPrompt: YES })
-//      -> macOS shows the Accessibility TCC dialog.
-//   5. Poll AXIsProcessTrusted() every 500ms for up to 120s until granted.
-//      Timeout -> "open System Settings" NSAlert + exit 4.
+//   3. Probe AXIsProcessTrusted(); if granted, skip to step 7.
+//   4. If NOT granted: show the "grant + relaunch" alert (opens System
+//      Settings and exits). The prior 120s polling loop was removed because
+//      on macOS 26 Tahoe + ad-hoc signing, AXIsProcessTrusted() caches its
+//      answer at process start — polling never observes the flip. Require
+//      the user to relaunch after granting.
+//   5. (merged into 4) — no mid-flow wait needed.
 //   6. Mid-flow NSAlert: "Accessibility granted, now requesting Automation."
 //   7. NSAppleScript `tell application "VoiceOver" to launch` -> VO boots.
 //   8. 3-second settle.
 //   9. NSAppleScript `tell application "VoiceOver" to get bounds of vo cursor`
 //      in a retry loop — the first hit fires the Automation TCC prompt;
 //      subsequent hits succeed once the user clicks Allow. Polls every
-//      500ms for up to 60s.
+//      500ms for up to 60s. If it times out, show a "grant + relaunch" alert
+//      and exit.
 //  10. Success NSAlert: "Ogmios is ready".
 //  11. NSAppleScript `tell application "VoiceOver" to quit` (courtesy cleanup).
 //  12. [NSApp terminate:nil].
@@ -232,6 +235,7 @@ fn runInteractive() !void {
     //    This gives them a chance to read BEFORE the first TCC dialog.
     // -----------------------------------------------------------------
     activateApp();
+    debugLogPid("Showing alert: Welcome to Ogmios Setup");
     showAlert(
         "Welcome to Ogmios Setup",
         "Click Continue to grant the 2 permissions ogmios needs " ++
@@ -241,46 +245,58 @@ fn runInteractive() !void {
             "Accessibility access.",
         "Continue",
     );
+    debugLog("Welcome alert dismissed");
 
     // -----------------------------------------------------------------
-    // 3. Probe Accessibility via the no-prompt variant first. If the
-    //    user already granted it on a prior run we skip the prompt +
-    //    polling entirely.
+    // 3. Single Accessibility check + relaunch-if-missing.
+    //
+    //    macOS 26 Tahoe (+ ad-hoc signing) caches the
+    //    AXIsProcessTrusted() answer near process start. A long
+    //    polling loop after a flip in System Settings never observes
+    //    the grant. The correct UX is: check once at wizard start.
+    //    If granted -> proceed. If not -> fire the TCC prompt, open
+    //    System Settings, and exit so the user relaunches.
     // -----------------------------------------------------------------
-    if (!ak.AXIsProcessTrusted()) {
-        // Fire the Accessibility TCC dialog.
+    debugLog("Checking AXIsProcessTrusted (pre-prompt)");
+    const pre_prompt_trusted: bool = ak.AXIsProcessTrusted();
+    debugLogBool("AX trusted (pre-prompt)", pre_prompt_trusted);
+    if (!pre_prompt_trusted) {
+        // Fire the Accessibility TCC dialog so the toggle appears in
+        // System Settings for this bundle (if it's not already there).
         const options = buildPromptOptions() orelse return error.CfDictionaryCreateFailed;
         defer ak.CFRelease(options);
+        debugLog("Calling AXIsProcessTrustedWithOptions (will show TCC prompt)");
         _ = ak.AXIsProcessTrustedWithOptions(options);
 
-        // -----------------------------------------------------------------
-        // 4. BLOCK on the user's grant. Poll every 500ms for up to 120s.
-        //    Without this loop the old flow raced ahead and fired the
-        //    Automation dialog over the top of the Accessibility dialog.
-        // -----------------------------------------------------------------
-        const granted = pollAccessibility(120);
-        if (!granted) {
-            activateApp();
-            showAlert(
-                "Accessibility access is required",
-                "Ogmios could not detect an Accessibility grant within 120 " ++
-                    "seconds.\n\nOpen System Settings \xe2\x86\x92 Privacy & Security " ++
-                    "\xe2\x86\x92 Accessibility, enable OgmiosSetup, and re-run this " ++
-                    "app.",
-                "Close",
-            );
-            exit(4);
-        }
+        // After the user clicks "Open System Settings" (or "Deny") on the
+        // TCC prompt, re-activate so our relaunch alert sits on top.
+        activateApp();
+        debugLog("Showing alert: Grant Accessibility + Relaunch");
+        showAlert(
+            "Grant Accessibility + Relaunch",
+            "Please enable 'OgmiosSetup' in System Settings \xe2\x86\x92 " ++
+                "Privacy & Security \xe2\x86\x92 Accessibility, then quit and " ++
+                "relaunch this app by running `npx ogmios setup` again.\n\n" ++
+                "macOS caches the trust state at launch, so re-running the " ++
+                "setup app is required after you flip the toggle.",
+            "Open System Settings & Quit",
+        );
+        debugLog("Opening System Settings (Accessibility) and exiting");
+        _ = runAppleScript(
+            "do shell script \"open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'\"",
+        );
+        exit(0);
     }
 
     // -----------------------------------------------------------------
     // 5. Mid-flow alert — tell the user Accessibility is done and
     //    what's about to happen next.
     //
-    //    The Accessibility TCC dialog stole focus; re-activate so the
+    //    The TCC dialog (if shown) stole focus; re-activate so the
     //    next alert renders on top instead of behind our own window.
     // -----------------------------------------------------------------
     activateApp();
+    debugLog("Showing alert: Accessibility granted");
     showAlert(
         "Accessibility granted",
         "Next, Ogmios needs permission to control VoiceOver via " ++
@@ -290,6 +306,7 @@ fn runInteractive() !void {
             "permission. Click OK on that dialog.",
         "Continue",
     );
+    debugLog("Mid-flow alert dismissed");
 
     // -----------------------------------------------------------------
     // 6. Launch VoiceOver via NSAppleScript.
@@ -312,13 +329,15 @@ fn runInteractive() !void {
     const automation_granted = pollAutomation(60);
 
     // -----------------------------------------------------------------
-    // 8. Show success or warning alert.
+    // 8. Show success or relaunch alert.
     //
     //    VoiceOver launch + the Automation TCC dialog both steal focus;
     //    re-activate before the final alert so it renders on top.
     // -----------------------------------------------------------------
     activateApp();
+    debugLogBool("Automation granted", automation_granted);
     if (automation_granted) {
+        debugLog("Showing alert: Ogmios is ready");
         showAlert(
             "\xe2\x9c\x85 Ogmios is ready",
             "Both permissions have been granted. You can now close this " ++
@@ -326,13 +345,26 @@ fn runInteractive() !void {
             "Close",
         );
     } else {
+        // Same relaunch-required pattern as the Accessibility branch —
+        // cached TCC state means we can't reliably observe a mid-process
+        // grant flip. Exit and let the user relaunch.
+        debugLog("Showing alert: Grant Automation + Relaunch");
         showAlert(
-            "\xe2\x9a\xa0 Automation not granted",
-            "Ogmios could not detect Automation access within 60 seconds.\n\n" ++
-                "Open System Settings \xe2\x86\x92 Privacy & Security \xe2\x86\x92 Automation, " ++
-                "enable OgmiosSetup's control of VoiceOver, and re-run this app.",
-            "Close",
+            "Grant Automation + Relaunch",
+            "Ogmios could not detect Automation access.\n\n" ++
+                "Open System Settings \xe2\x86\x92 Privacy & Security \xe2\x86\x92 " ++
+                "Automation, enable OgmiosSetup's control of VoiceOver, " ++
+                "then quit and relaunch this app by running `npx ogmios " ++
+                "setup` again.",
+            "Open System Settings & Quit",
         );
+        debugLog("Opening System Settings (Automation) and exiting");
+        _ = runAppleScript(
+            "do shell script \"open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Automation'\"",
+        );
+        // Courtesy: stop VoiceOver before exiting.
+        _ = runAppleScript("tell application \"VoiceOver\" to quit");
+        exit(0);
     }
 
     // -----------------------------------------------------------------
@@ -470,13 +502,15 @@ fn activateApp() void {
 /// stage of the sequenced flow: we never advance past an alert until the
 /// user has acknowledged it.
 ///
-/// After `runModal` returns we explicitly `orderOut:` the alert's window
-/// and `release` the alert object. Without this, the alert's NSWindow can
-/// linger in the app's window list; if the next operation surfaces a
-/// system dialog (e.g. the Accessibility TCC prompt) and the system
-/// dialog's dismissal re-activates our app, the lingering alert window
-/// can redraw on screen, which the user perceives as "the Welcome modal
-/// never dismissed".
+/// After `runModal` returns we explicitly `close` the alert's window
+/// (rather than `orderOut:`) and `release` the alert object. On macOS 26
+/// Tahoe `orderOut:` was observed to only demote the window's level — the
+/// NSAlert's NSWindow stayed on screen and redrew when focus returned
+/// from a subsequent TCC dialog. `close` properly removes the window
+/// from the screen, decrements its retain count, and fires the close
+/// notification chain. We then drain the main runloop for a short tick
+/// so AppKit can finish its window-removal bookkeeping before the next
+/// modal appears.
 ///
 /// `title` is set via setMessageText:; `body` via setInformativeText:;
 /// `button_label` is the single action button.
@@ -501,17 +535,82 @@ fn showAlert(title: [*:0]const u8, body: [*:0]const u8, button_label: [*:0]const
     const button = nsString(button_label) orelse return;
     _ = ak.objc_msgSend_id_id(alert, sel_add_button, button);
 
-    _ = ak.objc_msgSend_i64(alert, sel_run_modal);
+    const modal_response = ak.objc_msgSend_i64(alert, sel_run_modal);
+    debugLogI64("runModal returned code", modal_response);
 
-    // Explicitly dismiss + release the alert so its window leaves the
-    // app's window list. Recovering focus from the subsequent TCC dialog
-    // would otherwise redraw the stale alert window.
+    // Explicitly close the alert's window so it leaves the app's window
+    // list. `orderOut:` was previously used here but proved insufficient
+    // on macOS 26 Tahoe — the window lingered and redrew after focus
+    // bounced back from a TCC dialog, which the user perceived as the
+    // alert "not dismissing".
     const sel_window = ak.sel_registerName("window") orelse return;
     const window = ak.objc_msgSend_id(alert, sel_window);
     if (window) |w| {
-        const sel_order_out = ak.sel_registerName("orderOut:") orelse return;
-        ak.objc_msgSend_void_id(w, sel_order_out, null);
+        const sel_close = ak.sel_registerName("close") orelse return;
+        ak.objc_msgSend_void(w, sel_close);
     }
     const sel_release = ak.sel_registerName("release") orelse return;
     ak.objc_msgSend_void(alert, sel_release);
+
+    // Let AppKit process the window-close event + pending display
+    // updates before we kick off the next modal. One short runloop spin
+    // (100ms) is plenty — we're not trying to run a real loop, just
+    // yielding so the current frame flushes.
+    drainMainRunloop(100);
+}
+
+/// Run the main NSRunLoop for up to `ms` milliseconds so AppKit can
+/// process pending UI events — typically the window-close notification
+/// chain fired by `[window close]`. Without this drain we can surface a
+/// new modal before the previous alert's window has actually left the
+/// screen.
+///
+/// `[[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]]`
+/// via objc_msgSend.
+fn drainMainRunloop(ms: u32) void {
+    const ns_run_loop_cls = ak.objc_getClass("NSRunLoop") orelse return;
+    const sel_main_run_loop = ak.sel_registerName("mainRunLoop") orelse return;
+    const main_run_loop = ak.objc_msgSend_id(ns_run_loop_cls, sel_main_run_loop) orelse return;
+
+    const ns_date_cls = ak.objc_getClass("NSDate") orelse return;
+    const sel_with_interval = ak.sel_registerName("dateWithTimeIntervalSinceNow:") orelse return;
+    const interval: f64 = @as(f64, @floatFromInt(ms)) / 1000.0;
+    const date = ak.objc_msgSend_id_f64(ns_date_cls, sel_with_interval, interval) orelse return;
+
+    const sel_run_until = ak.sel_registerName("runUntilDate:") orelse return;
+    ak.objc_msgSend_void_id(main_run_loop, sel_run_until, date);
+}
+
+// ---------------------------------------------------------------------------
+// Debug logging — stderr breadcrumbs at each wizard step so next-iteration
+// bug reports have a timeline.
+// ---------------------------------------------------------------------------
+
+/// `getpid()` — for the pre-check trace log.
+extern "c" fn getpid() c_int;
+
+fn debugLog(msg: []const u8) void {
+    var buf: [256]u8 = undefined;
+    const line = std.fmt.bufPrint(&buf, "[OgmiosSetup] {s}\n", .{msg}) catch return;
+    _ = write(2, line.ptr, line.len);
+}
+
+fn debugLogBool(label: []const u8, value: bool) void {
+    var buf: [256]u8 = undefined;
+    const v: []const u8 = if (value) "true" else "false";
+    const line = std.fmt.bufPrint(&buf, "[OgmiosSetup] {s}: {s}\n", .{ label, v }) catch return;
+    _ = write(2, line.ptr, line.len);
+}
+
+fn debugLogI64(label: []const u8, value: i64) void {
+    var buf: [256]u8 = undefined;
+    const line = std.fmt.bufPrint(&buf, "[OgmiosSetup] {s}: {d}\n", .{ label, value }) catch return;
+    _ = write(2, line.ptr, line.len);
+}
+
+fn debugLogPid(msg: []const u8) void {
+    var buf: [256]u8 = undefined;
+    const pid = getpid();
+    const line = std.fmt.bufPrint(&buf, "[OgmiosSetup pid={d}] {s}\n", .{ pid, msg }) catch return;
+    _ = write(2, line.ptr, line.len);
 }

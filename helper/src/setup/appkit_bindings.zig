@@ -120,6 +120,18 @@ const MsgSendIdIdpFn = *const fn (self: ?*anyopaque, op: ?*anyopaque, arg1: ?*?*
 /// for error info. We pass null.
 pub const objc_msgSend_id_idp: MsgSendIdIdpFn = @extern(MsgSendIdIdpFn, .{ .name = "objc_msgSend" });
 
+const MsgSendIdF64Fn = *const fn (self: ?*anyopaque, op: ?*anyopaque, arg1: f64) callconv(.c) ?*anyopaque;
+/// `id objc_msgSend(id self, SEL _cmd, double arg1)` — e.g.
+/// `[NSDate dateWithTimeIntervalSinceNow:0.1]`. Used by the post-alert
+/// runloop drain in setup_main.zig to let AppKit process the
+/// window-close notification before the next modal fires.
+///
+/// macOS x86_64 / arm64 ABI: `double` is passed in xmm0 / d0 respectively;
+/// making the calling convention explicit via this typed alias is
+/// critical — passing the value via objc_msgSend_void_i64 or similar
+/// would end up with garbage in the FP register slot.
+pub const objc_msgSend_id_f64: MsgSendIdF64Fn = @extern(MsgSendIdF64Fn, .{ .name = "objc_msgSend" });
+
 // ---------------------------------------------------------------------------
 // ApplicationServices — Accessibility trust check
 // ---------------------------------------------------------------------------
