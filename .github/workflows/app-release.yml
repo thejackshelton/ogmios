@@ -49,6 +49,13 @@ jobs:
         with:
           version: "0.16.0"
 
+      # Zig 0.16 on GH macos runners can't auto-discover the macOS SDK path,
+      # so system frameworks (Foundation/CoreFoundation) and dylibs (objc)
+      # fail to link. Export SDKROOT explicitly from xcrun so zig's sysroot
+      # logic picks them up.
+      - name: Export SDKROOT for Zig
+        run: echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
+
       # Conditional: only import the Developer ID cert when the secret is
       # present. Forks / unconfigured repos get ad-hoc signed bundles, which
       # still extract + launch; users just see the "cannot verify developer"
@@ -120,6 +127,9 @@ jobs:
         uses: mlugg/setup-zig@v2
         with:
           version: "0.16.0"
+
+      - name: Export SDKROOT for Zig
+        run: echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
 
       - name: Import Developer ID cert (if secrets present)
         if: env.HAVE_CERT == 'true'
