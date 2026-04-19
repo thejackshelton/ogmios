@@ -1,6 +1,6 @@
 {
   "name": "ogmios-darwin-arm64",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Ogmios native addon — darwin arm64 (Apple Silicon)",
   "license": "MIT",
   "repository": {

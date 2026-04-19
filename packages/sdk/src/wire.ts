@@ -39,7 +39,7 @@ export function decodeEvents(buf: Buffer): OgmiosEvent[] {
   if (version !== EXPECTED_WIRE_VERSION) {
     throw new OgmiosError(
       `Wire format version mismatch: binding produced ${version}, SDK expects ${EXPECTED_WIRE_VERSION}. ` +
-        `Reinstall ogmios and @ogmios/binding-* so their versions match.`,
+        `Reinstall ogmios and ogmios-darwin-* so their versions match.`,
       'ERR_WIRE_VERSION_MISMATCH',
     );
   }

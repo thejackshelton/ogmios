@@ -10,9 +10,9 @@ export interface HelperLocation {
 export interface DiscoverHelperOptions {
   /** Explicit override — skips search and returns this path if it exists. */
   overridePath?: string;
-  /** Root for "npm" search (node_modules/@ogmios/binding-*) — defaults to cwd. */
+  /** Root for "npm" search (node_modules/ogmios-<platform>-<arch>) — defaults to cwd. */
   cwd?: string;
-  /** Platform for the binding-<platform>-<arch> name. Defaults to process.platform/arch. */
+  /** Platform for the ogmios-<platform>-<arch> name. Defaults to process.platform/arch. */
   platform?: NodeJS.Platform;
   arch?: string;
   /** Injected existence check for unit tests — default uses node:fs/promises access(). */
@@ -31,7 +31,7 @@ const defaultExists = async (p: string): Promise<boolean> => {
 /**
  * CONTEXT.md D-09 search order:
  *   1. explicit override (CLI flag or $OGMIOS_HELPER_PATH)
- *   2. node_modules/@ogmios/binding-<platform>-<arch>/helper/OgmiosRunner.app (npm install path)
+ *   2. node_modules/ogmios-<platform>-<arch>/helper/OgmiosRunner.app (npm install path)
  *   3. helper/.build/OgmiosRunner.app  (dev build, detected by sibling Package.swift)
  *
  * Returns a DoctorCheckResult. On miss → HELPER_MISSING (exit code 8).
@@ -66,8 +66,7 @@ export async function discoverHelper(
   const npmPath = join(
     cwd,
     'node_modules',
-    '@ogmios',
-    `binding-${platform}-${arch}`,
+    `ogmios-${platform}-${arch}`,
     'helper',
     'OgmiosRunner.app',
   );

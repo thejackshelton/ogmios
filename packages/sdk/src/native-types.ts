@@ -1,5 +1,5 @@
 /**
- * The N-API surface exposed by @ogmios/binding-{platform}-{arch}.
+ * The N-API surface exposed by ogmios-{platform}-{arch}.
  * Mirrors zig/src/core/napi.zig from Plan 02. DO NOT change without
  * updating that file and bumping the wire format version.
  */

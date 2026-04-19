@@ -2,7 +2,7 @@
 
 TypeScript SDK for Ogmios — screen-reader test automation.
 
-Loads a platform-specific native binding (`@ogmios/binding-darwin-arm64` or `@ogmios/binding-darwin-x64`) via npm `optionalDependencies`. No postinstall scripts.
+Loads a platform-specific native binding (`ogmios-darwin-arm64` or `ogmios-darwin-x64`) via npm `optionalDependencies`. No postinstall scripts.
 
 The CLI bin name is `ogmios` — install and use as:
 
