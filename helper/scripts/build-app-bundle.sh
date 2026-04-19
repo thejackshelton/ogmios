@@ -46,6 +46,18 @@ if [[ -n "$TARGET" ]]; then
     ZIG_ARGS+=("-Dtarget=$TARGET")
 fi
 
+# Zig 0.16 on GH macos runners doesn't always auto-discover the macOS SDK
+# (SDKROOT env var isn't consistently honored for -framework lookups). Pass
+# --sysroot explicitly so linkFramework("Foundation", ...) can find the
+# system frameworks. Only on macOS where xcrun is available.
+if command -v xcrun >/dev/null 2>&1; then
+    SDK_PATH="$(xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)"
+    if [[ -n "$SDK_PATH" ]]; then
+        ZIG_ARGS+=("--sysroot" "$SDK_PATH")
+        echo "[build-app-bundle] Using macOS SDK: $SDK_PATH"
+    fi
+fi
+
 echo "[build-app-bundle] Building Zig helper (configuration=$CONFIG${TARGET:+, target=$TARGET})"
 zig build "${ZIG_ARGS[@]}"
 
