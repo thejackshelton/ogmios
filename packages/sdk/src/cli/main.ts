@@ -235,20 +235,17 @@ program
               `If you set $OGMIOS_SNAPSHOT_PATH during the ogmios run, pass --path.`,
           );
           process.exit(1);
-          break;
         case 'SNAPSHOT_UNRECOGNIZED':
           console.error(
             `File at ${opts.path} is not a recognized ogmios snapshot (missing _ogmios_snapshot_version).`,
           );
           process.exit(2);
-          break;
         case 'SNAPSHOT_STALE':
           console.error(
             `Snapshot is ${Math.floor((result.snapshotAgeSeconds ?? 0) / 86400)} days old (>7).\n` +
               `Pass --force to apply anyway, or delete ${opts.path} if you don't trust it.`,
           );
           process.exit(2);
-          break;
         case 'WRITE_FAILED':
           console.error(
             `${result.failures?.length ?? 0} key(s) failed to restore:`,
@@ -258,7 +255,6 @@ program
           }
           console.error(`${result.restoredKeys?.length ?? 0} key(s) succeeded.`);
           process.exit(2);
-          break;
         default:
           console.error(`Unknown error: ${result.code}`);
           process.exit(1);
