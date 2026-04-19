@@ -14,7 +14,7 @@ jobs:
     name: Lint + typecheck (TS)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -30,7 +30,7 @@ jobs:
     name: Zig unit tests
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/build-zig-binding
         with:
           target: aarch64-macos
@@ -46,7 +46,7 @@ jobs:
     name: Helper build + smoke launch
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: mlugg/setup-zig@v2
         with:
           version: "0.16.0"
@@ -88,7 +88,7 @@ jobs:
     runs-on: macos-14
     needs: [zig-test]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 10
