@@ -26,7 +26,7 @@ jobs:
     name: Build darwin-arm64 binding
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       # Phase 5 setup-action: no-op on GH-hosted in degraded mode, but it
       # quiesces background apps (reducing notarization-step interrupt risk)
       # and sets VO AppleScript for any signing-step smoke tests.
@@ -55,7 +55,7 @@ jobs:
     name: Build darwin-x64 binding (cross-compile from macos-14)
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup
         with:
           topology: github-hosted
@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-darwin-arm64, build-darwin-x64]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 10

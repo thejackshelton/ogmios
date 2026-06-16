@@ -48,7 +48,7 @@ jobs:
     env:
       OGMIOS_TART: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -73,7 +73,7 @@ jobs:
     name: parity — cirrus runners
     runs-on: ghcr.io/cirruslabs/macos-runner:sonoma
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -101,7 +101,7 @@ jobs:
     env:
       GETMAC: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -126,7 +126,7 @@ jobs:
     name: parity — github-hosted macos-latest
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 10
